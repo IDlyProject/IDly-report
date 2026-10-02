@@ -1,0 +1,473 @@
+{
+ "sample": true,
+ "messages_scanned": 48213,
+ "candidates": 64,
+ "ai_used": true,
+ "ai_error": null,
+ "model": null,
+ "accounts": [
+  {
+   "id": "넷플릭스",
+   "service": "넷플릭스",
+   "category": "OTT·음악",
+   "email": "sample@idly.kr",
+   "signupDate": "2019-03-11",
+   "lastLogin": "2026-09-20",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 17000,
+    "amount": 17000,
+    "cycle": "월간",
+    "cycleKnown": true,
+    "payments": 31,
+    "nextBilling": "2026-10-14",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "월간 결제 31번 확인",
+    "lastEventDate": "2026-09-14",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "구독",
+     "date": "2026-09-14",
+     "status": "9/14 ₩17,000 월간 정기결제. 다음 결제 10/14 예정.",
+     "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"
+    }
+   ],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-20"
+  },
+  {
+   "id": "유튜브 프리미엄",
+   "service": "유튜브 프리미엄",
+   "category": "OTT·음악",
+   "email": "sample@idly.kr",
+   "signupDate": "2021-06-02",
+   "lastLogin": "2026-09-28",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 14900,
+    "amount": 14900,
+    "cycle": "월간",
+    "cycleKnown": true,
+    "payments": 28,
+    "nextBilling": "2026-10-05",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "월간 결제 28번 확인",
+    "lastEventDate": "2026-09-05",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "구독",
+     "date": "2026-09-05",
+     "status": "9/5 ₩14,900 월간 정기결제. 다음 결제 10/5 예정.",
+     "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"
+    }
+   ],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-28"
+  },
+  {
+   "id": "쿠팡",
+   "service": "쿠팡",
+   "category": "쇼핑",
+   "email": "sample@idly.kr",
+   "signupDate": "2017-08-19",
+   "lastLogin": "2026-09-30",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 7890,
+    "amount": 7890,
+    "cycle": "월간",
+    "cycleKnown": true,
+    "payments": 40,
+    "nextBilling": "2026-10-21",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "월간 결제 40번 확인",
+    "lastEventDate": "2026-09-21",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "구독",
+     "date": "2026-09-21",
+     "status": "9/21 ₩7,890 월간 정기결제. 다음 결제 10/21 예정.",
+     "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"
+    }
+   ],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-30"
+  },
+  {
+   "id": "Notion",
+   "service": "Notion",
+   "category": "업무·생산성",
+   "email": "sample@idly.kr",
+   "signupDate": "2022-01-15",
+   "lastLogin": "2026-09-29",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 12000,
+    "amount": 144000,
+    "cycle": "연간",
+    "cycleKnown": true,
+    "payments": 3,
+    "nextBilling": "2027-01-15",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "연간 결제 3번 확인",
+    "lastEventDate": "2026-01-15",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [
+    "Google 로그인"
+   ],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-29"
+  },
+  {
+   "id": "ChatGPT",
+   "service": "ChatGPT",
+   "category": "업무·생산성",
+   "email": "sample@idly.kr",
+   "signupDate": "2023-03-02",
+   "lastLogin": "2026-09-30",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 28000,
+    "amount": 28000,
+    "cycle": "월간",
+    "cycleKnown": true,
+    "payments": 18,
+    "nextBilling": "2026-10-02",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "월간 결제 18번 확인",
+    "lastEventDate": "2026-09-02",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "구독",
+     "date": "2026-09-02",
+     "status": "9/2 ₩28,000 월간 정기결제. 다음 결제 10/2 예정.",
+     "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"
+    }
+   ],
+   "permissions": [
+    "Google 로그인"
+   ],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-30"
+  },
+  {
+   "id": "밀리의 서재",
+   "service": "밀리의 서재",
+   "category": "OTT·음악",
+   "email": "sample@idly.kr",
+   "signupDate": "2023-11-07",
+   "lastLogin": "2025-02-10",
+   "subscription": {
+    "plan": "구독",
+    "monthly": 9900,
+    "amount": 9900,
+    "cycle": "월간",
+    "cycleKnown": true,
+    "payments": 22,
+    "nextBilling": "2026-10-07",
+    "status": "활성",
+    "inferred": false,
+    "statusReason": "월간 결제 22번 확인",
+    "lastEventDate": "2026-09-07",
+    "lastEventSubject": ""
+   },
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "구독",
+     "date": "2026-09-07",
+     "status": "9/7 ₩9,900 월간 정기결제. 다음 결제 10/7 예정. 1년 넘게 로그인 메일이 없어요.",
+     "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"
+    }
+   ],
+   "permissions": [],
+   "recommended": "구독 해지",
+   "signals": [],
+   "lastSeen": "2025-02-10"
+  },
+  {
+   "id": "인스타그램",
+   "service": "인스타그램",
+   "category": "SNS",
+   "email": "sample@idly.kr",
+   "signupDate": "2014-05-21",
+   "lastLogin": "2026-09-25",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": "9/18 의심스러운 로그인 시도 안내. 최근 2번 반복됐어요. 침해 성공의 증거는 아니에요.",
+   "insights": [
+    {
+     "kind": "보안",
+     "date": "2026-09-18",
+     "status": "9/18 의심스러운 로그인 시도 안내. 최근 2번 반복됐어요. 침해 성공의 증거는 아니에요.",
+     "advice": "본인 시도였는지 확인 → 아니라면 로그인 세션과 비밀번호 점검"
+    }
+   ],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-25"
+  },
+  {
+   "id": "네이버",
+   "service": "네이버",
+   "category": "포털",
+   "email": "sample@idly.kr",
+   "signupDate": "2009-02-03",
+   "lastLogin": "2026-09-30",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-30"
+  },
+  {
+   "id": "카카오",
+   "service": "카카오",
+   "category": "포털",
+   "email": "sample@idly.kr",
+   "signupDate": "2012-07-14",
+   "lastLogin": "2026-09-29",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-29"
+  },
+  {
+   "id": "배달의민족",
+   "service": "배달의민족",
+   "category": "음식·배달",
+   "email": "sample@idly.kr",
+   "signupDate": "2018-04-09",
+   "lastLogin": "2026-09-27",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-27"
+  },
+  {
+   "id": "토스",
+   "service": "토스",
+   "category": "금융",
+   "email": "sample@idly.kr",
+   "signupDate": "2019-10-30",
+   "lastLogin": "2026-09-26",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-26"
+  },
+  {
+   "id": "싸이월드",
+   "service": "싸이월드",
+   "category": "SNS",
+   "email": "sample@idly.kr",
+   "signupDate": "2008-11-02",
+   "lastLogin": null,
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "휴면",
+     "date": "2026-06-12",
+     "status": "6/12 장기 미사용·휴면 안내: [싸이월드] 휴면 전환 예정 안내",
+     "advice": "유지할 계정인지 결정하고 현재 계정 상태 확인"
+    }
+   ],
+   "permissions": [],
+   "recommended": "탈퇴",
+   "signals": [],
+   "lastSeen": "2026-06-12"
+  },
+  {
+   "id": "11번가",
+   "service": "11번가",
+   "category": "쇼핑",
+   "email": "sample@idly.kr",
+   "signupDate": "2015-12-01",
+   "lastLogin": "2023-04-17",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": "탈퇴",
+   "signals": [],
+   "lastSeen": "2024-02-03"
+  },
+  {
+   "id": "Evernote",
+   "service": "Evernote",
+   "category": "업무·생산성",
+   "email": "sample@idly.kr",
+   "signupDate": "2016-03-22",
+   "lastLogin": "2022-08-09",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": "탈퇴",
+   "signals": [],
+   "lastSeen": "2023-05-20"
+  },
+  {
+   "id": "인터파크 티켓",
+   "service": "인터파크 티켓",
+   "category": "여행·예약",
+   "email": "sample@idly.kr",
+   "signupDate": "2017-05-30",
+   "lastLogin": "2024-10-02",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2025-01-15"
+  },
+  {
+   "id": "Dropbox",
+   "service": "Dropbox",
+   "category": "업무·생산성",
+   "email": "sample@idly.kr",
+   "signupDate": "2015-09-14",
+   "lastLogin": "2023-01-05",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": true,
+   "securityAlert": null,
+   "insights": [
+    {
+     "kind": "휴면",
+     "date": "2026-08-03",
+     "status": "8/3 장기 미사용·휴면 안내: Your Dropbox account will be deleted",
+     "advice": "유지할 계정인지 결정하고 현재 계정 상태 확인"
+    }
+   ],
+   "permissions": [],
+   "recommended": "탈퇴",
+   "signals": [],
+   "lastSeen": "2026-08-03"
+  },
+  {
+   "id": "야놀자",
+   "service": "야놀자",
+   "category": "여행·예약",
+   "email": "sample@idly.kr",
+   "signupDate": "2020-07-18",
+   "lastLogin": "2026-08-01",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-08-01"
+  },
+  {
+   "id": "무신사",
+   "service": "무신사",
+   "category": "쇼핑",
+   "email": "sample@idly.kr",
+   "signupDate": "2019-09-09",
+   "lastLogin": "2026-09-12",
+   "subscription": null,
+   "oneTimePayments": [],
+   "unused": false,
+   "securityAlert": null,
+   "insights": [],
+   "permissions": [],
+   "recommended": null,
+   "signals": [],
+   "lastSeen": "2026-09-12"
+  }
+ ],
+ "connected_apps": [
+  {
+   "app": "Notion",
+   "date": "2026-09-12",
+   "provider": "Google",
+   "account": "Notion"
+  },
+  {
+   "app": "ChatGPT",
+   "date": "2026-08-30",
+   "provider": "Google",
+   "account": "ChatGPT"
+  },
+  {
+   "app": "Canva",
+   "date": "2025-11-03",
+   "provider": "Google"
+  }
+ ]
+}

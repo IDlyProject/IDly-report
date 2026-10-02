@@ -1,0 +1,76 @@
+/* 리포트 본문. 웹 화면(무료 요약·전체 리포트)과 PDF가 같이 쓴다.
+   Figma IDly_Product › 2-4-1 보안 리포트 화면 기준 */
+.rp {
+  --main: #08257e; --ink: #212125; --sub: #70737a; --mute: #8c8f96; --line: #e5e7eb;
+  --danger: #ee4e4e; --caution: #ffb200; --info: #5d7eeb; --gold: #ffd200;
+  --tint-danger: #fef2f2; --tint-caution: #fff8e1; --tint-safe: #e8f5e9; --tint-info: #e8eeff;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.rp * { box-sizing: border-box; }
+.rp p { margin: 0; }
+
+/* 요약 카드 */
+.rp-hero {
+  position: relative; padding: 28px 24px 28px; border-radius: 20px; color: #fff; text-align: center;
+  background-image: linear-gradient(233deg, #0c2b89 2%, #3766f4 98%);
+  box-shadow: 0 8px 12px rgba(8, 37, 126, 0.2);
+}
+.rp-chips { display: flex; align-items: center; gap: 6px; }
+.rp-hero-top { display: flex; justify-content: space-between; align-items: center; min-height: 21px; }
+.rp-date { font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.8); }
+.rp-chip { display: inline-flex; align-items: center; gap: 4px; height: 21px; padding: 0 10px;
+  border-radius: 10px; background: rgba(255, 255, 255, 0.1); font-size: 11px; font-weight: 600; }
+.rp-ring { width: 122px; height: 122px; margin: 20px auto 0; padding: 15px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1); }
+.rp-ring > div { width: 92px; height: 92px; border-radius: 50%; background: rgba(255, 255, 255, 0.08);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.rp-ring b { font-size: 40px; font-weight: 700; line-height: 1.1; }
+.rp-ring span { font-size: 11px; color: rgba(255, 255, 255, 0.67); }
+.rp-label { margin-top: 8px !important; font-size: 16px; font-weight: 700; color: var(--gold); }
+.rp-desc { margin-top: 8px !important; font-size: 13px; font-weight: 500; }
+
+/* 숫자 3칸 */
+.rp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 24px; }
+.rp-stat { padding: 16px 8px; border-radius: 16px; background: #fff; text-align: center;
+  box-shadow: 0 1px 1.5px rgba(16, 24, 46, 0.03); }
+.rp-stat b { display: block; margin-top: 8px; font-size: 24px; font-weight: 700; line-height: 1.2; }
+.rp-stat-label { display: block; margin-top: 4px; font-size: 12px; color: var(--mute); }
+
+.rp-bubble { display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 32px; height: 32px; border-radius: 16px; }
+.rp-bubble img { display: block; }
+.t-danger { background: var(--tint-danger); }
+.t-caution { background: var(--tint-caution); }
+.t-safe { background: var(--tint-safe); }
+.t-info { background: var(--tint-info); }
+
+/* 섹션 */
+.rp-h2 { margin: 32px 0 14px; font-size: 18px; font-weight: 700; line-height: 1.2; }
+.rp-h2 small { margin-left: 4px; font-size: 14px; font-weight: 600; color: var(--mute); }
+.rp-note { margin: -6px 0 14px !important; font-size: 13px; color: var(--sub); }
+.rp-card { border-radius: 18px; background: #fff; box-shadow: 0 1px 1.5px rgba(16, 24, 46, 0.03); overflow: hidden; }
+.rp-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; break-inside: avoid; }
+.rp-row + .rp-row { border-top: 1.33px solid var(--line); }
+.rp-row-body { flex: 1; min-width: 0; }
+.rp-row-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.rp-title { font-size: 14px; font-weight: 600; }
+.rp-meta { flex: none; font-size: 11px; color: var(--mute); }
+.rp-text { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--sub); }
+.rp-advice { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--main); font-weight: 500; }
+.rp-amount { flex: none; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rp-amount span { display: block; font-size: 11px; font-weight: 400; color: var(--mute); }
+.rp-dot { flex: none; width: 8px; height: 8px; margin: 5px 4px 0; border-radius: 50%; }
+.d-danger { background: var(--danger); }
+.d-caution { background: var(--caution); }
+.d-info { background: var(--info); }
+.rp-compact .rp-row { padding: 11px 16px; align-items: center; }
+.rp-compact .rp-title { font-weight: 500; }
+.rp-empty { padding: 20px 16px; font-size: 13px; color: var(--mute); }
+.rp-method { margin-top: 32px; font-size: 12px; line-height: 1.6; color: var(--mute); }
+.rp-method p + p { margin-top: 6px; }
+
+@media print {
+  .rp-row, .rp-stat, .rp-hero { break-inside: avoid; }
+  .rp-h2 { break-after: avoid; }
+}
