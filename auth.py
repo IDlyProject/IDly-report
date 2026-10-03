@@ -114,6 +114,7 @@ def apple_profile(id_token: str, nonce: str, user_json: Optional[str]) -> Dict[s
     return {"uid": claims["sub"], "email": claims.get("email"), "name": name}
 
 
-def mock_profile(provider: str) -> Dict[str, Any]:
+def mock_profile(provider: str, device: str) -> Dict[str, Any]:
+    """브라우저(device)마다 다른 테스트 계정. 같은 버튼을 누른 다른 사람과 리포트가 섞이지 않게 한다."""
     label = MOCK_PROVIDERS[provider]
-    return {"uid": f"mock-{provider}", "email": None, "name": f"{label} 테스트"}
+    return {"uid": f"mock-{provider}-{device}", "email": None, "name": f"{label} 테스트"}

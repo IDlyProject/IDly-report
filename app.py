@@ -270,15 +270,18 @@ class MockLogin(BaseModel):
 
 
 @app.post("/auth/mock")
-def mock_login(body: MockLogin):
-    """목업 로그인: 버튼을 누른 서비스 이름의 테스트 계정으로 로그인한다 (AUTH_MODE=mock일 때만)."""
+def mock_login(body: MockLogin, request: Request):
+    """목업 로그인: 버튼을 누른 서비스 이름의 테스트 계정으로 로그인한다 (AUTH_MODE=mock일 때만).
+    계정은 브라우저마다 따로 만든다 (기기 쿠키). 배포해도 다른 사람의 리포트가 보이지 않는다."""
     if auth.AUTH_MODE != "mock" or body.provider not in auth.MOCK_PROVIDERS:
         raise ApiError(404, "없는 기능이에요.")
-    profile = auth.mock_profile(body.provider)
+    device = request.cookies.get("idly_device") or secrets.token_urlsafe(16)
+    profile = auth.mock_profile(body.provider, device)
     user = db.upsert_user(f"mock-{body.provider}", profile["uid"], profile["email"], profile["name"])
     response = JSONResponse({"next": "terms" if not user["terms_at"] else "home"})
     response.set_cookie(SESSION_COOKIE, db.create_session(user["id"]), max_age=db.SESSION_DAYS * 86400,
                         httponly=True, samesite="lax", secure=SECURE_COOKIE)
+    response.set_cookie("idly_device", device, max_age=365 * 86400, httponly=True, samesite="lax", secure=SECURE_COOKIE)
     return response
 
 

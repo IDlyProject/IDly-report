@@ -102,6 +102,12 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// 주소를 바꾸고 화면을 그린다. 이미 그 주소면 hashchange가 안 일어나서(예: #home에서 약관·선택 정보를 보던 중) 직접 그린다
+function go(hash) {
+  if (location.hash.replace("#", "") === hash) route();
+  else location.hash = hash;
+}
+
 function showError(id, message) {
   const el = $(id);
   el.textContent = message || "";
@@ -444,7 +450,7 @@ async function onTerms(event) {
       body: JSON.stringify({ terms: true, privacy: true, age14: true }),
     });
     await refreshMe();
-    location.hash = "home";
+    go("home");
   } catch (err) {
     showError("#terms-error", err.message);
   }
@@ -491,7 +497,7 @@ async function saveAbout(values) {
     await api("/api/profile", { method: "POST", body: JSON.stringify(values) });
     const first = !me.user.profile_asked;
     await refreshMe();
-    location.hash = first ? "home" : "help";
+    go(first ? "home" : "help");
   } catch (err) {
     showError("#about-error", err.message);
   }
