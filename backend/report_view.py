@@ -45,6 +45,32 @@ def _active_subs(accounts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(subs, key=lambda a: -(a["subscription"].get("monthly") or 0))
 
 
+def summarize_many(reports: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """여러 메일함의 분석 결과를 합친다. 같은 구독(서비스·금액이 같은 것)이 두 메일함에 있으면 한 번만 센다."""
+    accounts = [a for r in reports for a in r["accounts"]]
+    seen = set()
+    subs = []
+    for a in _active_subs(accounts):
+        key = (a["service"].strip().lower(), a["subscription"].get("amount"))
+        if key not in seen:
+            seen.add(key)
+            subs.append(a["subscription"])
+    yearly = [x for x in subs if x["cycle"] == "연간"]
+    others = [x for x in subs if x["cycle"] != "연간"]
+    monthly_charge = sum(x.get("monthly") or 0 for x in others)
+    yearly_charge = sum(x.get("amount") or (x.get("monthly") or 0) * 12 for x in yearly)
+    return {
+        "mailboxes": len(reports),
+        "accounts": len(accounts),
+        "subscriptions": len(subs),
+        "monthly_charge": monthly_charge, "monthly_count": len(others),
+        "yearly_charge": yearly_charge, "yearly_count": len(yearly),
+        "per_year": monthly_charge * 12 + yearly_charge,
+        "security": sum(1 for a in accounts if any(i["kind"] == "보안" for i in a.get("insights", []))),
+        "unused": sum(1 for a in accounts if a.get("unused")),
+    }
+
+
 def summarize(report: Dict[str, Any]) -> Dict[str, Any]:
     accounts = report["accounts"]
     subs = _active_subs(accounts)

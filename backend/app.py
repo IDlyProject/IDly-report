@@ -1,4 +1,4 @@
-"""IDly 리포트 백엔드: 로그인 → 메일 연동 → 무료 요약 → 결제(Lemon Squeezy) → 전체 리포트·PDF.
+"""IDly 리포트 백엔드: 로그인 → 메일 연동 → 분석·리포트·PDF까지 미리 만들어 둠 → 요약 → 결제(Lemon Squeezy) → 전체 리포트·PDF.
 
 - 카카오·Apple로 로그인한 사용자만 리포트를 만들고 본다. 리포트는 만든 사람만 볼 수 있다 (샘플 제외).
 - 메일 비밀번호와 메일 원문은 저장하지 않는다. 분석 결과만 DB(db.py)에 둔다.
@@ -11,6 +11,7 @@ import os
 import re
 import secrets
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 import traceback
 from datetime import datetime, timedelta
@@ -32,7 +33,7 @@ import billing  # noqa: E402
 import db  # noqa: E402
 from imap_sync import MAX_PER_FOLDER, Credential, SyncJob, connect, start_sync  # noqa: E402
 from providers import PROVIDERS, explain_login_error, get_provider, resolve_provider  # noqa: E402
-from report_view import render_fragment, render_html, render_pdf, summarize, _money_line  # noqa: E402
+from report_view import render_fragment, render_html, render_pdf, summarize, summarize_many, _money_line  # noqa: E402
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "lemonsqueezy")
@@ -50,7 +51,7 @@ HERE = Path(__file__).parent
 # 운영·문의 정보 (약관·푸터에 들어간다). 사업자 없이 운영하고, 판매·결제는 Lemon Squeezy가 판매자(MoR)로 처리한다
 BUSINESS = {
     "name": os.getenv("OPERATOR_NAME", "IDly 팀"),
-    "email": os.getenv("CONTACT_EMAIL", "support@idly.kr"),
+    "email": os.getenv("CONTACT_EMAIL", "idly1apt@gmail.com"),
     "privacy_officer": os.getenv("PRIVACY_OFFICER", ""),
     "seller": "Lemon Squeezy, LLC (Merchant of Record)",
     "effective_date": os.getenv("TERMS_EFFECTIVE_DATE", "2026년 10월 2일"),
@@ -128,8 +129,24 @@ class Report:
                 self._pdf = render_pdf(render_html(self.data, self.email, self.created))
             return self._pdf
 
+    def prepare_pdf(self) -> None:
+        """결제 전에 PDF를 미리 만들어 둔다. 결제는 다 만든 리포트를 받는 값이라, 결제하면 바로 내려받게 한다.
+        찾은 계정이 없으면 팔 것이 없으니 만들지 않는다."""
+        if self.data is None or self._pdf is not None or not summarize(self.data)["accounts"]:
+            return
+
+        def run() -> None:
+            try:
+                self.pdf()
+            except Exception as e:  # PDF는 내려받을 때 다시 만들어 볼 수 있다
+                print(f"[pdf] {self.id} 미리 만들기 실패: {e!r}")
+
+        _pdf_pool.submit(run)
+
 
 _reports: Dict[str, Report] = {}
+# Playwright(크로뮴)는 무거워서 PDF는 한 번에 하나씩 만든다
+_pdf_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pdf")
 
 
 def _load_saved() -> None:
@@ -140,6 +157,7 @@ def _load_saved() -> None:
         report.paid = bool(row["paid"])
         report.interrupted = row["data"] is None
         _reports[report.id] = report
+        report.prepare_pdf()
 
 
 _load_saved()
@@ -267,11 +285,41 @@ def mock_login(body: MockLogin):
 @app.get("/api/me")
 def me(request: Request):
     user = _user(request)
+    profile = user and db.get_profile(user["id"])
     return {
         "user": user and {"id": user["id"], "provider": user["provider"], "email": user["email"],
-                          "name": user["name"], "terms": bool(user["terms_at"]), "marketing": bool(user["marketing"])},
+                          "name": user["name"], "terms": bool(user["terms_at"]), "marketing": bool(user["marketing"]),
+                          "profile_asked": profile is not None, "profile": profile},
         "login": auth.providers(DEBUG),
     }
+
+
+# 내부 통계용 선택 정보: 고를 수 있는 값 (화면도 이 목록으로 그린다)
+PROFILE_OPTIONS = {
+    "age": ["10대", "20대", "30대", "40대", "50대", "60대 이상"],
+    "gender": ["여성", "남성", "기타"],
+    "job": ["학생", "직장인", "자영업", "프리랜서", "주부", "구직 중", "기타"],
+}
+
+
+class ProfileBody(BaseModel):
+    age: Optional[str] = None
+    gender: Optional[str] = None
+    job: Optional[str] = None
+
+
+@app.post("/api/profile")
+def save_profile(body: ProfileBody, request: Request):
+    """모두 비워서 보내면 건너뛰기(또는 지우기)."""
+    user = _require_user(request)
+    values = {}
+    for key, options in PROFILE_OPTIONS.items():
+        value = getattr(body, key)
+        if value is not None and value not in options:
+            raise ApiError(400, "고를 수 없는 값이에요.")
+        values[key] = value
+    db.save_profile(user["id"], **values)
+    return {"ok": True}
 
 
 class TermsBody(BaseModel):
@@ -315,7 +363,7 @@ def withdraw(request: Request):
 @app.get("/api/config")
 def config():
     return {"price": PRICE, "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG,
-            "contact_email": BUSINESS["email"], "business": BUSINESS}
+            "contact_email": BUSINESS["email"], "business": BUSINESS, "profile_options": PROFILE_OPTIONS}
 
 
 @app.get("/api/providers/detect")
@@ -374,11 +422,20 @@ def my_reports(request: Request):
         items.append({
             "id": report.id, "mailbox": report.email, "created": report.created.isoformat(timespec="minutes"),
             "status": report.status, "paid": report.paid,
-            "free": db.unlock_of(user["id"], report.email) == "free",
             "summary": s and {"accounts": s["accounts"], "subscriptions": s["subscriptions"], "security": s["security"],
                               "money": _money_line(s)},
         })
-    return {"reports": items}
+    # 홈 합계: 메일함마다 가장 최근에 끝난 리포트 하나씩 (다시 분석한 메일함을 두 번 세지 않는다)
+    latest: Dict[str, Report] = {}
+    for item in items:
+        report = _reports[item["id"]]
+        key = report.email.lower()
+        if report.data is not None and (key not in latest or report.created > latest[key].created):
+            latest[key] = report
+    total = summarize_many([r.data for r in latest.values()]) if latest else None
+    if total:
+        total["money"] = _money_line(total)
+    return {"reports": items, "total": total}
 
 
 @app.delete("/api/reports/{report_id}")
@@ -455,10 +512,15 @@ def start_report(body: StartBody, request: Request):
     if cred is None:
         raise ApiError(401, explain_login_error(str(error), provider), debug)
     report = Report(cred.email, user["id"])
-    # 계정마다 첫 메일함 1개는 무료. 이미 열린(무료·결제) 메일함은 다시 분석해도 열려 있다
-    report.paid = bool(db.unlock_of(user["id"], cred.email) or db.claim_free(user["id"], cred.email))
+    # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다
+    report.paid = db.unlock_of(user["id"], cred.email) == "paid"
     # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
-    report.job = start_sync(cred, MAX_PER_FOLDER, owner_id=0, on_done=lambda _data: report.save())
+    # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
+    def on_done(_data: Dict[str, Any]) -> None:
+        report.save()
+        report.prepare_pdf()
+
+    report.job = start_sync(cred, MAX_PER_FOLDER, owner_id=0, on_done=on_done)
     _reports[report.id] = report
     report.save()
     return {"id": report.id}
@@ -494,7 +556,6 @@ def report_status(report_id: str, request: Request):
         "error": job.get("error") or ("서버가 다시 시작되면서 진행 중이던 분석이 멈췄어요." if report.interrupted else None),
         "debug": job.get("debug") if DEBUG else None,
         "paid": report.paid,
-        "free": bool(report.user_id and db.unlock_of(report.user_id, report.email) == "free"),
         "sample": report.sample,
         "price": PRICE,
         "summary": summarize(data) if data is not None else None,
@@ -507,6 +568,9 @@ def checkout(report_id: str, request: Request):
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
+    # 찾은 계정이 없으면 팔 것이 없다
+    if not summarize(report.data)["accounts"]:
+        raise ApiError(409, "찾은 계정이 없어서 결제할 내용이 없어요.")
     if report.paid:
         return {"paid": True}
     if PAYMENT_MODE == "mock":

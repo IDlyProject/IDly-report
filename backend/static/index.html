@@ -18,12 +18,12 @@
 
 <!-- 시작·로그인 (Figma: 2 Login) -->
 <main id="intro" class="screen" hidden>
-  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"></header>
+  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help">도움말</a></header>
   <div class="center">
     <img src="/static/assets/logo-owl.svg" alt="IDly" width="118.798" height="143.47">
     <div class="center-text">
       <h1>메일 속 계정과 구독을<br>찾아 드려요</h1>
-      <p>메일만 연결하면 가입한 서비스, 나가는 구독료,<br>확인할 보안 알림을 한 번에 정리해 드려요.<br><b>첫 메일함 1개는 무료예요.</b></p>
+      <p>메일만 연결하면 가입한 서비스, 나가는 구독료,<br>확인할 보안 알림을 한 번에 정리해 드려요.</p>
     </div>
   </div>
   <div class="cta">
@@ -42,7 +42,7 @@
         <button class="btn btn-google" type="button" data-login="google">Google로 계속하기</button>
         <button class="btn btn-apple" type="button" data-login="apple">Apple로 계속하기</button>
       </div>
-      <p class="error" id="login-error" hidden></p>
+      <p class="error" id="login-error" role="alert" hidden></p>
       <p class="sheet-mock" id="login-mock" hidden>목업 로그인: 누르면 테스트 계정으로 바로 로그인돼요.</p>
       <p class="sheet-note">처음이면 다음 단계에서 이용약관·개인정보처리방침에 동의해요.</p>
     </div>
@@ -51,9 +51,7 @@
 
 <!-- 약관 동의 (Figma: 4 Consent) -->
 <main id="terms" class="screen" hidden>
-  <header class="bar-head">
-    <div class="steps" aria-label="2단계 중 1단계"><i class="on wide"></i><i></i></div>
-  </header>
+  <header class="bar-head"></header>
   <form id="terms-form" class="content form-col" novalidate>
     <div class="title">
       <h1>서비스 이용 동의</h1>
@@ -72,23 +70,56 @@
       <label class="agree-row"><input type="checkbox" name="age14"><span class="check" aria-hidden="true"><img src="/static/assets/check.svg" alt="" width="22" height="22"></span>
         <span>(필수) 만 14세 이상이에요</span></label>
     </div>
-    <p class="error" id="terms-error" hidden></p>
+    <p class="error" id="terms-error" role="alert" hidden></p>
   </form>
   <div class="cta">
     <button class="btn btn-main" type="submit" form="terms-form">동의하고 시작하기</button>
   </div>
 </main>
 
+<!-- 선택 정보 (내부 통계). 약관 동의 뒤 한 번 묻고, 도움말에서 언제든 고치거나 지울 수 있다 -->
+<main id="about" class="screen" hidden>
+  <header class="bar-head">
+    <a class="back" href="#help" id="about-back" aria-label="도움말로" hidden><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
+  </header>
+  <form id="about-form" class="content form-col" novalidate>
+    <div class="title">
+      <h1>어떤 분인지 알려 주세요</h1>
+      <p>모두 선택이에요. 답하지 않아도 모든 기능을 똑같이 쓸 수 있어요.</p>
+    </div>
+    <div class="about-group" role="group" aria-labelledby="about-age">
+      <span class="field-label" id="about-age">나이대</span>
+      <div class="chips" data-field="age"></div>
+    </div>
+    <div class="about-group" role="group" aria-labelledby="about-gender">
+      <span class="field-label" id="about-gender">성별</span>
+      <div class="chips" data-field="gender"></div>
+    </div>
+    <div class="about-group" role="group" aria-labelledby="about-job">
+      <span class="field-label" id="about-job">하는 일</span>
+      <div class="chips" data-field="job"></div>
+    </div>
+    <p class="about-note">IDly를 어떤 분들이 쓰는지 보는 내부 통계에만 쓰고, 다른 곳에 주지 않아요. 탈퇴하거나 도움말에서 지울 때까지 보관해요.</p>
+    <p class="error" id="about-error" role="alert" hidden></p>
+  </form>
+  <div class="cta">
+    <button class="btn btn-main" type="submit" form="about-form" id="about-save">저장하고 시작하기</button>
+    <button class="cta-link" type="button" id="about-skip">건너뛰기</button>
+  </div>
+</main>
+
 <!-- 홈 (Figma: 홈) -->
 <main id="home" class="screen bg-gradient" hidden>
-  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"></header>
+  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help">도움말</a></header>
   <div class="content">
     <section class="rp"><div class="rp-hero home-hero">
-      <div class="rp-hero-top"><span class="rp-date" id="home-date">아직 리포트가 없어요</span></div>
       <p class="home-hello" id="home-hello"></p>
-      <p class="rp-label" id="home-money"></p>
-      <p class="rp-desc" id="home-desc"></p>
-      <!-- 아직 열어 본 리포트가 없을 때: 숫자를 ???로 보여 줘 궁금하게 만든다 -->
+      <!-- 결과가 있으면 가장 중요한 것 하나만: 구독 > 보안 위험 > 찾은 계정 수 -->
+      <div class="home-headline" id="home-headline" hidden>
+        <p class="rp-label" id="home-label"></p>
+        <p class="rp-desc" id="home-sub"></p>
+      </div>
+      <!-- 리포트가 없으면 ???로 궁금하게 -->
       <div class="home-teaser" id="home-teaser">
         <div><span>총 계정</span><b>???개</b></div>
         <div><span>월 구독</span><b>???원</b></div>
@@ -100,19 +131,54 @@
     <h2 class="rp rp-h2">내 리포트</h2>
     <div class="rp rp-card" id="home-reports"></div>
 
-    <h2 class="rp rp-h2">도움말</h2>
-    <div class="rp rp-card menu">
-      <a class="menu-row" id="contact-link" href="#">문의하기<span>›</span></a>
-      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener">환불 정책<span>›</span></a>
-      <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener">이용약관<span>›</span></a>
-      <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener">개인정보처리방침<span>›</span></a>
-      <button class="menu-row" type="button" id="logout">로그아웃<span>›</span></button>
-      <button class="menu-row danger" type="button" id="withdraw">회원 탈퇴<span>›</span></button>
-    </div>
-    <p class="business" id="business"></p>
   </div>
   <div class="cta">
     <a class="btn btn-main" href="#connect">새 리포트 만들기</a>
+  </div>
+</main>
+
+<!-- 도움말 (로고 옆 '도움말'에서 들어온다) -->
+<main id="help" class="screen" hidden>
+  <header class="bar-head">
+    <a class="back" href="#home" id="help-back" aria-label="뒤로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
+    <h1 class="head-title">도움말</h1>
+  </header>
+  <div class="content help">
+    <h2 class="help-h2">자주 묻는 질문</h2>
+    <div class="faq">
+      <details><summary>앱 비밀번호가 뭐예요?</summary>
+        <p>메일 서비스에서 외부 앱용으로 따로 만드는 비밀번호예요. 평소 로그인 비밀번호 대신 써요. 메일 연결 화면에 메일 주소를 넣으면 서비스별로 만드는 방법이 나와요.</p></details>
+      <details><summary>메일 비밀번호나 메일 내용을 저장하나요?</summary>
+        <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요. 메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
+      <details><summary>분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
+        <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요. 다시 분석할 때 새로 만들면 돼요.</p></details>
+      <details><summary>결제는 어떻게 하나요?</summary>
+        <p>전체 리포트는 메일함마다 <span id="help-price"></span>을 한 번 결제해요. 결제한 메일함은 다시 분석해도 추가 결제 없이 열려요. 결제는 해외 결제 대행사 Lemon Squeezy가 처리해요.</p></details>
+      <details><summary>환불되나요?</summary>
+        <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요. 분석이 잘못됐다면 문의해 주세요. <a href="/legal/refund" target="_blank" rel="noopener">환불 정책</a></p></details>
+    </div>
+
+    <h2 class="help-h2">문의</h2>
+    <div class="menu">
+      <a class="menu-row" id="contact-link" href="#">메일로 문의하기<span class="menu-sub" id="contact-mail"></span></a>
+    </div>
+
+    <h2 class="help-h2">약관·정책</h2>
+    <div class="menu">
+      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener">환불 정책<span aria-hidden="true">›</span></a>
+      <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener">이용약관<span aria-hidden="true">›</span></a>
+      <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener">개인정보처리방침<span aria-hidden="true">›</span></a>
+    </div>
+
+    <div id="help-account">
+      <h2 class="help-h2">계정</h2>
+      <div class="menu">
+        <a class="menu-row" href="#about">내 정보 (선택)<span aria-hidden="true">›</span></a>
+        <button class="menu-row" type="button" id="logout">로그아웃</button>
+        <button class="menu-row danger" type="button" id="withdraw">회원 탈퇴</button>
+      </div>
+    </div>
+    <p class="business" id="business"></p>
   </div>
 </main>
 
@@ -149,8 +215,9 @@
     <label class="field">
       <span class="field-label" id="password-label">앱 비밀번호</span>
       <span class="input"><img src="/static/assets/ic-key.svg" alt="" width="18" height="18" class="dim">
-        <input name="password" type="password" autocomplete="off" placeholder="비밀번호를 입력해주세요" required>
+        <input name="password" type="password" autocomplete="off" placeholder="앱 비밀번호 입력" required aria-describedby="password-hint">
         <button type="button" class="reveal" id="reveal" aria-pressed="false" aria-label="비밀번호 보기">보기</button></span>
+      <span class="field-hint" id="password-hint">평소 로그인 비밀번호가 아니에요. 분석하는 동안만 쓰고 저장하지 않아요.</span>
     </label>
 
     <!-- 메일 분석 동의: 한 줄로 두고, 눌러야 OpenAI 전송 내용을 펼친다 -->
@@ -168,7 +235,7 @@
         <p><b>동의하지 않으면</b> 메일 분석을 할 수 없어요. <a href="/legal/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
       </div>
     </div>
-    <p class="error" id="connect-error" hidden></p>
+    <p class="error" id="connect-error" role="alert" hidden></p>
   </form>
   <div class="cta">
     <button class="btn btn-main" type="submit" form="connect-form">분석 시작하기</button>
@@ -184,10 +251,10 @@
     </div>
     <div class="center-text">
       <h1 id="scan-title" class="h-scan">메일을 읽고 있어요</h1>
-      <div class="track"><div id="scan-bar"></div></div>
-      <p id="scan-detail" class="caption">메일 서버에 연결했어요</p>
-      <p class="caption">끝나면 자동으로 결과 화면으로 넘어가요. 홈에서 나중에 다시 볼 수도 있어요.</p>
-      <p class="error" id="scan-error" hidden></p>
+      <div class="track" id="scan-track"><div id="scan-bar"></div></div>
+      <p id="scan-detail" class="caption" aria-live="polite">메일 서버에 연결했어요</p>
+      <p class="caption" id="scan-wait">끝나면 자동으로 결과 화면으로 넘어가요. 홈에서 나중에 다시 볼 수도 있어요.</p>
+      <p class="error" id="scan-error" role="alert" hidden></p>
     </div>
   </div>
   <div class="cta" id="scan-retry" hidden>
@@ -195,7 +262,7 @@
   </div>
 </main>
 
-<!-- 무료 요약 + 결제 (Figma: 2-4-1 보안 리포트) -->
+<!-- 요약 + 결제 (Figma: 2-4-1 보안 리포트) -->
 <main id="preview" class="screen bg-gradient" hidden>
   <header class="bar-head">
     <a class="back" href="#home" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
@@ -203,6 +270,12 @@
   </header>
   <div class="content">
     <div id="preview-body"></div>
+    <div id="pay-pitch">
+    <!-- 가격을 커피 한 잔과 비교해 보여 준다 (분석 숫자로 문구가 바뀐다) -->
+    <div class="rp rp-card value-card">
+      <p class="value-title" id="value-title"></p>
+      <p class="value-text" id="value-text"></p>
+    </div>
     <h2 class="rp rp-h2">전체 리포트에 들어 있는 것</h2>
     <div class="rp rp-card">
       <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">구독 목록</p><p class="rp-text">서비스별 금액 · 주기 · 다음 결제일</p></div></div>
@@ -211,21 +284,27 @@
       <div class="rp-row"><span class="rp-dot d-caution"></span><div class="rp-row-body"><p class="rp-title">안 쓰는 계정</p><p class="rp-text">마지막 활동 날짜와 탈퇴 제안</p></div></div>
       <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">찾은 계정 전체 · PDF</p><p class="rp-text">보관하거나 가족과 나눠 보기 좋은 A4 파일</p></div></div>
     </div>
-    <!-- 가격을 커피 한 잔과 비교해 보여 준다 (분석 숫자로 문구가 바뀐다) -->
-    <div class="coffee" id="coffee">
-      <p class="coffee-title" id="coffee-title"></p>
-      <p class="coffee-text" id="coffee-text"></p>
     </div>
-    <p class="pay-free-note" id="pay-free-note"></p>
-    <p class="error" id="pay-error" hidden></p>
+    <p class="error" id="pay-error" role="alert" hidden></p>
   </div>
   <div class="cta">
+    <p class="pay-empty" id="pay-empty" hidden>찾은 계정이 없어서 결제할 내용이 없어요.<br>다른 메일 주소로 다시 해 보세요.</p>
+    <a class="btn btn-main" id="pay-retry" href="#connect" hidden>다른 메일 연결하기</a>
     <button class="btn btn-main" id="pay"></button>
     <a class="cta-link" id="sample-link" href="/#sample" target="_blank" rel="noopener" hidden>샘플 리포트 보기</a>
     <p class="cta-note" id="pay-note"></p>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
   </div>
 </main>
+
+<div class="modal-backdrop" id="withdraw-modal" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="withdraw-title" aria-describedby="withdraw-text">
+    <p class="dialog-title" id="withdraw-title">탈퇴할까요?</p>
+    <p class="dialog-text" id="withdraw-text">회원 정보와 모든 리포트가 바로 지워지고 되돌릴 수 없어요.</p>
+    <button class="btn btn-danger" type="button" id="withdraw-ok">탈퇴하기</button>
+    <button class="cta-link dialog-later" type="button" id="withdraw-cancel">취소</button>
+  </div>
+</div>
 
 <!-- 전체 리포트 -->
 <main id="report" class="screen bg-gradient" hidden>

@@ -4,7 +4,7 @@
 
 카카오·Apple 로그인 → 약관 동의 → 홈(내 리포트·구독 금액) → 메일 연결 → 분석 → 결제 전 요약(숫자는 ???) → Lemon Squeezy 결제 → 웹훅으로 열림 → 전체 리포트·PDF
 
-- 가격: 계정마다 첫 메일함 1개 무료, 추가 메일함은 메일함당 REPORT_PRICE. 한 번 열린 메일함은 다시 분석해도 열려 있다
+- 가격: 메일함마다 REPORT_PRICE (무료 메일함 없음). 한 번 결제한 메일함은 다시 분석해도 열려 있다
 - 결제: 결제창에 custom data(report_id·user_id)를 실어 보내고, 웹훅(서명 확인)으로 그 사용자의 그 메일함만 연다. 환불 웹훅이 오면 다시 잠근다
 - 저장: SQLite(db.py) — 사용자·세션·리포트(분석 결과만)·결제·열린 메일함. 메일 비밀번호·원문은 저장하지 않는다
 - 약관·정책: /legal/terms, /legal/privacy, /legal/refund (사업자 정보 없이 '운영자' 기준, 판매자는 Lemon Squeezy)
@@ -44,16 +44,21 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 http://127.0.0.1:47830 · 메일 없이 보려면 "샘플 리포트 먼저 보기"
 
+## 배포 DB
+
+- Vercel에는 Supabase PostgreSQL 연결 문자열을 `DATABASE_URL` 환경변수로 등록한다. IDly_PoC와 같은 Supabase 프로젝트를 쓸 수 있으며, 이 앱은 기존 `idly` 스키마와 분리된 `idly_report` 스키마를 사용한다.
+- 로컬은 `DATABASE_URL`이 없으면 SQLite를 사용한다. 연결 문자열은 `.env`에만 두고 커밋하지 않는다.
+
 ## API
 
-| | |
-|---|---|
-| `POST /api/reports` | 메일 연결 확인 후 탐색 시작 → `{id}` |
-| `POST /api/reports/sample` | 샘플 리포트 (`IDLY_SAMPLE=1`) |
-| `GET /api/reports/{id}` | 진행 상태 + 무료 요약(숫자만) |
-| `POST /api/reports/{id}/checkout` | 결제. `PAYMENT_MODE=mock`이면 바로 결제됨 |
-| `GET /api/reports/{id}/view` | 리포트 HTML 조각. 결제 전에는 요약만, 결제 후 전체 |
-| `GET /api/reports/{id}/pdf` | 결제 후 PDF (전에는 402) |
+|                                   |                                                    |
+| --------------------------------- | -------------------------------------------------- |
+| `POST /api/reports`               | 메일 연결 확인 후 탐색 시작 → `{id}`               |
+| `POST /api/reports/sample`        | 샘플 리포트 (`IDLY_SAMPLE=1`)                      |
+| `GET /api/reports/{id}`           | 진행 상태 + 무료 요약(숫자만)                      |
+| `POST /api/reports/{id}/checkout` | 결제. `PAYMENT_MODE=mock`이면 바로 결제됨          |
+| `GET /api/reports/{id}/view`      | 리포트 HTML 조각. 결제 전에는 요약만, 결제 후 전체 |
+| `GET /api/reports/{id}/pdf`       | 결제 후 PDF (전에는 402)                           |
 
 ## 남은 일
 

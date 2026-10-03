@@ -6,3 +6,4 @@ playwright>=1.44
 dnspython>=2.4
 pyjwt[crypto]>=2.8
 python-multipart>=0.0.9
+psycopg[binary]>=3.1

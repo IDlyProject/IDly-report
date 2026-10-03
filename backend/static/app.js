@@ -1,10 +1,12 @@
-// 화면: intro → connect → scanning → preview(무료 요약·결제) → report.
+// 화면: intro → connect → scanning → preview(요약·결제) → report. 도움말은 #help.
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
 let config = { price: 4900, payment_mode: "mock", sample: false };
 let providers = [];
 let pollTimer = null;
+// 방금 결제한 리포트: 열자마자 PDF를 내려받는다
+let justPaid = null;
 
 async function api(path, options = {}) {
   const method = options.method || "GET";
@@ -59,6 +61,46 @@ function show(id) {
     .forEach((el) => (el.hidden = el.id !== id));
   window.scrollTo(0, 0);
 }
+
+// --- 팝업 (로그인 시트·알림) ---------------------------------------------------------
+// 열 때 포커스를 안으로 옮기고, 닫으면 연 자리로 돌려준다. Tab은 팝업 안에서만 돌고 Esc로 닫는다
+
+const layers = [];
+
+function openLayer(layer, focusTarget) {
+  if (!layer.hidden) return;
+  layers.push({ layer, returnTo: document.activeElement });
+  layer.hidden = false;
+  (focusTarget || layer.querySelector("button, a, input")).focus();
+}
+
+function closeLayer(layer) {
+  const i = layers.findIndex((l) => l.layer === layer);
+  layer.hidden = true;
+  if (i < 0) return;
+  const [{ returnTo }] = layers.splice(i, 1);
+  if (returnTo && returnTo.isConnected && returnTo.offsetParent) returnTo.focus();
+}
+
+document.addEventListener("keydown", (e) => {
+  const top = layers[layers.length - 1];
+  if (!top) return;
+  if (e.key === "Escape") return closeLayer(top.layer);
+  if (e.key !== "Tab") return;
+  const items = [...top.layer.querySelectorAll("button, a[href], input")].filter(
+    (x) => !x.disabled && x.offsetParent,
+  );
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
 
 function showError(id, message) {
   const el = $(id);
@@ -262,12 +304,11 @@ function renderIntro() {
 function openLoginSheet(error) {
   $("#login-mock").hidden = (me.login || {}).mode !== "mock";
   showError("#login-error", error || "");
-  $("#login-sheet").hidden = false;
-  $('[data-login="kakao"]').focus();
+  openLayer($("#login-sheet"), $('[data-login="kakao"]'));
 }
 
 function closeLoginSheet() {
-  $("#login-sheet").hidden = true;
+  closeLayer($("#login-sheet"));
 }
 
 // 로그인이 끝나면 (카카오 팝업 창 → postMessage, Apple → 응답) 약관 또는 홈으로
@@ -409,6 +450,53 @@ async function onTerms(event) {
   }
 }
 
+// --- 선택 정보 (내부 통계) ---------------------------------------------------------
+
+// 처음(약관 뒤)에는 건너뛸 수 있고, 도움말에서 들어오면 고치거나 비워서 지울 수 있다
+const aboutPicked = {};
+
+function renderAbout() {
+  const first = !me.user.profile_asked;
+  const saved = me.user.profile || {};
+  $("#about-back").hidden = first;
+  $("#about-save").textContent = first ? "저장하고 시작하기" : "저장하기";
+  $("#about-skip").textContent = first ? "건너뛰기" : "답한 내용 모두 지우기";
+  $("#about-skip").hidden = !first && !Object.values(saved).some(Boolean);
+  showError("#about-error", "");
+  document.querySelectorAll("#about-form [data-field]").forEach((row) => {
+    const field = row.dataset.field;
+    aboutPicked[field] = saved[field] || null;
+    row.replaceChildren(
+      ...(config.profile_options[field] || []).map((value) => {
+        const chip = el("button", "chip", value);
+        chip.type = "button";
+        chip.setAttribute("aria-pressed", String(aboutPicked[field] === value));
+        // 다시 누르면 선택을 푼다 (답하지 않기)
+        chip.addEventListener("click", () => {
+          aboutPicked[field] = aboutPicked[field] === value ? null : value;
+          row.querySelectorAll(".chip").forEach((c) =>
+            c.setAttribute("aria-pressed", String(aboutPicked[field] === c.textContent)),
+          );
+        });
+        return chip;
+      }),
+    );
+  });
+  show("about");
+}
+
+async function saveAbout(values) {
+  showError("#about-error", "");
+  try {
+    await api("/api/profile", { method: "POST", body: JSON.stringify(values) });
+    const first = !me.user.profile_asked;
+    await refreshMe();
+    location.hash = first ? "home" : "help";
+  } catch (err) {
+    showError("#about-error", err.message);
+  }
+}
+
 // --- 홈 ----------------------------------------------------------------------------
 
 const STATUS_LABEL = {
@@ -433,11 +521,9 @@ function reportRow(r) {
   const done = r.status === "완료";
   const state = !done
     ? STATUS_LABEL[r.status] || r.status
-    : r.free
-      ? "무료"
-      : r.paid
-        ? "열람 가능"
-        : "결제 전";
+    : r.paid
+      ? "열람 가능"
+      : "결제 전";
   const body = el("div", "rp-row-body");
   const head = el("div", "rp-row-head");
   head.append(
@@ -459,40 +545,40 @@ function reportRow(r) {
 
 async function renderHome() {
   show("home");
-  $("#home-hello").textContent =
-    me.user && me.user.name ? `${me.user.name}님` : "";
   const list = $("#home-reports");
-  list.innerHTML = "";
   let reports = [];
+  let total = null;
   try {
-    ({ reports } = await api("/api/my/reports"));
+    ({ reports, total } = await api("/api/my/reports"));
   } catch (err) {
-    list.append(el("p", "rp-empty", err.message));
+    list.replaceChildren(el("p", "rp-empty", err.message));
     return;
   }
-  // 열어 본(무료·결제) 리포트가 있으면 그 숫자, 없으면 ???로 궁금하게 만든다
-  const latest = reports.find((r) => r.summary && r.paid);
-  $("#home-teaser").hidden = !!latest;
-  $("#home-money").hidden = !latest;
-  $("#home-desc").hidden = !latest;
-  // 열린 리포트가 있으면 날짜·메일 줄 없이 금액만 크게 보여 준다
-  $("#home-date").hidden = !!latest;
-  if (latest) {
-    $("#home-money").textContent = latest.summary.money[0];
-    $("#home-desc").textContent = latest.summary.money[1];
-  } else {
-    $("#home-date").textContent = reports.length
-      ? "아직 열어 본 리포트가 없어요"
-      : "내 메일함에는 무엇이 있을까요?";
+  // 응답을 받은 뒤에 비운다 (홈이 연달아 두 번 그려져도 목록이 겹치지 않게)
+  list.replaceChildren();
+  // 위쪽 한 줄: 이름, 메일함이 여러 개면 합계라고 알려 준다
+  const who = me.user && me.user.name ? `${me.user.name}님의 메일함` : "내 메일함";
+  $("#home-hello").textContent = total && total.mailboxes > 1 ? `${who} ${total.mailboxes}개 합계` : who;
+  // 결과가 있으면 하나만 크게: 구독이 있으면 구독, 없고 보안 위험이 있으면 보안 위험, 둘 다 없으면 찾은 계정 수
+  $("#home-teaser").hidden = !!total;
+  $("#home-headline").hidden = !total;
+  if (total) {
+    const n = (v) => v.toLocaleString("ko-KR");
+    let label;
+    let sub;
+    if (total.subscriptions) {
+      [label, sub] = total.money;
+    } else if (total.security) {
+      label = `보안 위험 계정 ${n(total.security)}개`;
+      sub = "의심 로그인·보안 알림을 확인해 보세요";
+    } else {
+      label = `계정 ${n(total.accounts)}개를 찾았어요`;
+      sub = "나가는 구독과 보안 위험은 없었어요";
+    }
+    $("#home-label").textContent = label;
+    $("#home-sub").textContent = sub;
   }
-  if (!reports.length)
-    list.append(
-      el(
-        "p",
-        "rp-empty",
-        "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요.",
-      ),
-    );
+  if (!reports.length) list.append(el("p", "rp-empty", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
   reports.forEach((r) => list.append(reportRow(r)));
 }
 
@@ -514,13 +600,19 @@ async function onLogout() {
   route();
 }
 
-async function onWithdraw() {
-  if (
-    !window.confirm(
-      "탈퇴하면 회원 정보와 모든 리포트가 바로 지워지고 되돌릴 수 없어요. 탈퇴할까요?",
-    )
-  )
-    return;
+// 도움말: 로그인 전에도 볼 수 있다 (계정 메뉴만 숨긴다)
+function renderHelp() {
+  $("#help-account").hidden = !me.user;
+  $("#help-back").href = me.user ? "#home" : "#";
+  show("help");
+}
+
+function onWithdraw() {
+  openLayer($("#withdraw-modal"), $("#withdraw-cancel"));
+}
+
+async function onWithdrawConfirmed() {
+  closeLayer($("#withdraw-modal"));
   await api("/api/me", { method: "DELETE" });
   await refreshMe();
   location.hash = "";
@@ -550,10 +642,13 @@ function renderScanning(r) {
     : null;
   $("#scan-bar").style.transform =
     `scaleX(${r.status === "분석 중" ? (stepPct ?? 100) / 100 : pct / 100})`;
+  // 실패하면 진행 막대와 '자동으로 넘어가요' 안내를 숨기고, 오류 이유와 다시 연결하기만 남긴다
+  $("#scan-track").hidden = failed;
+  $("#scan-wait").hidden = failed;
   $("#scan-detail").textContent = failed
     ? interrupted
       ? "다시 연결하면 처음부터 다시 분석해요"
-      : "메일 서버와 연결이 끊겼어요"
+      : "아래 내용을 확인하고 다시 연결해 주세요"
     : r.status === "분석 중"
       ? `${r.step || "분석"} 중` +
         (r.step_total
@@ -578,24 +673,34 @@ async function renderResult(r) {
     $("#new-report").href = me.user ? "#connect" : "#";
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     show("report");
+    if (justPaid === r.id) {
+      justPaid = null;
+      $("#pdf").click();
+    }
     return;
   }
   $("#preview-body").innerHTML = view.html;
+  // 찾은 계정이 하나도 없으면 결제할 내용이 없다: 결제 대신 다른 메일 연결을 권한다
+  const empty = !(r.summary && r.summary.accounts);
+  $("#pay-empty").hidden = !empty;
+  $("#pay-pitch").hidden = empty;
+  $("#pay-retry").hidden = !empty;
+  $("#pay").hidden = empty;
+  $("#pay-note").hidden = empty;
+  $("#sample-link").hidden = empty || !config.sample;
   $("#pay").disabled = false;
   $("#pay").textContent = `${won(r.price)} 결제하고 전체 리포트 받기`;
   renderCoffee(r);
-  // 무료 메일함(계정당 1개)은 이미 썼다는 걸 알려 준다
-  $("#pay-free-note").textContent =
-    "첫 메일함 1개는 무료로 열어 드렸어요. 추가 메일함은 메일함마다 한 번 결제하면 다시 분석해도 계속 열려 있어요.";
   const note = $("#pay-note");
   note.innerHTML = "";
   note.append(
     el(
       "span",
       "",
-      config.payment_mode === "mock"
+      (config.payment_mode === "mock"
         ? "개발 모드라 실제로 결제되지 않아요. "
-        : "결제하면 바로 전체 리포트가 열려요. 디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요. ",
+        : "결제하면 바로 전체 리포트가 열려요. 디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요. ") +
+        "결제는 해외 결제 대행사 Lemon Squeezy에서 진행돼요. ",
     ),
     Object.assign(el("a", "", "환불 정책"), {
       href: "/legal/refund",
@@ -610,7 +715,7 @@ async function renderResult(r) {
 // 가격을 커피 한 잔 값과 비교하고, 이 메일함에서 나가는 구독료로 '본전'을 보여 준다
 function renderCoffee(r) {
   const s = r.summary || {};
-  $("#coffee-title").textContent = `${won(r.price)}, 커피 한 잔 값이에요`;
+  $("#value-title").textContent = `${won(r.price)}, 커피 한 잔 값이에요`;
   let text;
   if (s.monthly_charge) {
     const avg = Math.round(s.monthly_charge / Math.max(1, s.monthly_count));
@@ -624,7 +729,7 @@ function renderCoffee(r) {
   } else {
     text = `안 쓰는 계정 ${s.unused || 0}개, 보안 알림 ${s.security || 0}건을 한 번에 정리하는 값이에요.`;
   }
-  $("#coffee-text").textContent = text;
+  $("#value-text").textContent = text;
 }
 
 async function load(id) {
@@ -676,6 +781,7 @@ function waitForPayment(id) {
       if (r.paid) {
         clearInterval(payPoll);
         payPoll = null;
+        justPaid = id;
         await load(id);
       } else if (Date.now() - started > 180000) {
         clearInterval(payPoll);
@@ -715,7 +821,10 @@ async function onPay() {
   showError("#pay-error", "");
   try {
     const res = await api(`/api/reports/${id}/checkout`, { method: "POST" });
-    if (res.paid) return load(id);
+    if (res.paid) {
+      justPaid = id;
+      return load(id);
+    }
     openCheckout(res.url, id);
   } catch (err) {
     showError("#pay-error", err.message);
@@ -727,6 +836,7 @@ async function onPay() {
 async function onDevConfirm() {
   const id = currentId();
   await api(`/api/reports/${id}/dev-confirm`, { method: "POST" });
+  justPaid = id;
   await load(id);
 }
 
@@ -775,9 +885,12 @@ function route() {
   const id = currentId();
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
+  if (hash === "help") return renderHelp();
   // 샘플이 아닌 리포트·연결·홈은 로그인이 필요하다 (샘플 리포트 주소는 로그인 없이 열린다)
   if (!me.user) return id ? load(id) : renderIntro();
   if (!me.user.terms) return show("terms");
+  // 약관 뒤 한 번: 선택 정보 (건너뛰면 다시 묻지 않는다)
+  if (!me.user.profile_asked || hash === "about") return renderAbout();
   if (id) return load(id);
   if (hash === "connect") return show("connect");
   return renderHome();
@@ -789,9 +902,10 @@ async function init() {
     api("/api/providers"),
     refreshMe(),
   ]);
-  $("#sample-link").hidden = !config.sample;
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
+  $("#contact-mail").textContent = config.contact_email;
+  $("#help-price").textContent = won(config.price);
   renderBusiness();
   const form = $("#connect-form");
   form.email.addEventListener("input", () => {
@@ -800,6 +914,12 @@ async function init() {
   });
   form.addEventListener("submit", onConnect);
   $("#terms-form").addEventListener("submit", onTerms);
+  $("#about-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveAbout(aboutPicked);
+  });
+  // 처음엔 건너뛰기, 나중엔 모두 지우기: 둘 다 빈 값으로 저장한다
+  $("#about-skip").addEventListener("click", () => saveAbout({ age: null, gender: null, job: null }));
   // 전체 동의 ↔ 항목
   $("#terms-all").addEventListener("change", (e) =>
     termsBoxes().forEach((b) => (b.checked = e.target.checked)),
@@ -816,15 +936,16 @@ async function init() {
     .forEach((b) =>
       b.addEventListener("click", () => onLogin(b.dataset.login)),
     );
-  // 바깥을 누르거나 Esc를 누르면 팝업을 닫는다
-  $("#login-sheet").addEventListener("click", (e) => {
-    if (e.target.id === "login-sheet") closeLoginSheet();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !$("#login-sheet").hidden) closeLoginSheet();
-  });
+  // 바깥을 누르면 팝업을 닫는다 (Esc는 openLayer 쪽에서 처리)
+  document.querySelectorAll(".sheet-backdrop, .modal-backdrop").forEach((layer) =>
+    layer.addEventListener("click", (e) => {
+      if (e.target === layer) closeLayer(layer);
+    }),
+  );
   $("#logout").addEventListener("click", onLogout);
   $("#withdraw").addEventListener("click", onWithdraw);
+  $("#withdraw-ok").addEventListener("click", onWithdrawConfirmed);
+  $("#withdraw-cancel").addEventListener("click", () => closeLayer($("#withdraw-modal")));
   $("#pay").addEventListener("click", onPay);
   $("#dev-confirm").addEventListener("click", onDevConfirm);
   // 메일 분석 동의: 눌러야 OpenAI 전송 내용이 펼쳐진다
