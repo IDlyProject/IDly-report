@@ -950,14 +950,40 @@ function loadPaddle(opts) {
   return paddleReady;
 }
 
+// 팀원·테스트용 링크(/?discount=코드)로 들어오면 그 할인 코드를 결제창에 자동 적용한다.
+// 로그인 리다이렉트를 거쳐도 남도록 이 탭의 sessionStorage에 둔다
+const DISCOUNT_KEY = "idly.discount";
+
+function rememberDiscount() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get("discount");
+  if (!code) return;
+  try {
+    sessionStorage.setItem(DISCOUNT_KEY, code.trim());
+  } catch {}
+  params.delete("discount");
+  const rest = params.toString();
+  history.replaceState(null, "", `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`);
+}
+
+function savedDiscount() {
+  try {
+    return sessionStorage.getItem(DISCOUNT_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
 async function openCheckout(opts, id) {
   const paddle = await loadPaddle(opts);
   checkoutId = id;
+  const discountCode = savedDiscount();
   paddle.Checkout.open({
     items: [{ priceId: opts.priceId, quantity: 1 }],
     customData: opts.customData,
     ...(opts.email ? { customer: { email: opts.email } } : {}),
-    settings: { displayMode: "overlay", locale: "ko", theme: "light", allowLogout: false },
+    ...(discountCode ? { discountCode } : {}),
+    settings: { displayMode: "overlay", locale: "ko", theme: "light", allowLogout: false, showAddDiscounts: true },
   });
 }
 
@@ -1051,6 +1077,7 @@ function route() {
 }
 
 async function init() {
+  rememberDiscount();
   loadGuest();
   [config, providers] = await Promise.all([
     api("/api/config"),
