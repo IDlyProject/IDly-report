@@ -778,6 +778,7 @@ async function renderResult(r) {
     $("#report-body").innerHTML = view.html;
     // 샘플은 로그인 없이도 볼 수 있다. 돌아갈 곳과 아래 안내를 샘플에 맞춘다
     const backToPay = r.sample && sampleFromPay;
+    $("#report-title").textContent = r.sample ? "샘플 리포트 (예시)" : "계정 리포트";
     $("#report-back").href = signedIn() ? "#home" : "#";
     $("#report-back").onclick = backToPay ? goBack : null;
     $("#new-report").textContent = r.sample

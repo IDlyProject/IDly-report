@@ -288,11 +288,8 @@
   <div class="cta">
     <p class="pay-empty" id="pay-empty" hidden>찾은 계정이 없어서 결제할 내용이 없어요.<br>다른 메일 주소로 다시 해 보세요.</p>
     <a class="btn btn-main" id="pay-retry" href="#connect" hidden>다른 메일 연결하기</a>
-    <!-- 결제 전에 전체 리포트가 어떻게 생겼는지 샘플로 먼저 본다. 하단 고정이라 스크롤과 관계없이 늘 보인다 (샘플에서 뒤로 가면 이 결제 화면으로 돌아온다) -->
-    <div class="sample-cta" id="sample-cta" hidden>
-      <p>결제가 고민되시나요?</p>
-      <a class="btn sample-btn" id="sample-link" href="#sample">샘플 리포트 보기</a>
-    </div>
+    <!-- 결제 전에 전체 리포트가 어떻게 생겼는지 예시로 먼저 본다. 내 리포트로 오해하지 않게 버튼이 아닌 텍스트 링크로 둔다 (샘플에서 뒤로 가면 이 결제 화면으로 돌아온다) -->
+    <p class="sample-cta" id="sample-cta" hidden>결제가 고민되시나요? <a id="sample-link" href="#sample">샘플 리포트 보기</a></p>
     <button class="btn btn-main" id="pay"></button>
     <p class="cta-note" id="pay-note"></p>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
@@ -347,7 +344,7 @@
 <main id="report" class="screen bg-gradient" hidden>
   <header class="bar-head">
     <a class="back" href="#home" id="report-back" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
-    <h2 class="head-title">계정 리포트</h2>
+    <h2 class="head-title" id="report-title">계정 리포트</h2>
   </header>
   <div class="content">
     <div id="report-body"></div>

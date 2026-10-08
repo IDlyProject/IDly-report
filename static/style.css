@@ -59,23 +59,24 @@ h1, h2, p { margin: 0; }
 .title { padding: 20px 0 8px; }
 .title h1 { font-size: 22px; font-weight: 700; line-height: 30px; }
 .title p { margin-top: 6px; font-size: 14px; line-height: 19px; color: var(--sub); }
-.field { display: grid; gap: 6px; }
+/* 열을 minmax(0, 1fr)로: auto 열이면 input 기본 너비(약 20글자)만큼 칸이 화면 밖으로 넘친다 (모바일 크롬·글자 크기 키운 폰) */
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .field-label { font-size: 13px; font-weight: 600; line-height: 18px; color: var(--sub); }
 .field-hint { font-size: 12px; line-height: 1.5; color: var(--sub); }
-.input { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 12px;
+.input { display: flex; align-items: center; gap: 10px; min-width: 0; height: 48px; padding: 0 14px; border-radius: 12px;
   background: #fff; border: 0.762px solid var(--line); }
 .input:focus-within { border-color: var(--main); }
 .input img { flex: none; }
 .input img.dim { opacity: 0.55; }
-.input input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent;
+.input input { flex: 1; width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent;
   font: inherit; font-size: 16px; color: var(--ink); }
 .input input::placeholder { color: var(--mute); }
 .reveal { flex: none; height: 44px; margin-right: -8px; padding: 0 8px; border: 0; border-radius: 8px; background: none;
   font: inherit; font-size: 13px; font-weight: 600; color: var(--sub); cursor: pointer; }
 .reveal:focus-visible { outline: 2px solid #3766f4; }
-.row { display: flex; gap: 8px; }
+.row { display: flex; gap: 8px; min-width: 0; }
 .row .input:first-child { flex: 1; }
-.port { width: 88px; }
+.port { flex: none; width: 88px; }
 
 .kind { display: grid; gap: 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -286,17 +287,7 @@ h1, h2, p { margin: 0; }
 /* 스크립트가 넣는 여러 문장짜리 안내는 문장마다 줄을 바꾼다 (\n) */
 .error, .cta-note, #guest-note-text { white-space: pre-line; }
 
-/* 결제 화면: 결제가 고민될 때 샘플 리포트로 (밝은 버튼, 가끔 흔들어 눈에 띄게) */
-.sample-cta { display: grid; gap: 6px; text-align: center; }
-.sample-cta p { font-size: 14px; font-weight: 600; color: var(--sub); }
-.sample-btn { height: 48px; background: #ffb300; color: var(--ink); font-weight: 700; box-shadow: 0 6px 16px rgba(255, 179, 0, 0.35);
-  animation: sample-wiggle 3.2s ease-in-out 1s infinite; }
-.sample-btn:hover { background: #ffc233; }
-@keyframes sample-wiggle {
-  0%, 84%, 100% { transform: rotate(0); }
-  87% { transform: rotate(-2deg); }
-  90% { transform: rotate(2deg); }
-  93% { transform: rotate(-1.5deg); }
-  96% { transform: rotate(1deg); }
-}
-@media (prefers-reduced-motion: reduce) { .sample-btn { animation: none; } }
+/* 결제 화면: 결제 버튼 위 샘플 리포트 텍스트 링크 (버튼처럼 보이지 않게) */
+.sample-cta { font-size: 13px; color: var(--sub); text-align: center; }
+.sample-cta a { color: var(--main); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+

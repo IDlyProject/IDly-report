@@ -16,6 +16,10 @@
   background-image: linear-gradient(233deg, #0c2b89 2%, #3766f4 98%);
   box-shadow: 0 8px 12px rgba(8, 37, 126, 0.2);
 }
+/* 샘플 리포트 안내 (내 리포트로 오해하지 않게) */
+.rp-sample-note { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: #fff4d6; color: #6b4a00;
+  font-size: 13px; line-height: 1.5; text-align: center; }
+.rp-sample-note b { font-weight: 700; }
 .rp-chips { display: flex; align-items: center; gap: 6px; }
 .rp-hero-top { display: flex; justify-content: space-between; align-items: center; min-height: 21px; }
 .rp-date { font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.8); }

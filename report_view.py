@@ -156,7 +156,10 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     chip = f'<span class="rp-chip">{_img("ic-ai.svg")}AI 분석</span>' if report.get("ai_used") else ""
     sample = '<span class="rp-chip">샘플</span>' if report.get("sample") else ""
     label, desc = _money_line(s)
-    return f"""
+    # 샘플은 내 메일 분석 결과로 오해하지 않게 리포트 맨 위에 못 박는다
+    notice = ('<p class="rp-sample-note"><b>예시 리포트예요.</b> 가상의 사용자 데이터로, '
+              '내 메일을 분석한 결과가 아니에요.</p>') if report.get("sample") else ""
+    return f"""{notice}
 <section class="rp-hero">
   <div class="rp-hero-top"><span class="rp-date">{created.year}년 {created.month}월 {created.day}일 기준</span><span class="rp-chips">{sample}{chip}</span></div>
   <div class="rp-ring"><div><b>{s['accounts']}</b><span>찾은 계정</span></div></div>
