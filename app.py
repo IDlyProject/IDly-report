@@ -698,7 +698,13 @@ def report_pdf(report_id: str, request: Request):
 
 # --- 약관·정책 페이지 --------------------------------------------------------------
 
-LEGAL_PAGES = {"terms": "이용약관", "privacy": "개인정보처리방침", "refund": "환불 정책"}
+LEGAL_PAGES = {"terms": "이용약관", "privacy": "개인정보처리방침", "refund": "환불 정책", "pricing": "가격 안내"}
+
+
+# 결제사(Paddle) 심사에 내는 가격 페이지. 약관 페이지와 같은 틀을 쓴다
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing():
+    return legal("pricing")
 
 
 @app.get("/legal/{page}", response_class=HTMLResponse)
@@ -706,8 +712,9 @@ def legal(page: str):
     if page not in LEGAL_PAGES:
         raise ApiError(404, "없는 페이지예요.")
     body = (HERE / "static" / "legal" / f"{page}.html").read_text(encoding="utf-8")
-    # {{name}} 같은 자리에 사업자 정보를 넣는다 (비어 있으면 '준비 중')
-    body = re.sub(r"\{\{(\w+)\}\}", lambda m: escape(BUSINESS.get(m.group(1)) or "준비 중"), body)
+    # {{name}} 같은 자리에 사업자 정보·가격을 넣는다 (비어 있으면 '준비 중')
+    fields = {**BUSINESS, "price": f"₩{PRICE:,}"}
+    body = re.sub(r"\{\{(\w+)\}\}", lambda m: escape(fields.get(m.group(1)) or "준비 중"), body)
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{LEGAL_PAGES[page]} · IDly</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">

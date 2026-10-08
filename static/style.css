@@ -188,6 +188,15 @@ h1, h2, p { margin: 0; }
 .legal-body ol, .legal-body ul { padding-left: 20px; margin: 0; }
 .legal-body a { color: var(--main); }
 .legal-meta { color: var(--mute) !important; font-size: 13px; }
+/* 가격 안내 (/pricing): 한국어 아래 영어를 작게 (결제사 심사용) */
+.legal-body .en, .legal-body h3 .en { font-size: 13px; font-weight: 400; color: var(--sub); }
+.price-card { display: grid; gap: 6px; margin-top: 12px; padding: 24px 20px; border-radius: 16px; background: var(--info-bg); text-align: center; }
+.price-name { font-size: 15px; font-weight: 700; }
+.price-name span, .price-unit span { font-size: 12px; font-weight: 400; color: var(--sub); }
+.price-amount { font-size: 34px; font-weight: 700; color: var(--main); line-height: 1.2; }
+.price-unit { font-size: 13px; line-height: 1.5; color: #3a3b40; margin-bottom: 10px !important; }
+.price-card .btn { color: #fff; text-decoration: none; }
+.price-sample { font-size: 13px; }
 .legal-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; line-height: 1.5; }
 .legal-table th, .legal-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .legal-table th { color: var(--sub); font-weight: 600; }
