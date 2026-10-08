@@ -10,6 +10,7 @@
 """
 
 import base64
+import re
 from datetime import date, datetime
 from functools import lru_cache
 from html import escape
@@ -100,6 +101,11 @@ def summarize(report: Dict[str, Any]) -> Dict[str, Any]:
 
 def _e(value: Any) -> str:
     return escape(str(value)) if value not in (None, "") else ""
+
+
+def _lines(value: Any) -> str:
+    """여러 문장이면 문장마다 줄을 바꾼다 (좁은 화면에서 한 덩어리로 길게 흐르지 않게)."""
+    return re.sub(r"(?<=[.?!]) +(?=\S)", "<br>", _e(value))
 
 
 def _won(n: Optional[int]) -> str:
@@ -210,7 +216,7 @@ def _todo(accounts: List[Dict[str, Any]]) -> str:
             f'<div class="rp-row"><span class="rp-bubble {tint}">{_img(icon)}</span>'
             f'<div class="rp-row-body"><div class="rp-row-head"><p class="rp-title">{_e(a["service"])} · {_e(i["kind"])}</p>'
             f'<span class="rp-meta">{_md(i.get("date"))}</span></div>'
-            f'<p class="rp-text">{_e(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p></div></div>'
+            f'<p class="rp-text">{_lines(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p></div></div>'
         )
     return (f'<h2 class="rp-h2">확인할 일 <small>{len(items)}</small></h2>'
             f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-card">{"".join(rows)}</div>')
@@ -238,7 +244,7 @@ def _unused(accounts: List[Dict[str, Any]]) -> str:
             + (f'<p class="rp-advice">{advice}</p>' if advice else "") + "</div></div>"
         )
     return (f'<h2 class="rp-h2">안 쓰는 계정 <small>{len(unused)}</small></h2>'
-            '<p class="rp-note">1년 넘게 활동 메일이 없거나 휴면 안내가 온 계정이에요. 탈퇴는 휴면 안내가 왔거나 2년 넘게 활동이 없을 때만 권해요.</p>'
+            '<p class="rp-note">1년 넘게 활동 메일이 없거나 휴면 안내가 온 계정이에요.<br>탈퇴는 휴면 안내가 왔거나 2년 넘게 활동이 없을 때만 권해요.</p>'
             f'<div class="rp-card">{"".join(rows)}</div>')
 
 
@@ -254,7 +260,7 @@ def _connected_apps(report: Dict[str, Any]) -> str:
     note = ("Google 계정으로 로그인하면서 계정 정보를 공유한 서비스예요. 지금 쓰지 않는 서비스는 "
             "myaccount.google.com/connections에서 연결을 끊어 두세요.")
     return (f'<h2 class="rp-h2">Google로 로그인한 서비스 <small>{len(apps)}</small></h2>'
-            f'<p class="rp-note">{note}</p><div class="rp-card rp-compact">{rows}</div>')
+            f'<p class="rp-note">{_lines(note)}</p><div class="rp-card rp-compact">{rows}</div>')
 
 
 def _all_accounts(accounts: List[Dict[str, Any]]) -> str:
@@ -272,10 +278,10 @@ def _method(report: Dict[str, Any], s: Dict[str, Any]) -> str:
     ai = "규칙 분석과 AI 판별로" if report.get("ai_used") else "규칙 분석으로"
     return (
         '<div class="rp-method">'
-        f"<p>메일 {s['messages']:,}통의 보낸 곳·제목·날짜를 {ai} 서비스별로 묶었어요. "
+        f"<p>메일 {s['messages']:,}통의 보낸 곳·제목·날짜를 {ai} 서비스별로 묶었어요.<br>"
         "결제 메일은 서비스마다 최근 몇 통만 본문을 읽어 금액과 다음 결제일을 확인했어요.</p>"
-        "<p>메일만 보고 추정한 결과라 실제와 다를 수 있어요. 다른 메일 주소로 가입했거나 결제 메일을 받지 않는 서비스는 빠져 있어요. "
-        "달러 결제는 1달러 1,400원으로 환산했어요. IDly는 메일 원문과 메일 비밀번호를 저장하지 않아요.</p>"
+        "<p>메일만 보고 추정한 결과라 실제와 다를 수 있어요.<br>다른 메일 주소로 가입했거나 결제 메일을 받지 않는 서비스는 빠져 있어요.<br>"
+        "달러 결제는 1달러 1,400원으로 환산했어요.<br>IDly는 메일 원문과 메일 비밀번호를 저장하지 않아요.</p>"
         "</div>"
     )
 

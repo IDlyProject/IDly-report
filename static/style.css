@@ -282,3 +282,21 @@ h1, h2, p { margin: 0; }
 .value-card { margin-top: 16px; padding: 20px; }
 .value-title { font-size: 16px; font-weight: 700; line-height: 1.4; }
 .value-text { margin-top: 6px !important; font-size: 14px; line-height: 1.6; color: var(--sub); word-break: keep-all; }
+
+/* 스크립트가 넣는 여러 문장짜리 안내는 문장마다 줄을 바꾼다 (\n) */
+.error, .cta-note, #guest-note-text { white-space: pre-line; }
+
+/* 결제 화면: 결제가 고민될 때 샘플 리포트로 (밝은 버튼, 가끔 흔들어 눈에 띄게) */
+.sample-cta { display: grid; gap: 6px; text-align: center; }
+.sample-cta p { font-size: 14px; font-weight: 600; color: var(--sub); }
+.sample-btn { height: 48px; background: #ffb300; color: var(--ink); font-weight: 700; box-shadow: 0 6px 16px rgba(255, 179, 0, 0.35);
+  animation: sample-wiggle 3.2s ease-in-out 1s infinite; }
+.sample-btn:hover { background: #ffc233; }
+@keyframes sample-wiggle {
+  0%, 84%, 100% { transform: rotate(0); }
+  87% { transform: rotate(-2deg); }
+  90% { transform: rotate(2deg); }
+  93% { transform: rotate(-1.5deg); }
+  96% { transform: rotate(1deg); }
+}
+@media (prefers-reduced-motion: reduce) { .sample-btn { animation: none; } }

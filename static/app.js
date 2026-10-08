@@ -344,7 +344,15 @@ async function onConnect(event) {
   }
 }
 
-// #sample: 샘플 리포트(결제 완료 상태)를 만들어 보여준다. 결제 화면에서 새 탭으로 연다 (로그인 없이도 볼 수 있다)
+// #sample: 샘플 리포트(결제 완료 상태)를 만들어 보여준다 (로그인 없이도 볼 수 있다)
+// 결제 화면에서 열었으면 뒤로 가기·"내 리포트 확인하러 가기"가 그 결제 화면으로 돌아간다
+let sampleFromPay = false;
+function goBack(event) {
+  event.preventDefault();
+  sampleFromPay = false;
+  history.back();
+}
+
 async function openSample() {
   const { id } = await api("/api/reports/sample", { method: "POST" });
   location.replace(`#r=${id}`);
@@ -494,7 +502,7 @@ async function onAppleLogin() {
     console.error("[IDly] Apple 로그인 실패", err);
     showError(
       "#login-error",
-      (err && err.message) || "Apple 로그인에 실패했어요. 다시 시도해 주세요.",
+      (err && err.message) || "Apple 로그인에 실패했어요.\n다시 시도해 주세요.",
     );
   }
 }
@@ -668,7 +676,7 @@ async function renderHome() {
       ? "저장이 막혀 있어 이 창에서만 볼 수 있어요"
       : "이 브라우저에만 저장돼요";
     $("#guest-note-text").textContent = guestVolatile
-      ? "창을 닫으면 리포트를 다시 열 수 없어요. 로그인하면 계정에 남길 수 있어요."
+      ? "창을 닫으면 리포트를 다시 열 수 없어요.\n로그인하면 계정에 남길 수 있어요."
       : "브라우저 데이터를 지우거나 다른 기기에서 열면 리포트를 다시 볼 수 없어요.";
   }
   $("#home-hello").textContent = total && total.mailboxes > 1 ? `${who} ${total.mailboxes}개 합계` : who;
@@ -769,11 +777,17 @@ async function renderResult(r) {
   if (view.paid) {
     $("#report-body").innerHTML = view.html;
     // 샘플은 로그인 없이도 볼 수 있다. 돌아갈 곳과 아래 안내를 샘플에 맞춘다
+    const backToPay = r.sample && sampleFromPay;
     $("#report-back").href = signedIn() ? "#home" : "#";
+    $("#report-back").onclick = backToPay ? goBack : null;
     $("#new-report").textContent = r.sample
       ? "내 메일로 리포트 만들기"
       : "다른 메일로 새 리포트 만들기";
     $("#new-report").href = signedIn() ? "#connect" : "#";
+    // 결제 화면에서 온 샘플: 내 리포트로 돌아가는 길만 둔다 (PDF·새 리포트 만들기는 뺀다)
+    $("#new-report").parentElement.hidden = backToPay;
+    $("#pdf").hidden = backToPay;
+    $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     show("report");
     if (justPaid === r.id) {
@@ -790,7 +804,8 @@ async function renderResult(r) {
   $("#pay-retry").hidden = !empty;
   $("#pay").hidden = empty;
   $("#pay-note").hidden = empty;
-  $("#sample-link").hidden = empty || !config.sample;
+  // 결제 전이면 언제나 샘플을 볼 수 있게 (찾은 계정이 없을 때도)
+  $("#sample-cta").hidden = !config.sample;
   $("#pay").disabled = false;
   $("#pay").textContent = `${won(r.price)} 결제하고 전체 리포트 받기`;
   renderCoffee(r);
@@ -801,8 +816,8 @@ async function renderResult(r) {
       "span",
       "",
       (config.payment_mode === "mock"
-        ? "개발 모드라 실제로 결제되지 않아요. "
-        : "결제하면 바로 전체 리포트가 열려요. 디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요. ") +
+        ? "개발 모드라 실제로 결제되지 않아요.\n"
+        : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
         "결제는 해외 결제 대행사 Lemon Squeezy에서 진행돼요. ",
     ),
     Object.assign(el("a", "", "환불 정책"), {
@@ -893,7 +908,7 @@ function waitForPayment(id) {
         button.textContent = `${won(r.price)} 결제하고 전체 리포트 받기`;
         showError(
           "#pay-error",
-          "결제 확인이 늦어지고 있어요. 결제했다면 잠시 뒤 홈에서 다시 열어 보세요. 계속 안 열리면 문의해 주세요.",
+          "결제 확인이 늦어지고 있어요.\n결제했다면 잠시 뒤 홈에서 다시 열어 보세요.\n계속 안 열리면 문의해 주세요.",
         );
       }
     } catch {
@@ -1090,6 +1105,8 @@ async function init() {
     );
   });
   $("#pdf").addEventListener("click", onPdf);
+  $("#sample-link").addEventListener("click", () => (sampleFromPay = true));
+  $("#sample-back").addEventListener("click", goBack);
   window.addEventListener("hashchange", route);
   route();
 }
