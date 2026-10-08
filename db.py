@@ -282,6 +282,12 @@ def unlock_of(user_id: str, mailbox: str) -> Optional[str]:
 
 # --- 결제 -------------------------------------------------------------------------
 
+def payment_report(order_id: str) -> Optional[str]:
+    """결제(거래) id로 그 결제가 연 리포트를 찾는다 (환불 웹훅에는 custom data가 없다)."""
+    row = _one("SELECT report_id FROM payments WHERE order_id = ?", (order_id,))
+    return row["report_id"] if row else None
+
+
 def record_payment(order_id: str, report_id: str, user_id: Optional[str], status: str,
                    amount: Optional[int], currency: Optional[str], event: str) -> bool:
     """결제사 웹훅을 기록한다. 같은 주문의 같은 상태가 다시 오면(재전송) False."""

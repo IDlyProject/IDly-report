@@ -2,17 +2,17 @@
 
 ## 흐름
 
-카카오·Apple 로그인 → 약관 동의 → 홈(내 리포트·구독 금액) → 메일 연결 → 분석 → 결제 전 요약(숫자는 ???) → Lemon Squeezy 결제 → 웹훅으로 열림 → 전체 리포트·PDF
+카카오·Apple 로그인 → 약관 동의 → 홈(내 리포트·구독 금액) → 메일 연결 → 분석 → 결제 전 요약(숫자는 ???) → Paddle 결제 → 웹훅으로 열림 → 전체 리포트·PDF
 
 - 가격: 메일함마다 REPORT_PRICE (무료 메일함 없음). 한 번 결제한 메일함은 다시 분석해도 열려 있다
 - 결제: 결제창에 custom data(report_id·user_id)를 실어 보내고, 웹훅(서명 확인)으로 그 사용자의 그 메일함만 연다. 환불 웹훅이 오면 다시 잠근다
 - 저장: SQLite(db.py) — 사용자·세션·리포트(분석 결과만)·결제·열린 메일함. 메일 비밀번호·원문은 저장하지 않는다
-- 약관·정책: /legal/terms, /legal/privacy, /legal/refund (사업자 정보 없이 '운영자' 기준, 판매자는 Lemon Squeezy)
+- 약관·정책: /legal/terms, /legal/privacy, /legal/refund (사업자 정보 없이 '운영자' 기준, 판매자는 Paddle)
 
 ## 출시 전에 채울 것
 
 - 카카오 REST API 키, Apple Services ID (.env.example 참고). 둘 다 없으면 IDLY_DEBUG=1일 때 개발용 로그인만 보인다
-- Lemon Squeezy 웹훅 등록과 서명 비밀값. 로컬에서는 웹훅이 들어올 수 없어 ngrok 같은 터널이 필요하다 (IDLY_DEBUG=1이면 결제 화면의 '테스트: 결제 완료 처리'로 흉내 낼 수 있다)
+- Paddle 웹훅(Notification destination) 등록과 서명 비밀값, 결제 도메인 승인. 로컬에서는 웹훅이 들어올 수 없어 ngrok 같은 터널이 필요하다 (IDLY_DEBUG=1이면 결제 화면의 '테스트: 결제 완료 처리'로 흉내 낼 수 있다)
 - 개인정보 보호책임자(PRIVACY_OFFICER), 문의 메일(CONTACT_EMAIL)
 - 약관·방침 문구 법률 검토
 

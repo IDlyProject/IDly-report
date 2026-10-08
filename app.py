@@ -1,8 +1,8 @@
-"""IDly 리포트 백엔드: 로그인 → 메일 연동 → 분석·리포트·PDF까지 미리 만들어 둠 → 요약 → 결제(Lemon Squeezy) → 전체 리포트·PDF.
+"""IDly 리포트 백엔드: 로그인 → 메일 연동 → 분석·리포트·PDF까지 미리 만들어 둠 → 요약 → 결제(Paddle) → 전체 리포트·PDF.
 
 - 카카오·Apple로 로그인한 사용자만 리포트를 만들고 본다. 리포트는 만든 사람만 볼 수 있다 (샘플 제외).
 - 메일 비밀번호와 메일 원문은 저장하지 않는다. 분석 결과만 DB(db.py)에 둔다.
-- 결제는 PAYMENT_MODE=lemonsqueezy면 결제창 → 웹훅으로 연다. mock이면 바로 결제된 것으로 본다 (개발용).
+- 결제는 PAYMENT_MODE=paddle이면 Paddle 결제창 → 웹훅으로 연다. mock이면 바로 결제된 것으로 본다 (개발용).
 """
 
 import hashlib
@@ -37,7 +37,7 @@ from providers import PROVIDERS, explain_login_error, get_provider, resolve_prov
 from report_view import render_fragment, render_html, render_pdf, summarize, summarize_many, _money_line  # noqa: E402
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
-PAYMENT_MODE = os.getenv("PAYMENT_MODE", "lemonsqueezy")
+PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
 # 보관 기간: 결제 안 한 리포트는 짧게, 결제한 리포트는 사용자가 지우거나 탈퇴할 때까지 (최대 1년)
 UNPAID_DAYS = int(os.getenv("UNPAID_REPORT_DAYS", "7"))
 PAID_DAYS = int(os.getenv("PAID_REPORT_DAYS", "365"))
@@ -51,12 +51,12 @@ GUEST_HEADER = "X-IDly-Guest"
 SECURE_COOKIE = auth.APP_URL.startswith("https://")
 HERE = Path(__file__).parent
 
-# 운영·문의 정보 (약관·푸터에 들어간다). 사업자 없이 운영하고, 판매·결제는 Lemon Squeezy가 판매자(MoR)로 처리한다
+# 운영·문의 정보 (약관·푸터에 들어간다). 사업자 없이 운영하고, 판매·결제는 Paddle이 판매자(MoR)로 처리한다
 BUSINESS = {
     "name": os.getenv("OPERATOR_NAME", "IDly 팀"),
     "email": os.getenv("CONTACT_EMAIL", "idly1apt@gmail.com"),
     "privacy_officer": os.getenv("PRIVACY_OFFICER", ""),
-    "seller": "Lemon Squeezy, LLC (Merchant of Record)",
+    "seller": "Paddle.com Market Limited (Merchant of Record)",
     "effective_date": os.getenv("TERMS_EFFECTIVE_DATE", "2026년 10월 2일"),
 }
 
@@ -618,23 +618,23 @@ def checkout(report_id: str, request: Request):
         report.save()
         return {"paid": True}
     try:
-        url = billing.create_checkout(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
-                                      f"{auth.APP_URL}/#r={report.id}")
+        options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"))
     except billing.BillingError as e:
         raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
-    return {"paid": False, "url": url}
+    return {"paid": False, "paddle": options}
 
 
-@app.post("/api/webhooks/lemonsqueezy")
-async def lemonsqueezy_webhook(request: Request):
+@app.post("/api/webhooks/paddle")
+async def paddle_webhook(request: Request):
     raw = await request.body()
-    if not billing.verify_signature(raw, request.headers.get("X-Signature", "")):
+    if not billing.verify_signature(raw, request.headers.get("Paddle-Signature", "")):
         print("[billing] webhook signature mismatch")
         return JSONResponse({"detail": "invalid signature"}, status_code=401)
     event = billing.parse_webhook(raw)
     if event is None:
         return {"ok": True, "ignored": True}
-    report = _reports.get(event["report_id"])
+    # 환불에는 custom data가 없다: 결제 기록에서 그 거래가 연 리포트를 찾는다
+    report = _reports.get(event["report_id"] or db.payment_report(event["order_id"]) or "")
     if report is None or (event["user_id"] and event["user_id"] != report.user_id):
         print(f"[billing] webhook for unknown report {event}")
         return {"ok": True, "ignored": True}
@@ -647,7 +647,7 @@ async def lemonsqueezy_webhook(request: Request):
             if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
                 other.paid = event["status"] == "paid"
         print(f"[billing] {event['event']} order={event['order_id']} report={report.id} paid={report.paid} "
-              f"test={event['test_mode']} changed={changed}")
+              f"env={billing.ENVIRONMENT} changed={changed}")
     return {"ok": True}
 
 

@@ -819,7 +819,7 @@ async function renderResult(r) {
       (config.payment_mode === "mock"
         ? "개발 모드라 실제로 결제되지 않아요.\n"
         : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
-        "결제는 해외 결제 대행사 Lemon Squeezy에서 진행돼요. ",
+        "결제는 해외 결제 대행사 Paddle에서 진행돼요. ",
     ),
     Object.assign(el("a", "", "환불 정책"), {
       href: "/legal/refund",
@@ -883,7 +883,7 @@ async function load(id) {
   await renderResult(r);
 }
 
-// --- 결제 (Lemon Squeezy) ----------------------------------------------------------
+// --- 결제 (Paddle) ----------------------------------------------------------------
 
 let payPoll = null;
 
@@ -918,19 +918,47 @@ function waitForPayment(id) {
   }, 2000);
 }
 
-function openCheckout(url, id) {
-  // Lemon.js가 있으면 화면 위 결제창, 없으면 결제 페이지로 이동 (결제 후 이 리포트로 돌아온다)
-  if (window.createLemonSqueezy) {
-    window.createLemonSqueezy();
-    window.LemonSqueezy.Setup({
-      eventHandler: (e) => {
-        if (e.event === "Checkout.Success") waitForPayment(id);
-      },
+// Paddle.js는 결제 버튼을 누를 때만 받는다 (모든 화면에 외부 스크립트를 싣지 않게)
+let paddleReady = null;
+let checkoutId = null; // 지금 결제창을 연 리포트 (Paddle 이벤트 콜백은 한 번만 등록된다)
+
+function loadPaddle(opts) {
+  if (!paddleReady) {
+    paddleReady = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+      s.onload = () => {
+        if (opts.environment === "sandbox") window.Paddle.Environment.set("sandbox");
+        window.Paddle.Initialize({
+          token: opts.token,
+          eventCallback: (e) => {
+            if (e.name === "checkout.completed" && checkoutId) {
+              window.Paddle.Checkout.close();
+              waitForPayment(checkoutId);
+            }
+          },
+        });
+        resolve(window.Paddle);
+      };
+      s.onerror = () => {
+        paddleReady = null;
+        reject(new Error("결제창을 불러오지 못했어요. 잠시 후 다시 시도해주세요."));
+      };
+      document.head.append(s);
     });
-    window.LemonSqueezy.Url.Open(url);
-  } else {
-    location.href = url;
   }
+  return paddleReady;
+}
+
+async function openCheckout(opts, id) {
+  const paddle = await loadPaddle(opts);
+  checkoutId = id;
+  paddle.Checkout.open({
+    items: [{ priceId: opts.priceId, quantity: 1 }],
+    customData: opts.customData,
+    ...(opts.email ? { customer: { email: opts.email } } : {}),
+    settings: { displayMode: "overlay", locale: "ko", theme: "light", allowLogout: false },
+  });
 }
 
 async function onPay() {
@@ -944,7 +972,7 @@ async function onPay() {
       justPaid = id;
       return load(id);
     }
-    openCheckout(res.url, id);
+    await openCheckout(res.paddle, id);
   } catch (err) {
     showError("#pay-error", err.message);
   } finally {

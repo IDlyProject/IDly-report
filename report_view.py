@@ -157,7 +157,7 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     sample = '<span class="rp-chip">샘플</span>' if report.get("sample") else ""
     label, desc = _money_line(s)
     # 샘플은 내 메일 분석 결과로 오해하지 않게 리포트 맨 위에 못 박는다
-    notice = ('<p class="rp-sample-note"><b>예시 리포트예요.</b> 가상의 사용자 데이터로, '
+    notice = ('<p class="rp-sample-note"><b>이 페이지는 샘플(목업)입니다.</b> 가상의 사용자 데이터로, '
               '내 메일을 분석한 결과가 아니에요.</p>') if report.get("sample") else ""
     return f"""{notice}
 <section class="rp-hero">
@@ -289,6 +289,19 @@ def _method(report: Dict[str, Any], s: Dict[str, Any]) -> str:
     )
 
 
+# 샘플 리포트 워터마크: 화면 전체에 비스듬히 반복 (PDF는 페이지마다 반복된다)
+_WATERMARK_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="180">'
+    '<text x="130" y="90" text-anchor="middle" dominant-baseline="middle" transform="rotate(-30 130 90)" '
+    'font-family="Pretendard, Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" '
+    'fill="#3766f4" fill-opacity="0.13">샘플 (목업) 페이지</text></svg>'
+)
+_WATERMARK = (
+    '<div class="rp-watermark" aria-hidden="true" style="background-image:url(data:image/svg+xml;base64,'
+    + base64.b64encode(_WATERMARK_SVG.encode("utf-8")).decode("ascii") + ')"></div>'
+)
+
+
 def render_fragment(report: Dict[str, Any], created: datetime, full: bool) -> str:
     accounts = report["accounts"]
     s = summarize(report)
@@ -296,6 +309,8 @@ def render_fragment(report: Dict[str, Any], created: datetime, full: bool) -> st
     if full:
         parts += [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
                   _all_accounts(accounts), _method(report, s)]
+    if report.get("sample"):
+        parts.append(_WATERMARK)
     return f'<div class="rp">{"".join(parts)}</div>'
 
 

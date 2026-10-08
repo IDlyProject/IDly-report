@@ -1,102 +1,100 @@
-"""Lemon Squeezy 결제 (MoR).
+"""Paddle Billing 결제 (MoR).
 
 결제창
-- LEMONSQUEEZY_API_KEY·STORE_ID·VARIANT_ID가 있으면 Checkout API로 사용자마다 결제창을 만든다
-  (결제 후 돌아올 주소, 이메일 미리 채우기, custom data)
-- 없으면 고정 결제 링크(LEMONSQUEEZY_CHECKOUT_URL)에 같은 custom data를 쿼리로 붙인다
-- 어느 쪽이든 custom data에 report_id·user_id를 넣어, 웹훅이 오면 그 사용자의 그 리포트만 연다
+- 화면에서 Paddle.js 오버레이 결제창을 연다 (PADDLE_CLIENT_TOKEN, PADDLE_PRICE_ID)
+- custom data에 report_id·user_id를 넣어, 웹훅이 오면 그 사용자의 그 리포트만 연다
 
-웹훅 (POST /api/webhooks/lemonsqueezy)
-- X-Signature = HMAC-SHA256(서명 비밀값, 요청 원문) 을 확인한다
-- order_created(status=paid) → 결제 완료, order_refunded → 환불(리포트 다시 잠금)
-- API 키는 서버 환경변수에만 둔다. 화면 코드·저장소에 넣지 않는다
+웹훅 (POST /api/webhooks/paddle)
+- Paddle-Signature: ts=<초>;h1=<HMAC-SHA256(서명 비밀값, "ts:요청 원문")> 를 확인한다
+- transaction.completed → 결제 완료
+- adjustment.created/updated (action=refund·chargeback, status=approved) → 환불 (리포트 다시 잠금)
+- 클라이언트 토큰은 화면에 노출되는 공개 값이다. 웹훅 비밀값은 서버 환경변수에만 둔다
 """
 
 import hashlib
 import hmac
 import json
 import os
+import time
 from typing import Any, Dict, Optional
-from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
-import httpx
-
-CHECKOUT_URL = os.getenv(
-    "LEMONSQUEEZY_CHECKOUT_URL", "https://idly.lemonsqueezy.com/checkout/buy/5f3c2eed-bafc-44db-9f11-2ff201c1fbe7"
-)
-API_KEY = os.getenv("LEMONSQUEEZY_API_KEY", "")
-STORE_ID = os.getenv("LEMONSQUEEZY_STORE_ID", "")
-VARIANT_ID = os.getenv("LEMONSQUEEZY_VARIANT_ID", "")
-WEBHOOK_SECRET = os.getenv("LEMONSQUEEZY_WEBHOOK_SECRET", "")
+# sandbox | production (클라이언트 토큰도 같은 환경 것이어야 한다: test_… / live_…)
+ENVIRONMENT = os.getenv("PADDLE_ENV", "production")
+CLIENT_TOKEN = os.getenv("PADDLE_CLIENT_TOKEN", "")
+PRICE_ID = os.getenv("PADDLE_PRICE_ID", "")
+WEBHOOK_SECRET = os.getenv("PADDLE_WEBHOOK_SECRET", "")
+# 서명 시각이 이보다 오래된 웹훅은 재전송 공격으로 보고 버린다
+SIGNATURE_TOLERANCE = 300
 
 
 class BillingError(Exception):
     pass
 
 
-def create_checkout(report_id: str, user_id: str, email: Optional[str], return_url: str) -> str:
-    """결제창 주소. embed=1이면 화면 위 오버레이(Lemon.js)로 열린다."""
-    custom = {"report_id": report_id, "user_id": user_id}
-    if API_KEY and STORE_ID and VARIANT_ID:
-        body = {
-            "data": {
-                "type": "checkouts",
-                "attributes": {
-                    "product_options": {"redirect_url": return_url},
-                    "checkout_options": {"embed": True},
-                    "checkout_data": {**({"email": email} if email else {}), "custom": custom},
-                },
-                "relationships": {
-                    "store": {"data": {"type": "stores", "id": STORE_ID}},
-                    "variant": {"data": {"type": "variants", "id": VARIANT_ID}},
-                },
-            }
-        }
-        res = httpx.post("https://api.lemonsqueezy.com/v1/checkouts", json=body, timeout=20, headers={
-            "Authorization": f"Bearer {API_KEY}",
-            "Accept": "application/vnd.api+json",
-            "Content-Type": "application/vnd.api+json",
-        })
-        if res.status_code >= 300:
-            raise BillingError(f"결제창을 만들지 못했어요 ({res.status_code}): {res.text[:300]}")
-        return res.json()["data"]["attributes"]["url"]
-
-    # 고정 링크 + 쿼리로 custom data·이메일
-    parts = urlparse(CHECKOUT_URL)
-    query = dict(parse_qsl(parts.query))
-    query.update({f"checkout[custom][{k}]": v for k, v in custom.items()})
-    if email:
-        query["checkout[email]"] = email
-    query["embed"] = "1"
-    return urlunparse(parts._replace(query=urlencode(query)))
+def checkout_options(report_id: str, user_id: str, email: Optional[str]) -> Dict[str, Any]:
+    """화면이 Paddle.Checkout.open에 넘길 값."""
+    if not (CLIENT_TOKEN and PRICE_ID):
+        raise BillingError("PADDLE_CLIENT_TOKEN·PADDLE_PRICE_ID가 설정되지 않았어요.")
+    return {
+        "environment": ENVIRONMENT,
+        "token": CLIENT_TOKEN,
+        "priceId": PRICE_ID,
+        "email": email or None,
+        "customData": {"report_id": report_id, "user_id": user_id},
+    }
 
 
-def verify_signature(raw: bytes, signature: str) -> bool:
-    if not WEBHOOK_SECRET or not signature:
+def verify_signature(raw: bytes, header: str) -> bool:
+    if not WEBHOOK_SECRET or not header:
         return False
-    expected = hmac.new(WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    parts = dict(p.split("=", 1) for p in header.split(";") if "=" in p)
+    ts, sig = parts.get("ts", ""), parts.get("h1", "")
+    if not ts.isdigit() or not sig or abs(time.time() - int(ts)) > SIGNATURE_TOLERANCE:
+        return False
+    expected = hmac.new(WEBHOOK_SECRET.encode(), ts.encode() + b":" + raw, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, sig)
+
+
+def _amount(value: Any) -> Optional[int]:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def parse_webhook(raw: bytes) -> Optional[Dict[str, Any]]:
-    """우리가 처리할 이벤트만 {event, order_id, report_id, user_id, status, amount, currency}로 돌려준다."""
+    """우리가 처리할 이벤트만 {event, order_id, report_id, user_id, status, amount, currency}로 돌려준다.
+    환불(adjustment)에는 custom data가 없다. report_id 없이 order_id(거래 id)만 주고, 호출한 쪽이 결제 기록에서 찾는다."""
     payload = json.loads(raw)
-    meta = payload.get("meta") or {}
-    event = meta.get("event_name")
-    if event not in ("order_created", "order_refunded"):
-        return None
-    attrs = (payload.get("data") or {}).get("attributes") or {}
-    custom = meta.get("custom_data") or {}
-    if not custom.get("report_id"):
-        return None
-    paid = event == "order_created" and attrs.get("status") == "paid"
-    return {
-        "event": event,
-        "order_id": str((payload.get("data") or {}).get("id")),
-        "report_id": custom["report_id"],
-        "user_id": custom.get("user_id"),
-        "status": "paid" if paid else "refunded" if event == "order_refunded" or attrs.get("refunded") else attrs.get("status"),
-        "amount": attrs.get("total"),
-        "currency": attrs.get("currency"),
-        "test_mode": bool(attrs.get("test_mode")),
-    }
+    event = payload.get("event_type")
+    data = payload.get("data") or {}
+    if event == "transaction.completed":
+        custom = data.get("custom_data") or {}
+        # 우리 상품 가격으로 결제한 거래만 (다른 가격 id로 연 결제창은 무시)
+        prices = {((item.get("price") or {}).get("id")) for item in data.get("items") or []}
+        if not custom.get("report_id") or PRICE_ID not in prices:
+            return None
+        totals = (data.get("details") or {}).get("totals") or {}
+        return {
+            "event": event,
+            "order_id": str(data.get("id")),
+            "report_id": custom["report_id"],
+            "user_id": custom.get("user_id"),
+            "status": "paid",
+            "amount": _amount(totals.get("grand_total")),
+            "currency": data.get("currency_code"),
+        }
+    if event in ("adjustment.created", "adjustment.updated"):
+        if data.get("action") not in ("refund", "chargeback") or data.get("status") != "approved":
+            return None
+        totals = data.get("totals") or {}
+        return {
+            "event": event,
+            "order_id": str(data.get("transaction_id")),
+            "report_id": None,
+            "user_id": None,
+            "status": "refunded",
+            "amount": _amount(totals.get("total")),
+            "currency": data.get("currency_code"),
+        }
+    return None
