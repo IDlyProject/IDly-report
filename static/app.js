@@ -8,12 +8,69 @@ let pollTimer = null;
 // 방금 결제한 리포트: 열자마자 PDF를 내려받는다
 let justPaid = null;
 
+// --- 로그인 없이 쓰기 ----------------------------------------------------------------
+// 계정 대신 이 브라우저의 localStorage에 무작위 토큰을 두고, 서버는 그 토큰(의 해시)으로 리포트 주인을 가린다.
+// 브라우저 데이터를 지우거나 다른 기기에서 열면 토큰이 없어서 리포트를 다시 열 수 없다 → 시작 전에 팝업으로 알린다
+const GUEST_KEY = "idly.guest";
+let guest = null; // { token, terms } (terms: 약관 동의 시각)
+// 저장이 막힌 브라우저(시크릿 창·사이트 데이터 차단): 이 창이 열려 있는 동안만 쓴다
+let guestVolatile = false;
+
+function storageWorks() {
+  try {
+    localStorage.setItem("idly.check", "1");
+    localStorage.removeItem("idly.check");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function loadGuest() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GUEST_KEY) || "null");
+    guest = saved && typeof saved.token === "string" && saved.token.length >= 32 ? saved : null;
+  } catch {
+    guest = null;
+  }
+}
+
+function saveGuest() {
+  try {
+    localStorage.setItem(GUEST_KEY, JSON.stringify(guest));
+    guestVolatile = false;
+  } catch {
+    guestVolatile = true;
+  }
+}
+
+function clearGuest() {
+  guest = null;
+  guestVolatile = false;
+  try {
+    localStorage.removeItem(GUEST_KEY);
+  } catch {
+    // 저장이 막혀 있었으면 지울 것도 없다
+  }
+}
+
+function newGuestToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 로그인했거나 로그인 없이 쓰기로 한 상태
+const signedIn = () => !!(me.user || guest);
+
 async function api(path, options = {}) {
   const method = options.method || "GET";
   let res;
   try {
     res = await fetch(path, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(guest ? { "X-IDly-Guest": guest.token } : {}),
+      },
       ...options,
     });
   } catch (e) {
@@ -265,6 +322,8 @@ async function onConnect(event) {
         host: form.host.value.trim() || null,
         port: Number(form.port.value) || 993,
         consented: true,
+        // 로그인 없이 쓸 때는 약관 동의를 계정 대신 요청에 담는다
+        terms: !!(guest && guest.terms),
       }),
     });
     const navigation = performance.getEntriesByType("navigation")[0];
@@ -309,6 +368,11 @@ function renderIntro() {
 
 function openLoginSheet(error) {
   $("#login-mock").hidden = (me.login || {}).mode !== "mock";
+  // 이미 로그인 없이 쓰는 중이면 그 선택지는 빼고, 로그인하면 리포트를 옮긴다고 알린다
+  $("#open-guest").hidden = !!guest;
+  $("#login-desc").textContent = guest
+    ? "로그인하면 이 브라우저에 저장한 리포트를 계정으로 옮겨 언제든 다시 볼 수 있어요."
+    : "만든 리포트를 계정에 모아 두고 언제든 다시 볼 수 있어요.";
   showError("#login-error", error || "");
   openLayer($("#login-sheet"), $('[data-login="kakao"]'));
 }
@@ -317,10 +381,37 @@ function closeLoginSheet() {
   closeLayer($("#login-sheet"));
 }
 
+// 로그인 없이 사용하기 → 저장 안내 팝업 (저장이 막힌 브라우저면 경고를 같이 보여 준다)
+function openGuestNotice(fromHelp) {
+  closeLoginSheet();
+  $("#guest-blocked").hidden = storageWorks();
+  // 도움말에서 다시 볼 때는 안내만: 버튼을 '확인'으로
+  $("#guest-ok").textContent = fromHelp ? "확인" : "확인하고 로그인 없이 시작";
+  $("#guest-cancel").hidden = !!fromHelp;
+  openLayer($("#guest-modal"), $("#guest-ok"));
+}
+
+function onGuestConfirmed() {
+  closeLayer($("#guest-modal"));
+  if (guest) return;
+  guest = { token: newGuestToken(), terms: null };
+  saveGuest();
+  go("home");
+}
+
 // 로그인이 끝나면 (카카오 팝업 창 → postMessage, Apple → 응답) 약관 또는 홈으로
 async function afterLogin() {
   closeLoginSheet();
   await refreshMe();
+  // 로그인 없이 만든 리포트를 계정으로 옮기고, 이 브라우저의 게스트 토큰은 지운다
+  if (guest && me.user) {
+    try {
+      await api("/api/guest/claim", { method: "POST" });
+      clearGuest();
+    } catch (err) {
+      console.error("[IDly] 게스트 리포트를 계정으로 옮기지 못했어요", err);
+    }
+  }
   location.hash = me.user && me.user.terms ? "home" : "terms";
   route();
 }
@@ -444,6 +535,12 @@ async function onTerms(event) {
   if (!(form.terms.checked && form.privacy.checked && form.age14.checked)) {
     return showError("#terms-error", "필수 항목에 모두 동의해 주세요.");
   }
+  // 로그인 없이: 동의 시각을 이 브라우저에 두고, 리포트를 만들 때마다 서버에 함께 보낸다
+  if (!me.user && guest) {
+    guest.terms = new Date().toISOString();
+    saveGuest();
+    return go("home");
+  }
   try {
     await api("/api/terms", {
       method: "POST",
@@ -564,23 +661,22 @@ async function renderHome() {
   list.replaceChildren();
   // 위쪽 한 줄: 이름, 메일함이 여러 개면 합계라고 알려 준다
   const who = me.user && me.user.name ? `${me.user.name}님의 메일함` : "내 메일함";
+  // 로그인 없이 쓰는 중이면 저장 위치를 늘 알려 준다
+  $("#guest-note").hidden = !!me.user;
+  if (!me.user) {
+    $("#guest-note-title").textContent = guestVolatile
+      ? "저장이 막혀 있어 이 창에서만 볼 수 있어요"
+      : "이 브라우저에만 저장돼요";
+    $("#guest-note-text").textContent = guestVolatile
+      ? "창을 닫으면 리포트를 다시 열 수 없어요. 로그인하면 계정에 남길 수 있어요."
+      : "브라우저 데이터를 지우거나 다른 기기에서 열면 리포트를 다시 볼 수 없어요.";
+  }
   $("#home-hello").textContent = total && total.mailboxes > 1 ? `${who} ${total.mailboxes}개 합계` : who;
-  // 결과가 있으면 하나만 크게: 구독이 있으면 구독, 없고 보안 위험이 있으면 보안 위험, 둘 다 없으면 찾은 계정 수
+  // 결과가 있으면 하나만 크게: 구독 금액 → 보안 알림 → 안 쓰는 계정 → 찾은 계정 수 (서버 _money_line과 같은 순서)
   $("#home-teaser").hidden = !!total;
   $("#home-headline").hidden = !total;
   if (total) {
-    const n = (v) => v.toLocaleString("ko-KR");
-    let label;
-    let sub;
-    if (total.subscriptions) {
-      [label, sub] = total.money;
-    } else if (total.security) {
-      label = `보안 위험 계정 ${n(total.security)}개`;
-      sub = "의심 로그인·보안 알림을 확인해 보세요";
-    } else {
-      label = `계정 ${n(total.accounts)}개를 찾았어요`;
-      sub = "나가는 구독과 보안 위험은 없었어요";
-    }
+    const [label, sub] = total.money;
     $("#home-label").textContent = label;
     $("#home-sub").textContent = sub;
   }
@@ -609,7 +705,8 @@ async function onLogout() {
 // 도움말: 로그인 전에도 볼 수 있다 (계정 메뉴만 숨긴다)
 function renderHelp() {
   $("#help-account").hidden = !me.user;
-  $("#help-back").href = me.user ? "#home" : "#";
+  $("#help-guest").hidden = !!me.user || !guest;
+  $("#help-back").href = signedIn() ? "#home" : "#";
   show("help");
 }
 
@@ -672,11 +769,11 @@ async function renderResult(r) {
   if (view.paid) {
     $("#report-body").innerHTML = view.html;
     // 샘플은 로그인 없이도 볼 수 있다. 돌아갈 곳과 아래 안내를 샘플에 맞춘다
-    $("#report-back").href = me.user ? "#home" : "#";
+    $("#report-back").href = signedIn() ? "#home" : "#";
     $("#new-report").textContent = r.sample
       ? "내 메일로 리포트 만들기"
       : "다른 메일로 새 리포트 만들기";
-    $("#new-report").href = me.user ? "#connect" : "#";
+    $("#new-report").href = signedIn() ? "#connect" : "#";
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     show("report");
     if (justPaid === r.id) {
@@ -892,8 +989,15 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
   if (hash === "help") return renderHelp();
-  // 샘플이 아닌 리포트·연결·홈은 로그인이 필요하다 (샘플 리포트 주소는 로그인 없이 열린다)
-  if (!me.user) return id ? load(id) : renderIntro();
+  // 샘플이 아닌 리포트·연결·홈은 로그인(또는 로그인 없이 사용하기)이 필요하다 (샘플 리포트 주소는 그냥 열린다)
+  if (!me.user && !guest) return id ? load(id) : renderIntro();
+  // 로그인 없이: 약관 동의만 받고, 선택 정보(내부 통계)는 계정이 없어 묻지 않는다
+  if (!me.user) {
+    if (!guest.terms) return show("terms");
+    if (id) return load(id);
+    if (hash === "connect") return show("connect");
+    return renderHome();
+  }
   if (!me.user.terms) return show("terms");
   // 약관 뒤 한 번: 선택 정보 (건너뛰면 다시 묻지 않는다)
   if (!me.user.profile_asked || hash === "about") return renderAbout();
@@ -903,6 +1007,7 @@ function route() {
 }
 
 async function init() {
+  loadGuest();
   [config, providers] = await Promise.all([
     api("/api/config"),
     api("/api/providers"),
@@ -937,6 +1042,17 @@ async function init() {
     ),
   );
   $("#open-login").addEventListener("click", () => openLoginSheet());
+  $("#open-guest").addEventListener("click", () => openGuestNotice(false));
+  $("#guest-ok").addEventListener("click", onGuestConfirmed);
+  $("#guest-cancel").addEventListener("click", () => {
+    closeLayer($("#guest-modal"));
+    openLoginSheet();
+  });
+  $("#guest-info").addEventListener("click", () => openGuestNotice(true));
+  // 홈 안내 카드·도움말의 '로그인하고 계정에 보관하기'
+  document
+    .querySelectorAll("[data-open-login]")
+    .forEach((b) => b.addEventListener("click", () => openLoginSheet()));
   document
     .querySelectorAll("[data-login]")
     .forEach((b) =>

@@ -5,6 +5,7 @@
 - 결제는 PAYMENT_MODE=lemonsqueezy면 결제창 → 웹훅으로 연다. mock이면 바로 결제된 것으로 본다 (개발용).
 """
 
+import hashlib
 import imaplib
 import json
 import os
@@ -45,6 +46,8 @@ ID_LOGIN_PROVIDERS = {"naver", "nate"}
 # 1이면 실패 응답에 debug(메일 서버 원문 오류·시도한 사용자 이름·스택)를 붙이고 개발용 로그인을 연다. 배포 때는 0
 DEBUG = os.getenv("IDLY_DEBUG", "1") == "1"
 SESSION_COOKIE = "idly_session"
+# 로그인 없이 쓸 때: 브라우저(localStorage)에 둔 무작위 토큰을 이 헤더로 보낸다. 서버는 해시만 저장한다
+GUEST_HEADER = "X-IDly-Guest"
 SECURE_COOKIE = auth.APP_URL.startswith("https://")
 HERE = Path(__file__).parent
 
@@ -90,9 +93,11 @@ def _unexpected(request: Request, exc: Exception):
 
 class Report:
     def __init__(self, email: str, user_id: Optional[str], job: Optional[SyncJob] = None,
-                 data: Optional[Dict[str, Any]] = None, report_id: Optional[str] = None):
+                 data: Optional[Dict[str, Any]] = None, report_id: Optional[str] = None, guest: Optional[str] = None):
         self.id = report_id or secrets.token_urlsafe(16)
         self.user_id = user_id
+        # 로그인 없이 만든 리포트의 주인 (게스트 토큰 해시)
+        self.guest = guest
         # 서버가 다시 켜져서 진행 중이던 분석이 끊겼다
         self.interrupted = False
         self.email = email
@@ -121,7 +126,7 @@ class Report:
 
     def save(self) -> None:
         if not self.sample:
-            db.save_report(self.id, self.user_id, self.email, self.created, self.data, self.paid)
+            db.save_report(self.id, self.user_id, self.email, self.created, self.data, self.paid, self.guest)
 
     def pdf(self) -> bytes:
         with self._pdf_lock:
@@ -152,7 +157,7 @@ _pdf_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pdf")
 def _load_saved() -> None:
     """서버를 켤 때 DB의 리포트를 불러온다. 결과가 없는(분석 중에 끊긴) 것은 '중단됨'으로."""
     for row in db.load_reports():
-        report = Report(row["mailbox"], row["user_id"], data=row["data"], report_id=row["id"])
+        report = Report(row["mailbox"], row["user_id"], data=row["data"], report_id=row["id"], guest=row.get("guest"))
         report.created = datetime.fromisoformat(row["created"])
         report.paid = bool(row["paid"])
         report.interrupted = row["data"] is None
@@ -176,6 +181,25 @@ def _purge() -> None:
 
 def _user(request: Request) -> Optional[Dict[str, Any]]:
     return db.session_user(request.cookies.get(SESSION_COOKIE, ""))
+
+
+def _guest(request: Request) -> Optional[str]:
+    """게스트 토큰의 해시. 토큰 자체는 저장하지 않는다 (DB가 새어도 남의 리포트를 열 수 없게)."""
+    token = request.headers.get(GUEST_HEADER, "").strip()
+    if not 32 <= len(token) <= 128:
+        return None
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _owns(report: "Report", request: Request) -> bool:
+    if report.user_id:
+        return (_user(request) or {}).get("id") == report.user_id
+    return bool(report.guest) and _guest(request) == report.guest
+
+
+def _same_owner(a: "Report", b: "Report") -> bool:
+    """결제를 함께 열 리포트인지: 같은 계정, 또는 같은 브라우저의 게스트."""
+    return (a.user_id, a.guest) == (b.user_id, b.guest) and bool(a.user_id or a.guest)
 
 
 def _require_user(request: Request, terms: bool = True) -> Dict[str, Any]:
@@ -389,7 +413,7 @@ def providers():
 def _get(report_id: str, request: Request) -> Report:
     report = _reports.get(report_id)
     # 샘플은 누구나, 나머지는 만든 사람만
-    if report is None or (not report.sample and (_user(request) or {}).get("id") != report.user_id):
+    if report is None or (not report.sample and not _owns(report, request)):
         raise ApiError(404, "리포트를 찾지 못했어요. 지웠거나 보관 기간이 지났을 수 있어요.")
     return report
 
@@ -411,13 +435,17 @@ class StartBody(BaseModel):
     port: int = 993
     # 마스킹한 메일 요약을 OpenAI(국외)로 보내 분석하는 데 동의
     consented: bool = False
+    # 로그인 없이 쓸 때: 약관 동의를 계정 대신 요청마다 확인한다
+    terms: bool = False
 
 
 @app.get("/api/my/reports")
 def my_reports(request: Request):
-    user = _require_user(request)
+    # 로그인했으면 계정의 리포트, 아니면 이 브라우저(게스트 토큰)의 리포트
+    guest = None if _user(request) else _guest(request)
+    rows = db.guest_reports(guest) if guest else db.user_reports(_require_user(request)["id"])
     items = []
-    for row in db.user_reports(user["id"]):
+    for row in rows:
         report = _reports.get(row["id"])
         if report is None:
             continue
@@ -453,7 +481,16 @@ def delete_report(report_id: str, request: Request):
 
 @app.post("/api/reports")
 def start_report(body: StartBody, request: Request):
-    user = _require_user(request)
+    user = _user(request)
+    guest = None
+    if user:
+        user = _require_user(request)
+    else:
+        guest = _guest(request)
+        if guest is None:
+            raise ApiError(401, "로그인하거나 '로그인 없이 사용하기'를 골라 주세요.")
+        if not body.terms:
+            raise ApiError(403, "약관 동의가 필요해요.")
     _purge()
     provider = get_provider(body.provider) if body.provider else resolve_provider(body.email)
     email = body.email.strip()
@@ -514,9 +551,9 @@ def start_report(body: StartBody, request: Request):
             raise ApiError(502, f"{host}:{body.port} 메일 서버에 연결하지 못했어요. 서버 주소와 포트를 확인해주세요.", debug)
     if cred is None:
         raise ApiError(401, explain_login_error(str(error), provider), debug)
-    report = Report(cred.email, user["id"])
-    # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다
-    report.paid = db.unlock_of(user["id"], cred.email) == "paid"
+    report = Report(cred.email, user["id"] if user else None, guest=guest)
+    # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
+    report.paid = bool(user) and db.unlock_of(user["id"], cred.email) == "paid"
     # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
     # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
     def on_done(_data: Dict[str, Any]) -> None:
@@ -567,7 +604,7 @@ def report_status(report_id: str, request: Request):
 
 @app.post("/api/reports/{report_id}/checkout")
 def checkout(report_id: str, request: Request):
-    user = _require_user(request)
+    user = _user(request)
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
@@ -581,7 +618,8 @@ def checkout(report_id: str, request: Request):
         report.save()
         return {"paid": True}
     try:
-        url = billing.create_checkout(report.id, user["id"], user.get("email"), f"{auth.APP_URL}/#r={report.id}")
+        url = billing.create_checkout(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
+                                      f"{auth.APP_URL}/#r={report.id}")
     except billing.BillingError as e:
         raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
     return {"paid": False, "url": url}
@@ -604,8 +642,9 @@ async def lemonsqueezy_webhook(request: Request):
         changed = db.record_payment(event["order_id"], report.id, report.user_id, event["status"],
                                     event["amount"], event["currency"], event["event"])
         # 같은 메일함의 다른 리포트도 같이 열거나 잠근다
+        # 게스트 리포트는 결제한 그 리포트만 (DB의 record_payment와 같은 기준)
         for other in _reports.values():
-            if other.user_id == report.user_id and other.email.lower() == report.email.lower():
+            if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
                 other.paid = event["status"] == "paid"
         print(f"[billing] {event['event']} order={event['order_id']} report={report.id} paid={report.paid} "
               f"test={event['test_mode']} changed={changed}")
@@ -617,13 +656,27 @@ def dev_confirm(report_id: str, request: Request):
     """개발용: 로컬에서는 결제사 웹훅이 들어올 수 없으니 결제 완료를 흉내 낸다 (IDLY_DEBUG=1일 때만)."""
     if not DEBUG:
         raise ApiError(404, "없는 기능이에요.")
-    _require_user(request)
     report = _get(report_id, request)
     db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", PRICE, "KRW", "dev_confirm")
     for other in _reports.values():
-        if other.user_id == report.user_id and other.email.lower() == report.email.lower():
+        if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
             other.paid = True
     return {"paid": True}
+
+
+@app.post("/api/guest/claim")
+def claim_guest(request: Request):
+    """로그인하면 이 브라우저에서 로그인 없이 만든 리포트를 계정으로 옮긴다."""
+    user = _require_user(request, terms=False)
+    guest = _guest(request)
+    if guest is None:
+        return {"moved": 0}
+    moved = db.claim_guest_reports(guest, user["id"])
+    for rid in moved:
+        report = _reports.get(rid)
+        if report:
+            report.user_id, report.guest = user["id"], None
+    return {"moved": len(moved)}
 
 
 @app.get("/api/reports/{report_id}/view")

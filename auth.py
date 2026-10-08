@@ -12,7 +12,7 @@ Apple (Sign in with Apple JS, 팝업)
 - 토큰 교환(client_secret)이 필요 없어서 개인키 없이 동작한다
 
 목업 로그인 (AUTH_MODE=mock, 지금 기본값)
-- 카카오·네이버·Google·Apple 버튼은 화면만 있고, 누르면 그 서비스 이름의 테스트 계정으로 바로 로그인한다
+- 카카오·Apple 버튼은 화면만 있고, 누르면 그 서비스 이름의 테스트 계정으로 바로 로그인한다
 - 실제 연동은 AUTH_MODE=oauth로 켠다 (지금은 카카오·Apple만 구현돼 있다)
 """
 
@@ -36,13 +36,13 @@ class AuthError(Exception):
 
 
 AUTH_MODE = os.getenv("AUTH_MODE", "mock")
-MOCK_PROVIDERS = {"kakao": "카카오", "naver": "네이버", "google": "Google", "apple": "Apple"}
+MOCK_PROVIDERS = {"kakao": "카카오", "apple": "Apple"}
 
 
 def providers(debug: bool) -> Dict[str, Any]:
     if AUTH_MODE == "mock":
         return {"mode": "mock", **{p: True for p in MOCK_PROVIDERS}}
-    return {"mode": "oauth", "kakao": bool(KAKAO_KEY), "apple": bool(APPLE_CLIENT_ID), "naver": False, "google": False}
+    return {"mode": "oauth", "kakao": bool(KAKAO_KEY), "apple": bool(APPLE_CLIENT_ID)}
 
 
 def new_state() -> str:

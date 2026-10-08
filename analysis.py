@@ -255,7 +255,8 @@ def classify(subject: str) -> Optional[str]:
         return "로그인"
     if _DORMANCY_RE.search(subject) or _MEMBER_NOTICE_RE.search(subject):
         return "안내"
-    if subscription_state(subject):
+    # "Plus 구독을 시작해 보세요" 같은 권유 광고는 구독 신호가 아니다
+    if subscription_state(subject) and not _PROMO_RE.search(subject):
         return "구독"
     for kind, pattern in SIGNAL_PATTERNS:
         if pattern.search(subject):
@@ -361,6 +362,8 @@ class Payment(NamedTuple):
     one_time: bool   # 주문·배송·예약 같은 1회성 결제이고 구독 말은 없다
     cycle_hint: Optional[str]
     next_billing: Optional[str]
+    trial: bool = False               # 무료 체험·혜택 기간이라 지금은 0원 (본문 금액은 체험 뒤 가격)
+    trial_end: Optional[str] = None   # 유료로 바뀌는 날
 
 
 # "(monthly)", "monthly subscription", "월간 구독"처럼 내 결제 주기를 직접 말하는 표현
@@ -395,14 +398,68 @@ def cycle_hint(subject: str, body: str) -> Optional[str]:
     return best
 
 
+# 무료 체험·학생 혜택처럼 지금은 0원이고 나중에 유료로 바뀌는 결제 ("12개월 무료", "2027년 10월 3일까지 무료")
+_TRIAL_RE = _re(r"무료\s?체험|체험\s?(기간|판)|free trial|trial period|your trial|프로모션\s?(기간|혜택|가격|적용)|promotional (period|offer|price)|promo (period|price|offer)|"
+                r"무료\s?(이용\s?)?기간|혜택\s?기간|학생\s?(혜택|할인|인증|요금|플랜)|student (offer|discount|plan|pricing)|intro(ductory)? (offer|price)|"
+                r"\d+\s?(개월|months?|년|years?)\s?(간\s?|동안\s?)?(무료|free)|free for \d+|까지\s?무료|free until")
+# "12개월 무료", "1년간 무료", "free for 12 months" → 체험 기간 (전환일이 메일에 없을 때 보낸 날에 더한다)
+_TRIAL_SPAN_RE = _re(r"(\d+)\s?(개월|months?|년|years?)\s?(간\s?|동안\s?)?(무료|free)|free for (\d+)\s?(months?|years?)")
+_TRIAL_OVER_RE = _re(r"체험.{0,8}(종료|끝났)|trial.{0,10}(ended|has ended|expired|is over)")
+# 이번에 낸 돈이 0원 ("결제 금액 ₩0", "Total: $0.00", "₩0/월")
+_ZERO_PAID_RE = _re(r"(결제\s?금액|결제액|청구\s?금액|합계|총액|오늘\s?(결제|청구)|total|amount|charged|due today)[^\d₩$]{0,20}(₩|\$|US\$|KRW|USD)?\s?0(\.00)?(?![\d,]|\.\d)|"
+                    r"(₩|KRW|US\$|\$)\s?0(\.00)?(?![\d,]|\.\d)")
+_DATE_KO_RE = _re(r"(\d{4})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})")
+_DATE_EN_RE = _re(r"\b([a-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})")
+
+
+def _add_months(d: date, months: int) -> date:
+    y, m = divmod(d.month - 1 + months, 12)
+    year, month = d.year + y, m + 1
+    for day in (d.day, 30, 29, 28):
+        try:
+            return date(year, month, day)
+        except ValueError:
+            continue
+    return d
+
+
+def parse_trial_end(text: str, sent: Optional[date]) -> Optional[str]:
+    """체험·혜택 말 가까이에 있는, 보낸 날 이후의 첫 날짜를 유료 전환일로 본다.
+    날짜가 없고 "12개월 무료"처럼 기간만 있으면 보낸 날 + 기간."""
+    found = []
+    for pattern, ymd in ((_DATE_KO_RE, lambda m: (m.group(1), m.group(2), m.group(3))),
+                         (_DATE_EN_RE, lambda m: (m.group(3), _MONTHS.get(m.group(1).lower()[:3]), m.group(2)))):
+        for m in pattern.finditer(text):
+            y, mo, d = ymd(m)
+            if not mo or not _TRIAL_RE.search(text[max(0, m.start() - 80):m.end() + 30]):
+                continue
+            try:
+                when = date(int(y), int(mo), int(d))
+            except ValueError:
+                continue
+            if sent is None or when > sent:
+                found.append(when)
+    if found:
+        return min(found).isoformat()
+    m = _TRIAL_SPAN_RE.search(text)
+    if m and sent:
+        n = int(m.group(1) or m.group(5))
+        unit = (m.group(2) or m.group(6)).lower()
+        return _add_months(sent, n * 12 if unit.startswith(("년", "y")) else n).isoformat()
+    return None
+
+
 def read_payment(event: "Event", body: str) -> Payment:
     """결제 메일 하나(제목 + 서버 안에서 읽은 본문)를 해석한다. 본문을 못 읽었으면 제목만 본다."""
     text = f"{event.subject} {body[:4000]}"
     recurring = bool(_RECURRING_RE.search(text))
     one_time = not recurring and bool(_ONE_TIME_RE.search(text))
     hint = cycle_hint(event.subject, body[:4000])
+    # 체험이 끝났다는 안내는 체험 중이 아니다. 체험 말만 있고 0원도 전환일도 없으면 (체험 뒤 첫 결제 등) 유료로 본다
+    trial_end = parse_trial_end(text, event.date) if _TRIAL_RE.search(text) and not _TRIAL_OVER_RE.search(text) else None
+    trial = bool(trial_end or (_ZERO_PAID_RE.search(text) and _TRIAL_RE.search(text)))
     return Payment(event.date, event.subject, parse_amount(body) if body else None, recurring, one_time, hint,
-                   parse_next_billing(body, event.date) if body else None)
+                   parse_next_billing(body, event.date) if body else None, trial, trial_end)
 
 
 def cycle_from_dates(dates: List[date]) -> Optional[str]:
@@ -675,6 +732,7 @@ def ai_classify(items: List[Dict[str, Any]], api_key: str, weak: bool = False) -
             f"category: {', '.join(CATEGORIES)} 중 하나.",
             _AI_RULES_WEAK if weak else _AI_RULES_STRONG,
             "subscription: 반복 결제되는 유료 구독이 확실할 때만 {plan, monthly_krw}. monthly_krw는 월 금액(원, 정수), 외화면 대략 원화로 환산. 아니면 null.",
+            "교육용·학생 무료 요금제(Figma Education 등), 무료 플랜은 유료 구독이 아니므로 subscription null.",
             "메일에 없는 사실은 추측하지 않습니다.",
             "반드시 {\"services\": [{domain, service, category, is_account, subscription}]} JSON만 반환합니다.",
         ],
@@ -769,6 +827,13 @@ def _won(n: int) -> str:
     return f"₩{n:,}"
 
 
+# 교육용·학생·무료 요금제: 만료·갱신 안내가 와도 돈이 나가는 구독이 아니다 (예: Figma Education)
+_FREE_PLAN_RE = _re(r"\beducation\b|\bedu (plan|license)|교육용|에듀케이션|학생\s?(플랜|요금제|인증|라이선스)|student (plan|status|license|verification)|"
+                    r"free plan|무료\s?(플랜|요금제)|starter plan")
+# 체험 전환일을 모를 때 체험 중으로 보는 기간 (학생 혜택은 1년까지 있다)
+TRIAL_MAX_DAYS = 365
+
+
 def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dict[str, Any]],
                   today: date) -> Tuple[Optional[Dict[str, Any]], List[Dict[str, Any]]]:
     """결제 메일들로 (구독 정보, 1회성 결제 목록)을 만든다.
@@ -787,6 +852,10 @@ def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dic
     repeated = [p for p in candidates if _similar(p.amount, base)]
     gap_cycle = cycle_from_dates([p.date for p in repeated]) if len(repeated) >= 2 else None
     is_sub = bool(latest_state or any(p.recurring for p in candidates) or gap_cycle or (ai_sub and candidates))
+    # 금액이 한 번도 안 보이고 교육용·무료 요금제 안내뿐이면 유료 구독이 아니다
+    subjects = [p.subject for p in candidates] + ([latest_state[1].subject] if latest_state else [])
+    if is_sub and not any(p.amount for p in candidates) and any(_FREE_PLAN_RE.search(x) for x in subjects):
+        is_sub = False
 
     one_time_list = [p for p in payments if p.one_time or not is_sub]
     one_time = [
@@ -794,7 +863,7 @@ def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dic
         for p in sorted(one_time_list, key=lambda p: p.date, reverse=True)[:5]
     ]
     hints_all = [p.cycle_hint for p in candidates if p.cycle_hint]
-    if is_sub and not latest_state and not gap_cycle and not hints_all and len(candidates) < 2:
+    if is_sub and not latest_state and not gap_cycle and not hints_all and len(candidates) < 2 and not candidates[-1].trial:
         is_sub = False
         one_time = [{"date": p.date.isoformat(), "subject": p.subject[:120], "amount": p.amount}
                     for p in sorted(payments, key=lambda p: p.date, reverse=True)[:5]]
@@ -812,6 +881,9 @@ def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dic
     monthly = _monthly(amount, cycle)
     if amount is None and ai_sub and isinstance(ai_sub.get("monthly_krw"), (int, float)) and ai_sub["monthly_krw"] > 0:
         monthly = int(ai_sub["monthly_krw"])
+    # 마지막 결제 메일이 무료 체험·혜택이면 지금은 돈이 나가지 않는다. 금액은 체험 뒤 가격이다
+    trial = bool(last and last.trial)
+    trial_end = last.trial_end if trial else None
 
     state_date = latest_state[1].date if latest_state else None
     reference = last.date if last else state_date
@@ -824,6 +896,15 @@ def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dic
         if status == "만료 예정" and state_date and _expiry(notice[1].subject, state_date) < today:
             status = "만료됨"
             reason = f"{_md(_expiry(notice[1].subject, state_date))}에 만료됐어요. 이후 결제 메일은 없어요."
+    elif trial:
+        end = date.fromisoformat(trial_end) if trial_end else None
+        if (end and end + timedelta(days=CYCLE_GRACE[cycle]) < today) or (not end and reference + timedelta(days=TRIAL_MAX_DAYS) < today):
+            # 체험이 끝났는데 유료 결제 메일이 없다
+            status, inferred, trial = "해지됨", True, False
+            reason = "무료 체험이 끝난 뒤 결제 메일이 없어요. 체험만 쓰고 해지한 것으로 보여요."
+        else:
+            next_billing = trial_end
+            reason = f"무료 체험 중 · {_md(end)}부터 유료" if end else "무료 체험 중"
     elif reference:
         expected = (date.fromisoformat(last.next_billing) if last and last.next_billing
                     else reference + timedelta(days=CYCLE_DAYS[cycle]))
@@ -835,10 +916,26 @@ def build_billing(group: ServiceGroup, payments: List[Payment], ai: Optional[Dic
             next_billing = expected.isoformat()
             reason = f"{cycle} 결제 {len(sub_payments)}번 확인" if sub_payments else ""
 
+    # 결제 메일도 금액도 없는 '구독 중'은 근거가 제목뿐이다 (구독 권유·가입 환영 메일 등).
+    # 결제 메일이 있는데 금액만 못 읽었으면 (예: 앱마다 영수증 형식이 다른 CapCut) 남기고 화면에 '확인 필요'로 보여 준다
+    if status == "활성" and not amount and not monthly and not sub_payments and not trial:
+        return None, [{"date": p.date.isoformat(), "subject": p.subject[:120], "amount": p.amount}
+                      for p in sorted(payments, key=lambda p: p.date, reverse=True)[:5]]
+
+    # 마지막 결제 뒤에 계정 삭제·휴면 안내가 왔으면 구독이 이어지지 않는다 (삭제될 계정에 결제가 계속될 수 없다)
+    gone = [e for e in group.dormancy if e.date and reference and e.date >= reference and not _REACTIVATED_RE.search(e.subject)]
+    if status in ("활성", "만료 예정") and gone:
+        first = min(gone, key=lambda e: e.date)
+        status, inferred, next_billing, trial = "해지됨", True, None, False
+        reason = f"{_md(first.date)}에 계정 삭제·휴면 안내가 왔어요. 구독이 이어지지 않는 것으로 보여요."
+
     event_date = notice[1].date if notice else reference
     return {
         "plan": str((ai_sub or {}).get("plan") or "구독"),
-        "monthly": monthly if status in ("활성", "만료 예정") else None,
+        # 체험 중에는 매달 나가는 돈에 넣지 않는다
+        "monthly": monthly if status in ("활성", "만료 예정") and not trial else None,
+        "trial": trial,
+        "trialEnd": trial_end if trial else None,
         "amount": amount,
         "cycle": cycle,
         "cycleKnown": cycle_known,
@@ -870,13 +967,22 @@ def build_insights(group: ServiceGroup, sub: Optional[Dict[str, Any]], today: da
         # 한 번 결제하는 금액 (연간이면 연 금액). 보고서 표의 월 결제는 monthly(월 환산)를 쓴다
         charge = sub.get("amount") or sub["monthly"]
         amount = f" {_won(charge)}" if charge else ""
-        if upcoming:
+        # 결제 메일은 있는데 금액을 못 읽었을 때 (앱 영수증 형식·PC/모바일 결제 경로에 따라 다르다)
+        missing = "" if charge else " 메일에서 금액을 찾지 못했어요. 결제 내역에서 금액을 확인해 보세요."
+        if sub.get("trial"):
+            end = date.fromisoformat(sub["trialEnd"]) if sub.get("trialEnd") else None
+            price = f"{sub['cycle']} {_won(charge)}" if charge else "유료"
+            then = f"{_md(end)}부터 {price} 결제가 시작돼요." if end else f"체험이 끝나면 {price} 결제가 시작돼요."
             insights.append({"kind": "구독", "date": sub["lastEventDate"],
-                             "status": f"{when}{amount} {sub['cycle']} 정기결제. 다음 결제 {_md(date.fromisoformat(sub['nextBilling']))} 예정.",
+                             "status": f"{when} 무료 체험·혜택 시작. 지금은 결제되지 않고, {then}",
+                             "advice": "계속 쓸 게 아니면 유료로 바뀌기 전에 해지"})
+        elif upcoming:
+            insights.append({"kind": "구독", "date": sub["lastEventDate"],
+                             "status": f"{when}{amount} {sub['cycle']} 정기결제. 다음 결제 {_md(date.fromisoformat(sub['nextBilling']))} 예정.{missing}",
                              "advice": "계속 쓸지 확인하고, 원치 않으면 결제일 전에 구독 해지"})
         elif sub["status"] == "활성":
             insights.append({"kind": "구독", "date": sub["lastEventDate"],
-                             "status": f"{when}{amount} 유료 플랜·결제 안내. 이후 결제 메일은 없어요.",
+                             "status": f"{when}{amount} 유료 플랜·결제 안내. 이후 결제 메일은 없어요.{missing}",
                              "advice": "지금도 구독 중인지 결제 내역에서 확인"})
         elif sub["status"] == "만료 예정":
             insights.append({"kind": "구독", "date": sub["lastEventDate"],
@@ -1133,6 +1239,12 @@ def _clean_app_name(name: str) -> str:
     name = re.sub(r"\s*[-–]\s*(Monthly|Yearly|Annual|Weekly)\s*$", "", name, flags=re.I)
     name = re.sub(r"\s*(Monthly|Yearly|Annual|Weekly) Subscription\s*$", "", name, flags=re.I)
     name = re.sub(r"\s*(Monthly|Yearly|Annual|Weekly)\s*$", "", name, flags=re.I)
+    # "네이버 MYBOX - NAVER MYBOX Apple 80GB 1개월 정기 결제" → "네이버 MYBOX"
+    name = re.sub(r"\s*(\d+\s?(개월|년)|월간|연간|주간)\s?(정기\s?결제|구독|이용권)?\s*$", "", name)
+    # 한글 앱 이름 뒤에 " - 영문 이름·용량"이 붙으면 앞만 쓴다
+    head = name.split(" - ")[0]
+    if re.search(r"[가-힣]", head):
+        name = head
     return name.strip()[:60]
 
 

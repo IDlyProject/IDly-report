@@ -128,10 +128,11 @@ h1, h2, p { margin: 0; }
 .foot-note a { color: var(--main); font-weight: 600; }
 
 /* 소셜 로그인 버튼 (카카오·Apple 브랜드 가이드 색) */
-.btn-kakao { background: #fee500; color: rgba(0, 0, 0, 0.85); }
-.btn-apple { background: #000; color: #fff; }
-.btn-naver { background: #03c75a; color: #fff; }
-.btn-google { background: #fff; color: #1f1f1f; border: 0.762px solid var(--border); }
+/* 소셜 로그인 — 카카오 공식 가이드, Apple 버튼 가이드(Figma 커뮤니티) 기준. 로고 크기·색은 각 가이드 그대로 */
+.btn-social { border-radius: 10px; font-weight: 500; }
+.btn-social img { flex: none; }
+.btn-kakao { gap: 8px; background: #fee500; color: rgba(0, 0, 0, 0.85); font-weight: 600; }
+.btn-apple { gap: 12px; background: #000; color: #fff; }
 .cta-link { border: 0; background: none; font: inherit; cursor: pointer; }
 .cta-link.dev { font-size: 12px; font-weight: 500; color: var(--mute); }
 
@@ -254,6 +255,17 @@ h1, h2, p { margin: 0; }
 
 /* 확인 모달의 위험 버튼 (회원 탈퇴) */
 .btn-danger { background: var(--danger); color: #fff; }
+
+/* 로그인 없이 사용하기: 저장 안내 팝업과 홈 안내 카드 */
+.guest-dialog { max-width: 340px; }
+.dialog-list { margin: 14px 0 0; padding: 14px 16px 14px 32px; border-radius: 12px; background: var(--info-bg);
+  font-size: 13px; line-height: 1.7; color: var(--ink); text-align: left; }
+.dialog-warn { margin-top: 12px !important; font-size: 13px; line-height: 1.6; color: var(--danger); text-align: left; }
+.dialog-sub { margin-top: 12px !important; font-size: 12px; line-height: 1.6; color: var(--mute); }
+.guest-dialog .btn { margin-top: 20px; }
+.guest-note { margin-top: 16px; }
+.guest-login { display: block; padding: 0; border: 0; background: none; font-family: inherit; cursor: pointer; text-align: left; }
+.guest-login:focus-visible { outline: 2px solid #3766f4; outline-offset: 2px; border-radius: 4px; }
 
 /* 아주 좁은 화면 (320px): 칸 안 여백을 줄여 넘치지 않게 */
 @media (max-width: 340px) {

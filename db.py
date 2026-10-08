@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS reports (
     data TEXT,                        -- 분석 결과 JSON. 없으면 분석 중이었거나 끊긴 것
     paid INTEGER NOT NULL DEFAULT 0,
     paid_at TEXT,
-    order_id TEXT
+    order_id TEXT,
+    guest TEXT                        -- 로그인 없이 만든 리포트: 브라우저에 저장한 게스트 토큰의 해시 (user_id는 비어 있다)
 );
 CREATE TABLE IF NOT EXISTS payments (
     order_id TEXT PRIMARY KEY,
@@ -92,6 +93,13 @@ def _initialize(conn) -> None:
     else:
         conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(SCHEMA)
+    # 예전 DB에 게스트 열 추가
+    if USE_POSTGRES:
+        conn.execute("ALTER TABLE reports ADD COLUMN IF NOT EXISTS guest TEXT")
+    elif "guest" not in [r[1] for r in conn.execute("PRAGMA table_info(reports)").fetchall()]:
+        conn.execute("ALTER TABLE reports ADD COLUMN guest TEXT")
+        conn.commit()
+    conn.execute("CREATE INDEX IF NOT EXISTS reports_guest ON reports(guest, created)")
 
 
 def conn():
@@ -216,13 +224,13 @@ def save_profile(user_id: str, age: Optional[str], gender: Optional[str], job: O
 # --- 리포트 -----------------------------------------------------------------------
 
 def save_report(report_id: str, user_id: Optional[str], mailbox: str, created: datetime,
-                data: Optional[Dict[str, Any]], paid: bool) -> None:
+                data: Optional[Dict[str, Any]], paid: bool, guest: Optional[str] = None) -> None:
     _exec(
-        """INSERT INTO reports (id, user_id, mailbox, created, data, paid) VALUES (?, ?, ?, ?, ?, ?)
+        """INSERT INTO reports (id, user_id, mailbox, created, data, paid, guest) VALUES (?, ?, ?, ?, ?, ?, ?)
               ON CONFLICT(id) DO UPDATE SET data = excluded.data,
               paid = CASE WHEN reports.paid > excluded.paid THEN reports.paid ELSE excluded.paid END""",
         (report_id, user_id, mailbox, created.isoformat(timespec="seconds"),
-         json.dumps(data, ensure_ascii=False) if data is not None else None, int(paid)),
+         json.dumps(data, ensure_ascii=False) if data is not None else None, int(paid), guest),
     )
 
 
@@ -235,6 +243,21 @@ def load_reports() -> List[Dict[str, Any]]:
 
 def user_reports(user_id: str) -> List[Dict[str, Any]]:
     return _all("SELECT id FROM reports WHERE user_id = ? ORDER BY created DESC", (user_id,))
+
+
+def guest_reports(guest: str) -> List[Dict[str, Any]]:
+    return _all("SELECT id FROM reports WHERE guest = ? ORDER BY created DESC", (guest,))
+
+
+def claim_guest_reports(guest: str, user_id: str) -> List[str]:
+    """로그인 없이 만든 리포트를 로그인한 계정으로 옮긴다. 옮긴 id를 돌려준다."""
+    ids = [r["id"] for r in guest_reports(guest)]
+    # 게스트로 결제한 메일함은 계정에서도 열린 메일함으로 (다시 분석해도 추가 결제 없이)
+    for r in _all("SELECT mailbox, order_id FROM reports WHERE guest = ? AND paid = 1", (guest,)):
+        _exec("INSERT INTO unlocks (user_id, mailbox, how, order_id, created) VALUES (?, ?, 'paid', ?, ?) "
+              "ON CONFLICT(user_id, mailbox) DO NOTHING", (user_id, r["mailbox"].lower(), r["order_id"], _now()))
+    _exec("UPDATE reports SET user_id = ?, guest = NULL WHERE guest = ?", (user_id, guest))
+    return ids
 
 
 def delete_report(report_id: str) -> None:
@@ -285,4 +308,8 @@ def record_payment(order_id: str, report_id: str, user_id: Optional[str], status
                   (report["user_id"], report["mailbox"].lower(), order_id))
         _exec("UPDATE reports SET paid = ?, paid_at = ?, order_id = ? WHERE user_id = ? AND lower(mailbox) = ?",
               (int(paid), _now() if paid else None, order_id, report["user_id"], report["mailbox"].lower()))
+    elif report:
+        # 로그인 없이 만든 리포트: 결제한 그 리포트만 연다 (메일함 단위로 묶을 계정이 없다)
+        _exec("UPDATE reports SET paid = ?, paid_at = ?, order_id = ? WHERE id = ?",
+              (int(paid), _now() if paid else None, order_id, report_id))
     return True

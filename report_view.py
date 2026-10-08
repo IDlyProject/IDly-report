@@ -138,9 +138,12 @@ def _money_line(s: Dict[str, Any]) -> Tuple[str, str]:
                 f"연간 구독 {s['yearly_count']}개 · 한 달로 치면 약 {round(yearly / 12):,}원이에요")
     if monthly:
         return f"매달 {monthly:,}원", f"구독 {s['subscriptions']}개로 나가고 있어요"
-    if s["subscriptions"]:
-        return "구독 금액 확인 필요", f"구독 {s['subscriptions']}개를 찾았지만 메일에 금액이 없어요"
-    return "구독 결제 없음", "결제가 이어지는 구독은 찾지 못했어요"
+    # 나가는 돈을 모르면 그다음으로 중요한 것: 보안 알림 → 안 쓰는 계정 → 찾은 계정 수
+    if s["security"]:
+        return f"보안 확인이 필요한 계정 {s['security']:,}개", "새 기기 로그인·보안 알림이 본인 것인지 확인해 보세요"
+    if s["unused"]:
+        return f"안 쓰는 계정 {s['unused']:,}개", "1년 넘게 활동이 없거나 휴면 안내가 온 계정이에요"
+    return f"계정 {s['accounts']:,}개를 찾았어요", "나가는 구독과 보안 위험은 없었어요"
 
 
 def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
@@ -180,11 +183,17 @@ def _subscriptions(accounts: List[Dict[str, Any]]) -> str:
         nxt = f" · 다음 결제 {_d(sub['nextBilling'])}" if sub.get("nextBilling") else ""
         charge = sub.get("amount") or sub.get("monthly")
         per = f"월 {sub['monthly']:,}원" if sub["cycle"] != "월간" and sub.get("monthly") else _e(cycle)
+        # 결제 메일은 있는데 금액을 못 읽은 구독: 빈칸 대신 확인할 일로 보여 준다
+        text, price = f"{_e(cycle)} 결제{nxt}", (_won(charge) if charge else "확인 필요")
+        if sub.get("trial"):
+            # 체험 중: 지금은 0원, 금액은 체험이 끝난 뒤 가격
+            text = "무료 체험 중" + (f" · 유료 전환 {_d(sub['trialEnd'])}" if sub.get("trialEnd") else "")
+            price, per = "0원", (f"이후 {_e(cycle)} {sub['amount']:,}원" if sub.get("amount") else "무료 체험")
         rows.append(
             f'<div class="rp-row"><span class="rp-bubble t-info">{_img("ic-event.svg")}</span>'
             f'<div class="rp-row-body"><p class="rp-title">{_e(a["service"])}</p>'
-            f'<p class="rp-text">{_e(cycle)} 결제{nxt}</p></div>'
-            f'<p class="rp-amount">{_won(charge)}<span>{per}</span></p></div>'
+            f'<p class="rp-text">{text}</p></div>'
+            f'<p class="rp-amount">{price}<span>{per}</span></p></div>'
         )
     return f'<h2 class="rp-h2">구독 <small>{len(subs)}</small></h2><div class="rp-card">{"".join(rows)}</div>'
 
