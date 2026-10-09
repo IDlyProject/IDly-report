@@ -14,6 +14,7 @@
 - 카카오 REST API 키, Apple Services ID (.env.example 참고). 둘 다 없으면 IDLY_DEBUG=1일 때 개발용 로그인만 보인다
 - Paddle 웹훅(Notification destination) 등록과 서명 비밀값, 결제 도메인 승인. 로컬에서는 웹훅이 들어올 수 없어 ngrok 같은 터널이 필요하다 (IDLY_DEBUG=1이면 결제 화면의 '테스트: 결제 완료 처리'로 흉내 낼 수 있다)
 - 개인정보 보호책임자(PRIVACY_OFFICER), 문의 메일(CONTACT_EMAIL)
+- 에러 제보용 `DISCORD_WEBHOOK_URL`: IDly-Back과 같은 웹훅 URL을 배포 환경변수에 설정 (`DISCORD_WEBHOOK_AVATAR_URL`은 선택)
 - 약관·방침 문구 법률 검토
 
 메일 연동 → 무료 요약 → 결제 → 전체 리포트·PDF. IMAP 수집과 계정 탐색(`imap_sync.py`, `analysis.py`, `providers.py`)은 `IDly_PoC/backend`에서 가져왔고, 에이전트 관련 코드는 뺐다.
@@ -59,6 +60,7 @@ http://127.0.0.1:47830 · 메일 없이 보려면 "샘플 리포트 먼저 보�
 | `POST /api/reports/{id}/checkout` | 결제. `PAYMENT_MODE=mock`이면 바로 결제됨          |
 | `GET /api/reports/{id}/view`      | 리포트 HTML 조각. 결제 전에는 요약만, 결제 후 전체 |
 | `GET /api/reports/{id}/pdf`       | 결제 후 PDF (전에는 402)                           |
+| `POST /api/feedback`             | 화면 내 제보 버튼 → Discord (이미지 최대 5장, IP당 시간당 3회) |
 
 ## 남은 일
 

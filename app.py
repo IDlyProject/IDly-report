@@ -15,7 +15,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from html import escape
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -24,10 +24,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, Request  # noqa: E402
+from fastapi import FastAPI, File, Form, Request, UploadFile  # noqa: E402
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
+import httpx  # noqa: E402
 
 import auth  # noqa: E402
 import billing  # noqa: E402
@@ -61,6 +62,12 @@ BUSINESS = {
 }
 
 app = FastAPI(title="IDly report")
+
+FEEDBACK_LIMIT = 3
+FEEDBACK_WINDOW = 60 * 60
+FEEDBACK_IMAGE_LIMIT = 5 * 1024 * 1024
+_feedback_buckets: Dict[str, tuple[int, float]] = {}
+_feedback_lock = threading.Lock()
 
 
 class ApiError(Exception):
@@ -181,6 +188,87 @@ def _purge() -> None:
 
 def _user(request: Request) -> Optional[Dict[str, Any]]:
     return db.session_user(request.cookies.get(SESSION_COOKIE, ""))
+
+
+def _feedback_screen(path: str) -> str:
+    screen = path.split("?", 1)[0].lstrip("#")
+    if screen.startswith("r="):
+        return "리포트"
+    return {
+        "": "시작 화면", "/": "시작 화면", "home": "홈", "connect": "메일 연결",
+        "help": "도움말", "sample": "샘플 리포트", "about": "선택 정보",
+    }.get(screen, screen or "(미제공)")
+
+
+@app.post("/api/feedback", status_code=204)
+async def submit_feedback(request: Request, message: str = Form(...), screenPath: str = Form(""),
+                          images: Optional[list[UploadFile]] = File(default=None)):
+    """웹앱과 같은 디스코드 제보 형식. 웹훅 주소는 서버에만 둔다."""
+    message = message.strip()
+    if not 5 <= len(message) <= 500:
+        raise ApiError(400, "제보 내용은 5~500자로 입력해 주세요.")
+    if len(screenPath) > 200:
+        raise ApiError(400, "화면 정보가 너무 길어요.")
+    images = images or []
+    if len(images) > 5:
+        raise ApiError(400, "이미지는 최대 5장까지 첨부할 수 있어요.")
+
+    files = {}
+    for index, image in enumerate(images):
+        if not (image.content_type or "").startswith("image/"):
+            raise ApiError(400, "이미지 파일만 첨부할 수 있어요.")
+        data = await image.read(FEEDBACK_IMAGE_LIMIT + 1)
+        if len(data) > FEEDBACK_IMAGE_LIMIT:
+            raise ApiError(400, "이미지는 장당 5MB 이하로 첨부해 주세요.")
+        files[f"files[{index}]"] = (f"feedback_{index}.png", data, image.content_type)
+
+    webhook = os.getenv("DISCORD_WEBHOOK_URL", "")
+    if not webhook:
+        print("[feedback] DISCORD_WEBHOOK_URL 미설정")
+        raise ApiError(503, "제보를 보낼 수 없어요. 잠시 후 다시 시도해 주세요.")
+
+    ip = request.client.host if request.client else "unknown"
+    now = time.monotonic()
+    with _feedback_lock:
+        count, reset_at = _feedback_buckets.get(ip, (0, now + FEEDBACK_WINDOW))
+        if now >= reset_at:
+            count, reset_at = 0, now + FEEDBACK_WINDOW
+        if count >= FEEDBACK_LIMIT:
+            raise ApiError(429, "제보는 한 시간에 3번까지 보낼 수 있어요.")
+        _feedback_buckets[ip] = (count + 1, reset_at)
+        if len(_feedback_buckets) >= 5000:
+            for key, bucket in list(_feedback_buckets.items()):
+                if bucket[1] <= now:
+                    del _feedback_buckets[key]
+
+    user = _user(request)
+    payload = {
+        "username": "IDly 에러 제보",
+        "embeds": [{
+            "title": "🐛 버그 / 불편사항 제보", "color": 0xff4444,
+            "fields": [
+                {"name": "내용", "value": message},
+                {"name": "화면", "value": f"리포트 · {_feedback_screen(screenPath)}", "inline": True},
+                {"name": "유저", "value": (user or {}).get("email") or "익명", "inline": True},
+            ],
+            **({"image": {"url": "attachment://feedback_0.png"}} if files else {}),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }],
+    }
+    avatar = os.getenv("DISCORD_WEBHOOK_AVATAR_URL", "")
+    if avatar:
+        payload["avatar_url"] = avatar
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            if files:
+                response = await client.post(webhook, data={"payload_json": json.dumps(payload)}, files=files)
+            else:
+                response = await client.post(webhook, json=payload)
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        reason = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else type(exc).__name__
+        print(f"[feedback] Discord 전송 실패: {reason}")
+        raise ApiError(502, "제보 전송에 실패했어요. 다시 시도해 주세요.") from exc
 
 
 def _guest(request: Request) -> Optional[str]:
