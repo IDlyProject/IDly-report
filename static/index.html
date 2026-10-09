@@ -364,7 +364,28 @@
   <div class="cta"><a class="btn btn-main" href="#home">홈으로</a></div>
 </main>
 
+<button class="feedback-fab" id="feedback-open" type="button" aria-label="불편사항 제보">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3a1 1 0 110 2 1 1 0 010-2zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V10a1 1 0 011-1z" fill="white" opacity=".85"/></svg>
+</button>
+<div class="feedback-backdrop" id="feedback-modal" hidden>
+  <form class="feedback-sheet" id="feedback-form" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+    <div class="feedback-head">
+      <h2 id="feedback-title">불편사항 제보</h2>
+      <button id="feedback-close" type="button" aria-label="닫기">×</button>
+    </div>
+    <p class="feedback-description">이용 중 불편한 점을 알려 주세요. 화면 캡처도 함께 보낼 수 있어요.</p>
+    <textarea id="feedback-message" name="message" rows="3" minlength="5" maxlength="500" placeholder="어떤 점이 불편하셨나요? (5자 이상)" required></textarea>
+    <div class="feedback-meta"><span id="feedback-count">0/500</span><span id="feedback-error" role="alert" hidden></span></div>
+    <input id="feedback-images" type="file" accept="image/*" multiple hidden>
+    <div class="feedback-previews" id="feedback-previews"></div>
+    <button class="feedback-add" id="feedback-add" type="button">캡처 화면 첨부 (선택, 최대 5장)</button>
+    <button class="feedback-submit" id="feedback-submit" type="submit">제보하기</button>
+    <p class="feedback-done" id="feedback-done" role="status" hidden>✅ 제보해줘서 고마워요!</p>
+  </form>
+</div>
+
 </div>
 <script src="/static/app.js"></script>
+<script src="/static/feedback.js"></script>
 </body>
 </html>
