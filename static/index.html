@@ -15,7 +15,7 @@
 
 <!-- 시작·로그인 (Figma: 2 Login) -->
 <main id="intro" class="screen" hidden>
-  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help">도움말</a></header>
+  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help" data-ga="help_open">도움말</a></header>
   <div class="center">
     <img src="/static/assets/logo-owl.svg" alt="IDly" width="118.798" height="143.47">
     <div class="center-text">
@@ -43,9 +43,9 @@
     </label>
     <div class="agree-list">
       <label class="agree-row"><input type="checkbox" name="terms"><span class="check" aria-hidden="true"><img src="/static/assets/check.svg" alt="" width="22" height="22"></span>
-        <span>(필수) 서비스 이용약관</span><a href="/legal/terms" target="_blank" rel="noopener">보기</a></label>
+        <span>(필수) 서비스 이용약관</span><a href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">보기</a></label>
       <label class="agree-row"><input type="checkbox" name="privacy"><span class="check" aria-hidden="true"><img src="/static/assets/check.svg" alt="" width="22" height="22"></span>
-        <span>(필수) 개인정보 수집·이용</span><a href="/legal/privacy" target="_blank" rel="noopener">보기</a></label>
+        <span>(필수) 개인정보 수집·이용</span><a href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">보기</a></label>
       <label class="agree-row"><input type="checkbox" name="age14"><span class="check" aria-hidden="true"><img src="/static/assets/check.svg" alt="" width="22" height="22"></span>
         <span>(필수) 만 14세 이상이에요</span></label>
     </div>
@@ -89,7 +89,7 @@
 
 <!-- 홈 (Figma: 홈) -->
 <main id="home" class="screen bg-gradient" hidden>
-  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help">도움말</a></header>
+  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help" data-ga="help_open">도움말</a></header>
   <div class="content">
     <section class="rp"><div class="rp-hero home-hero">
       <p class="home-hello" id="home-hello"></p>
@@ -121,7 +121,7 @@
 
   </div>
   <div class="cta">
-    <a class="btn btn-main" href="#connect">새 리포트 만들기</a>
+    <a class="btn btn-main" href="#connect" data-ga="new_report_click" data-ga-label="home">새 리포트 만들기</a>
   </div>
 </main>
 
@@ -134,29 +134,29 @@
   <div class="content help">
     <h2 class="help-h2">자주 묻는 질문</h2>
     <div class="faq">
-      <details><summary>앱 비밀번호가 뭐예요?</summary>
+      <details><summary data-ga="faq_toggle" data-ga-label="app_password">앱 비밀번호가 뭐예요?</summary>
         <p>메일 서비스에서 외부 앱용으로 따로 만드는 비밀번호예요.<br>평소 로그인 비밀번호 대신 써요.<br>메일 연결 화면에 메일 주소를 넣으면 서비스별로 만드는 방법이 나와요.</p></details>
-      <details><summary>메일 비밀번호나 메일 내용을 저장하나요?</summary>
+      <details><summary data-ga="faq_toggle" data-ga-label="storage">메일 비밀번호나 메일 내용을 저장하나요?</summary>
         <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요.<br>메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
-      <details><summary>분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
+      <details><summary data-ga="faq_toggle" data-ga-label="delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
         <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요.<br>다시 분석할 때 새로 만들면 돼요.</p></details>
-      <details><summary>결제는 어떻게 하나요?</summary>
+      <details><summary data-ga="faq_toggle" data-ga-label="payment">결제는 어떻게 하나요?</summary>
         <p>전체 리포트는 메일함마다 <span id="help-price"></span>을 한 번 결제해요.<br>결제한 메일함은 다시 분석해도 추가 결제 없이 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
-      <details><summary>환불되나요?</summary>
-        <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요.<br>분석이 잘못됐다면 문의해 주세요.<br><a href="/legal/refund" target="_blank" rel="noopener">환불 정책</a></p></details>
+      <details><summary data-ga="faq_toggle" data-ga-label="refund">환불되나요?</summary>
+        <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요.<br>분석이 잘못됐다면 문의해 주세요.<br><a href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책</a></p></details>
     </div>
 
     <h2 class="help-h2">문의</h2>
     <div class="menu">
-      <a class="menu-row" id="contact-link" href="#">메일로 문의하기<span class="menu-sub" id="contact-mail"></span></a>
-      <a class="menu-row" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer">카카오톡 채널로 문의하기<span aria-hidden="true">›</span></a>
+      <a class="menu-row" id="contact-link" href="#" data-ga="contact_click" data-ga-label="mail">메일로 문의하기<span class="menu-sub" id="contact-mail"></span></a>
+      <a class="menu-row" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="contact_click" data-ga-label="kakao">카카오톡 채널로 문의하기<span aria-hidden="true">›</span></a>
     </div>
 
     <h2 class="help-h2">약관·정책</h2>
     <div class="menu">
-      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener">환불 정책<span aria-hidden="true">›</span></a>
-      <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener">이용약관<span aria-hidden="true">›</span></a>
-      <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener">개인정보처리방침<span aria-hidden="true">›</span></a>
+      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책<span aria-hidden="true">›</span></a>
+      <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관<span aria-hidden="true">›</span></a>
+      <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침<span aria-hidden="true">›</span></a>
     </div>
 
     <div id="help-account">
@@ -171,7 +171,7 @@
       <h2 class="help-h2">계정</h2>
       <div class="menu">
         <button class="menu-row" type="button" data-open-login>로그인하고 리포트 옮기기<span aria-hidden="true">›</span></button>
-        <button class="menu-row" type="button" id="guest-info">로그인 없이 쓸 때 저장 안내<span aria-hidden="true">›</span></button>
+        <button class="menu-row" type="button" id="guest-info" data-ga="guest_info_open">로그인 없이 쓸 때 저장 안내<span aria-hidden="true">›</span></button>
       </div>
     </div>
     <p class="business" id="business"></p>
@@ -223,12 +223,12 @@
         <span class="check" aria-hidden="true"><img src="/static/assets/check.svg" alt="" width="22" height="22"></span>
         <span>(필수) 메일 분석 동의</span>
       </label>
-      <button type="button" class="fold-toggle" id="consent-toggle" aria-expanded="false" aria-controls="consent-detail">자세히</button>
+      <button type="button" class="fold-toggle" id="consent-toggle" data-ga="consent_detail_toggle" aria-expanded="false" aria-controls="consent-detail">자세히</button>
       <div class="fold-body" id="consent-detail" hidden>
         <p><b>읽는 것</b> 메일의 보낸 곳·제목·날짜, 결제·인증·보안 관련 메일 일부 본문</p>
         <p><b>OpenAI(미국)로 보내는 것</b> 이메일 아이디·전화번호·카드번호·인증번호를 가린 요약. 서비스 이름과 분류를 정하는 데만 쓰고, OpenAI는 학습에 쓰지 않으며 최대 30일 뒤 지워요.</p>
         <p><b>저장하지 않는 것</b> 메일 비밀번호, 메일 원문</p>
-        <p><b>동의하지 않으면</b> 메일 분석을 할 수 없어요. <a href="/legal/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
+        <p><b>동의하지 않으면</b> 메일 분석을 할 수 없어요. <a href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침</a></p>
       </div>
     </div>
     <p class="error" id="connect-error" role="alert" hidden></p>
@@ -254,7 +254,7 @@
     </div>
   </div>
   <div class="cta" id="scan-retry" hidden>
-    <a class="btn btn-main" href="#connect">다시 연결하기</a>
+    <a class="btn btn-main" href="#connect" data-ga="scan_retry_click">다시 연결하기</a>
   </div>
 </main>
 
@@ -285,9 +285,9 @@
   </div>
   <div class="cta">
     <p class="pay-empty" id="pay-empty" hidden>찾은 계정이 없어서 결제할 내용이 없어요.<br>다른 메일 주소로 다시 해 보세요.</p>
-    <a class="btn btn-main" id="pay-retry" href="#connect" hidden>다른 메일 연결하기</a>
+    <a class="btn btn-main" id="pay-retry" href="#connect" data-ga="other_mail_click" hidden>다른 메일 연결하기</a>
     <!-- 결제 전에 전체 리포트가 어떻게 생겼는지 예시로 먼저 본다. 내 리포트로 오해하지 않게 버튼이 아닌 텍스트 링크로 둔다 (샘플에서 뒤로 가면 이 결제 화면으로 돌아온다) -->
-    <p class="sample-cta" id="sample-cta" hidden>결제가 고민되시나요? <a id="sample-link" href="#sample">샘플 리포트 보기</a></p>
+    <p class="sample-cta" id="sample-cta" hidden>결제가 고민되시나요? <a id="sample-link" href="#sample" data-ga="sample_click">샘플 리포트 보기</a></p>
     <button class="btn btn-main" id="pay"></button>
     <p class="cta-note" id="pay-note"></p>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
@@ -346,11 +346,11 @@
   </header>
   <div class="content">
     <div id="report-body"></div>
-    <p class="foot-note"><a href="#connect" id="new-report">다른 메일로 새 리포트 만들기</a></p>
+    <p class="foot-note"><a href="#connect" id="new-report" data-ga="new_report_click" data-ga-label="report">다른 메일로 새 리포트 만들기</a></p>
   </div>
   <div class="cta">
     <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>
-    <a class="btn btn-main" id="sample-back" href="#" hidden>내 리포트 확인하러 가기</a>
+    <a class="btn btn-main" id="sample-back" href="#" data-ga="sample_back_click" hidden>내 리포트 확인하러 가기</a>
   </div>
 </main>
 
@@ -386,6 +386,7 @@
 </div>
 
 </div>
+<script src="/static/analytics.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/feedback.js"></script>
 </body>

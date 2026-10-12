@@ -8,6 +8,10 @@ let pollTimer = null;
 // 방금 결제한 리포트: 열자마자 PDF를 내려받는다
 let justPaid = null;
 
+// 통계(static/analytics.js)가 광고 차단기에 막혀 실리지 않아도 화면은 그대로 돌아가야 한다
+for (const name of ["initAnalytics", "track", "trackScreen", "trackApiError", "trackApiOk"])
+  if (typeof window[name] !== "function") window[name] = () => {};
+
 // --- 로그인 없이 쓰기 ----------------------------------------------------------------
 // 계정 대신 이 브라우저의 localStorage에 무작위 토큰을 두고, 서버는 그 토큰(의 해시)으로 리포트 주인을 가린다.
 // 브라우저 데이터를 지우거나 다른 기기에서 열면 토큰이 없어서 리포트를 다시 열 수 없다 → 시작 전에 팝업으로 알린다
@@ -78,15 +82,18 @@ async function api(path, options = {}) {
       `[IDly] ${method} ${path} → 네트워크 오류 (서버가 꺼져 있거나 연결이 끊김)`,
       e,
     );
+    trackApiError(method, path, 0);
     throw new Error("서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.");
   }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     logApiError(method, path, res.status, body);
+    trackApiError(method, path, res.status);
     const err = new Error(body.detail || "잠시 후 다시 시도해주세요.");
     err.status = res.status;
     throw err;
   }
+  trackApiOk();
   return body;
 }
 
@@ -117,6 +124,7 @@ function show(id) {
     .querySelectorAll(".screen")
     .forEach((el) => (el.hidden = el.id !== id));
   window.scrollTo(0, 0);
+  trackScreen(id);
 }
 
 // --- 팝업 (로그인 시트·알림) ---------------------------------------------------------
@@ -312,6 +320,9 @@ async function onConnect(event) {
   const button = $('[form="connect-form"]');
   button.disabled = true;
   button.textContent = "메일 서버에 연결하는 중…";
+  // 통계에는 메일 서비스 종류만 보낸다 (주소·도메인은 보내지 않는다)
+  const kind = provider ? provider.id : "unknown";
+  track("connect_submit", { provider: kind });
   try {
     const { id } = await api("/api/reports", {
       method: "POST",
@@ -326,6 +337,7 @@ async function onConnect(event) {
         terms: !!(guest && guest.terms),
       }),
     });
+    track("analysis_start", { provider: kind });
     const navigation = performance.getEntriesByType("navigation")[0];
     if (navigation && navigation.type === "reload") {
       history.replaceState(null, "", `${location.pathname}${location.search}`);
@@ -337,6 +349,7 @@ async function onConnect(event) {
     $("#reveal").textContent = "보기";
     location.hash = `r=${id}`;
   } catch (err) {
+    track("connect_error", { provider: kind, status: err.status || 0 });
     showError("#connect-error", err.message);
   } finally {
     button.disabled = false;
@@ -361,6 +374,8 @@ async function openSample() {
 // --- 로그인·약관 -------------------------------------------------------------------
 
 let me = { user: null, login: {} };
+// 통계용: 마지막으로 누른 로그인 버튼 (kakao·apple)
+let loginMethod = "";
 
 async function refreshMe() {
   me = await api("/api/me");
@@ -382,6 +397,7 @@ function openLoginSheet(error) {
     ? "로그인하면 이 브라우저에 저장한 리포트를 계정으로 옮겨 언제든 다시 볼 수 있어요."
     : "만든 리포트를 계정에 모아 두고 언제든 다시 볼 수 있어요.";
   showError("#login-error", error || "");
+  if ($("#login-sheet").hidden) track("login_open");
   openLayer($("#login-sheet"), $('[data-login="kakao"]'));
 }
 
@@ -404,6 +420,7 @@ function onGuestConfirmed() {
   if (guest) return;
   guest = { token: newGuestToken(), terms: null };
   saveGuest();
+  track("login", { method: "guest" });
   go("home");
 }
 
@@ -411,6 +428,7 @@ function onGuestConfirmed() {
 async function afterLogin() {
   closeLoginSheet();
   await refreshMe();
+  if (me.user) track("login", { method: loginMethod || "unknown" });
   // 로그인 없이 만든 리포트를 계정으로 옮기고, 이 브라우저의 게스트 토큰은 지운다
   if (guest && me.user) {
     try {
@@ -442,8 +460,9 @@ function onKakaoLogin() {
 window.addEventListener("message", (e) => {
   if (e.origin !== location.origin || !e.data || e.data.type !== "idly-login")
     return;
-  if (e.data.ok) afterLogin();
-  else showError("#login-error", e.data.message || "로그인하지 못했어요.");
+  if (e.data.ok) return afterLogin();
+  track("login_error", { method: "kakao" });
+  showError("#login-error", e.data.message || "로그인하지 못했어요.");
 });
 
 // Apple: Sign in with Apple JS 팝업으로 id_token을 받아 서버에서 검증한다 (mongle 웹과 같은 방식)
@@ -500,6 +519,7 @@ async function onAppleLogin() {
     )
       return;
     console.error("[IDly] Apple 로그인 실패", err);
+    track("login_error", { method: "apple" });
     showError(
       "#login-error",
       (err && err.message) || "Apple 로그인에 실패했어요.\n다시 시도해 주세요.",
@@ -522,6 +542,8 @@ async function onMockLogin(provider) {
 }
 
 function onLogin(provider) {
+  loginMethod = provider;
+  track("login_start", { method: provider });
   if ((me.login || {}).mode === "mock") return onMockLogin(provider);
   if (provider === "kakao") return onKakaoLogin();
   if (provider === "apple") return onAppleLogin();
@@ -547,6 +569,7 @@ async function onTerms(event) {
   if (!me.user && guest) {
     guest.terms = new Date().toISOString();
     saveGuest();
+    track("sign_up", { method: "guest" });
     return go("home");
   }
   try {
@@ -554,6 +577,7 @@ async function onTerms(event) {
       method: "POST",
       body: JSON.stringify({ terms: true, privacy: true, age14: true }),
     });
+    track("sign_up", { method: loginMethod || "unknown" });
     await refreshMe();
     go("home");
   } catch (err) {
@@ -601,6 +625,8 @@ async function saveAbout(values) {
   try {
     await api("/api/profile", { method: "POST", body: JSON.stringify(values) });
     const first = !me.user.profile_asked;
+    // 답했는지만 보낸다 (고른 값은 보내지 않는다)
+    track(Object.values(values).some(Boolean) ? "profile_save" : first ? "profile_skip" : "profile_clear");
     await refreshMe();
     go(first ? "home" : "help");
   } catch (err) {
@@ -705,6 +731,7 @@ function renderBusiness() {
 
 async function onLogout() {
   await api("/api/logout", { method: "POST" });
+  track("logout");
   await refreshMe();
   location.hash = "";
   route();
@@ -725,6 +752,7 @@ function onWithdraw() {
 async function onWithdrawConfirmed() {
   closeLayer($("#withdraw-modal"));
   await api("/api/me", { method: "DELETE" });
+  track("withdraw");
   await refreshMe();
   location.hash = "";
   route();
@@ -791,6 +819,7 @@ async function renderResult(r) {
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     show("report");
+    if (r.sample) track("sample_view", { from: backToPay ? "pay" : "direct" });
     if (justPaid === r.id) {
       justPaid = null;
       $("#pdf").click();
@@ -829,6 +858,16 @@ async function renderResult(r) {
   );
   $("#dev-confirm").hidden = !(config.debug && config.payment_mode !== "mock");
   show("preview");
+  if (!empty) track("view_item", reportItem(r.price));
+}
+
+// 통계(GA 전자상거래)에 보내는 상품 정보: 상품은 전체 리포트 하나뿐이다
+function reportItem(price, currency = "KRW") {
+  return {
+    currency,
+    value: price,
+    items: [{ item_id: "full_report", item_name: "Full report", price, quantity: 1 }],
+  };
 }
 
 // 가격을 커피 한 잔 값과 비교하고, 이 메일함에서 나가는 구독료로 '본전'을 보여 준다
@@ -874,12 +913,18 @@ async function load(id) {
     }
     console.groupEnd();
   }
+  // 분석 화면을 보고 있다가 끝난 경우만 센다 (홈에서 예전 리포트를 다시 열 때는 세지 않는다)
+  const watching = !$("#scanning").hidden;
   if (r.status !== "완료") {
+    if (watching && (r.status === "실패" || r.status === "중단됨"))
+      track("analysis_fail", { reason: r.status === "실패" ? "failed" : "interrupted" });
     renderScanning(r);
     if (r.status !== "실패" && r.status !== "중단됨")
       pollTimer = setTimeout(() => load(id), 1500);
     return;
   }
+  if (watching)
+    track("analysis_complete", { result: r.summary && r.summary.accounts ? "found" : "empty" });
   await renderResult(r);
 }
 
@@ -900,6 +945,7 @@ function waitForPayment(id) {
       if (r.paid) {
         clearInterval(payPoll);
         payPoll = null;
+        trackPurchase(r.price);
         justPaid = id;
         await load(id);
       } else if (Date.now() - started > 180000) {
@@ -921,6 +967,18 @@ function waitForPayment(id) {
 // Paddle.js는 결제 버튼을 누를 때만 받는다 (모든 화면에 외부 스크립트를 싣지 않게)
 let paddleReady = null;
 let checkoutId = null; // 지금 결제창을 연 리포트 (Paddle 이벤트 콜백은 한 번만 등록된다)
+let checkoutDone = null; // 결제 완료 이벤트의 data (통계에 실제 결제 금액·거래 번호를 보낸다)
+
+// 할인 코드를 쓰면 정가와 다르므로 Paddle이 알려 준 금액을 먼저 쓴다
+function trackPurchase(price) {
+  const d = checkoutDone || {};
+  checkoutDone = null;
+  const total = Number(d.totals && d.totals.total);
+  track("purchase", {
+    ...reportItem(Number.isFinite(total) ? total : price, d.currency_code || "KRW"),
+    ...(d.transaction_id ? { transaction_id: d.transaction_id } : {}),
+  });
+}
 
 function loadPaddle(opts) {
   if (!paddleReady) {
@@ -933,6 +991,7 @@ function loadPaddle(opts) {
           token: opts.token,
           eventCallback: (e) => {
             if (e.name === "checkout.completed" && checkoutId) {
+              checkoutDone = e.data;
               window.Paddle.Checkout.close();
               waitForPayment(checkoutId);
             }
@@ -998,8 +1057,10 @@ async function onPay() {
       justPaid = id;
       return load(id);
     }
+    track("begin_checkout", reportItem(config.price));
     await openCheckout(res.paddle, id);
   } catch (err) {
+    track("checkout_error", { status: err.status || 0 });
     showError("#pay-error", err.message);
   } finally {
     if (!payPoll) button.disabled = false;
@@ -1038,7 +1099,9 @@ async function onPdf(event) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     link.textContent = "PDF 다운로드";
+    track("pdf_download");
   } catch {
+    track("pdf_error");
     link.textContent = "다시 시도";
   } finally {
     delete link.dataset.busy;
@@ -1084,6 +1147,7 @@ async function init() {
     api("/api/providers"),
     refreshMe(),
   ]);
+  initAnalytics(config.ga_id);
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
