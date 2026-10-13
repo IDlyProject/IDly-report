@@ -15,6 +15,7 @@
 - Paddle 웹훅(Notification destination) 등록과 서명 비밀값, 결제 도메인 승인. 로컬에서는 웹훅이 들어올 수 없어 ngrok 같은 터널이 필요하다 (IDLY_DEBUG=1이면 결제 화면의 '테스트: 결제 완료 처리'로 흉내 낼 수 있다)
 - 개인정보 보호책임자(PRIVACY_OFFICER), 문의 메일(CONTACT_EMAIL)
 - 에러 제보용 `DISCORD_WEBHOOK_URL`: IDly-Back과 같은 웹훅 URL을 배포 환경변수에 설정 (`DISCORD_WEBHOOK_AVATAR_URL`은 선택)
+- 통계용 `GA_MEASUREMENT_ID`(GA4 측정 ID): 넣으면 화면 전환·퍼널 이벤트를 보낸다 (`static/analytics.js`). GA4 관리 > 데이터 스트림 > 향상된 측정에서 '브라우저 방문 기록 이벤트에 따른 페이지 변경'은 꺼 둔다 (주소의 리포트 id가 넘어가지 않게). GA4 데이터 보관 기간은 개인정보처리방침에 적은 14개월과 맞춘다
 - 약관·방침 문구 법률 검토
 
 메일 연동 → 무료 요약 → 결제 → 전체 리포트·PDF. IMAP 수집과 계정 탐색(`imap_sync.py`, `analysis.py`, `providers.py`)은 `IDly_PoC/backend`에서 가져왔고, 에이전트 관련 코드는 뺐다.

@@ -43,6 +43,8 @@ PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
 UNPAID_DAYS = int(os.getenv("UNPAID_REPORT_DAYS", "7"))
 PAID_DAYS = int(os.getenv("PAID_REPORT_DAYS", "365"))
 SAMPLE_ENABLED = os.getenv("IDLY_SAMPLE", "1") == "1"
+# Google Analytics 4 측정 ID (G-…). 비어 있으면 통계 스크립트를 싣지 않는다 (static/analytics.js)
+GA_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
 ID_LOGIN_PROVIDERS = {"naver", "nate"}
 # 1이면 실패 응답에 debug(메일 서버 원문 오류·시도한 사용자 이름·스택)를 붙이고 개발용 로그인을 연다. 배포 때는 0
 DEBUG = os.getenv("IDLY_DEBUG", "1") == "1"
@@ -318,7 +320,7 @@ def _popup_result(user: Optional[Dict[str, Any]], message: str = "") -> HTMLResp
 <script>
   if (window.opener) {{ window.opener.postMessage({payload}, location.origin); window.close(); }}
   else {{ location.replace({json.dumps(fallback)}); }}
-</script>""")
+</script>""", headers={"Referrer-Policy": "no-referrer"})  # 이 주소의 인가 코드가 다음 화면의 referrer로 남지 않게
     if user is not None:
         response.set_cookie(SESSION_COOKIE, db.create_session(user["id"]), max_age=db.SESSION_DAYS * 86400,
                             httponly=True, samesite="lax", secure=SECURE_COOKIE)
@@ -477,7 +479,7 @@ def withdraw(request: Request):
 
 @app.get("/api/config")
 def config():
-    return {"price": PRICE, "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG,
+    return {"price": PRICE, "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG, "ga_id": GA_ID,
             "contact_email": BUSINESS["email"], "business": BUSINESS, "profile_options": PROFILE_OPTIONS}
 
 
@@ -789,6 +791,12 @@ def report_pdf(report_id: str, request: Request):
 LEGAL_PAGES = {"terms": "이용약관", "privacy": "개인정보처리방침", "refund": "환불 정책", "pricing": "가격 안내"}
 
 
+# 약관·가격 페이지는 화면(static/analytics.js)과 따로 그려지므로 통계 스크립트를 직접 넣는다 (주소에 개인정보가 없어 자동 page_view를 쓴다)
+GA_SNIPPET = f"""<script async src="https://www.googletagmanager.com/gtag/js?id={escape(GA_ID)}"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}gtag("js",new Date());
+gtag("config",{json.dumps(GA_ID)},{{allow_google_signals:false,allow_ad_personalization_signals:false}});</script>""" if GA_ID else ""
+
+
 # 결제사(Paddle) 심사에 내는 가격 페이지. 약관 페이지와 같은 틀을 쓴다
 @app.get("/pricing", response_class=HTMLResponse)
 def pricing():
@@ -806,7 +814,7 @@ def legal(page: str):
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{LEGAL_PAGES[page]} · IDly</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="/static/style.css?v={ASSET_VERSION}"></head>
+<link rel="stylesheet" href="/static/style.css?v={ASSET_VERSION}">{GA_SNIPPET}</head>
 <body><div class="app"><main class="screen legal">
 <header class="bar-head"><a class="back" href="/" aria-label="처음으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
 <h2 class="head-title">{LEGAL_PAGES[page]}</h2></header>
@@ -822,7 +830,7 @@ ASSET_VERSION = str(int(max(f.stat().st_mtime for f in (HERE / "static").glob("*
 @app.get("/")
 def index():
     html = (HERE / "static" / "index.html").read_text(encoding="utf-8")
-    for name in ("style.css", "report.css", "app.js"):
+    for name in ("style.css", "report.css", "analytics.js", "app.js"):
         html = html.replace(f"/static/{name}", f"/static/{name}?v={ASSET_VERSION}")
     return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 

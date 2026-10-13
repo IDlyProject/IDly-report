@@ -68,6 +68,7 @@ feedbackOpen.addEventListener("click", () => {
   feedbackSubmit.disabled = true;
   feedbackModal.hidden = false;
   feedbackMessage.focus();
+  track("feedback_open");
 });
 document.querySelector("#feedback-close").addEventListener("click", feedbackCloseModal);
 feedbackModal.addEventListener("click", (event) => {
@@ -126,6 +127,7 @@ feedbackForm.addEventListener("submit", async (event) => {
       const result = await response.json().catch(() => ({}));
       throw new Error(result.detail || "전송 실패, 다시 시도해 주세요.");
     }
+    track("feedback_submit", { images: feedbackFiles.length });
     feedbackForm.classList.add("is-done");
     feedbackDoneTimer = setTimeout(feedbackCloseModal, 1400);
   } catch (error) {
