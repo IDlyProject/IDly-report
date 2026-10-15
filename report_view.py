@@ -1,7 +1,7 @@
 """탐색 결과(analysis.discover_accounts)를 리포트로 바꾼다.
 
 - summarize: 결제 전에 보여주는 무료 요약 숫자
-- render_fragment: 리포트 본문 HTML 조각. 결제 전에는 요약 카드와 숫자만, 결제 후에는 전체
+- render_fragment: 리포트 본문 HTML 조각. 결제 전에는 요약 카드·숫자와 이름을 가린 목록, 결제 후에는 전체
   (웹 화면이 그대로 끼워 넣는다. 스타일은 static/report.css)
 - render_html / render_pdf: 같은 조각을 문서로 감싸 크로미움으로 A4 PDF로 인쇄한다
 
@@ -302,6 +302,57 @@ _WATERMARK = (
 )
 
 
+# --- 결제 전: 이름만 가린 목록 ------------------------------------------------------
+# 몇 개인지·얼마인지·언제인지는 보여 주고 '어느 서비스인지'만 가린다. 가린 줄을 누르면 바로 결제창이 열린다.
+# 서비스 이름은 HTML에 아예 넣지 않는다 (흐림은 CSS로 낸 모양일 뿐이라 개발자 도구로 보면 같은 가짜 글자만 보인다)
+LOCKED_ROWS = 3
+_HIDDEN = '<span class="rp-hidden" aria-label="결제하면 보여요">숨겨진 서비스</span>'
+
+
+def _locked_section(key: str, title: str, total: int, rows: List[str], note: str = "") -> str:
+    if not rows:
+        return ""
+    more = total - len(rows)
+    button = f"{'외 ' + str(more) + '개 포함, ' if more > 0 else ''}어느 서비스인지 보기"
+    return (f'<h2 class="rp-h2">{title} <small>{total}</small></h2>'
+            + (f'<p class="rp-note">{note}</p>' if note else "")
+            + f'<div class="rp-card rp-locked" data-unlock="{key}" role="button" tabindex="0">{"".join(rows)}'
+            f'<p class="rp-unlock">{_img("ic-key.svg")}{button}</p></div>')
+
+
+def _locked(accounts: List[Dict[str, Any]]) -> str:
+    def row(icon: str, tint: str, text: str, right: str = "") -> str:
+        return (f'<div class="rp-row"><span class="rp-bubble {tint}">{_img(icon)}</span>'
+                f'<div class="rp-row-body"><p class="rp-title">{_HIDDEN}</p><p class="rp-text">{text}</p></div>{right}</div>')
+
+    subs = _active_subs(accounts)
+    sub_rows = []
+    for a in subs[:LOCKED_ROWS]:
+        sub = a["subscription"]
+        charge = sub.get("amount") or sub.get("monthly")
+        nxt = f" · 다음 결제 {_d(sub['nextBilling'])}" if sub.get("nextBilling") else ""
+        price = "0원" if sub.get("trial") else _won(charge) if charge else "확인 필요"
+        text = "무료 체험 중 · 곧 유료 전환" if sub.get("trial") else f"{_e(sub['cycle'])} 결제{nxt}"
+        sub_rows.append(row("ic-event.svg", "t-info", text, f'<p class="rp-amount">{price}</p>'))
+
+    alerts = sorted(((a, i) for a in accounts for i in a.get("insights", []) if i["kind"] == "보안"),
+                    key=lambda x: x[1].get("date") or "", reverse=True)
+    alert_rows = [row("ic-danger.svg", "t-danger", f"{_md(i.get('date')) or '최근'} · 보안 알림이 왔어요")
+                  for _, i in alerts[:LOCKED_ROWS]]
+
+    unused = [a for a in accounts if a.get("unused")]
+    unused.sort(key=lambda a: (a.get("recommended") != "탈퇴", a.get("lastLogin") or a.get("lastSeen") or ""))
+    unused_rows = [row("ic-caution.svg", "t-caution",
+                       f"가입 {_d(a.get('signupDate'))}" + (" · 탈퇴 권장" if a.get("recommended") == "탈퇴" else ""))
+                   for a in unused[:LOCKED_ROWS]]
+
+    return (_locked_section("subscriptions", "돈이 나가고 있는 구독", len(subs), sub_rows)
+            + _locked_section("security", "본인 확인이 필요한 보안 알림", len(alerts), alert_rows,
+                              "새 기기 로그인·비밀번호 변경 같은 알림이에요. 내가 한 게 아니라면 바로 확인해야 해요.")
+            + _locked_section("unused", "안 쓰는 계정", len(unused), unused_rows,
+                              "1년 넘게 활동이 없거나 휴면 안내가 온 계정이에요."))
+
+
 def render_fragment(report: Dict[str, Any], created: datetime, full: bool) -> str:
     accounts = report["accounts"]
     s = summarize(report)
@@ -309,6 +360,8 @@ def render_fragment(report: Dict[str, Any], created: datetime, full: bool) -> st
     if full:
         parts += [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
                   _all_accounts(accounts), _method(report, s)]
+    else:
+        parts.append(_locked(accounts))
     if report.get("sample"):
         parts.append(_WATERMARK)
     return f'<div class="rp">{"".join(parts)}</div>'

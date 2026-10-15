@@ -39,6 +39,11 @@ from report_view import render_fragment, render_html, render_pdf, summarize, sum
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
+# 기간 한정 할인. 가격 변경이 아니다: 정가(PRICE)·Paddle 가격은 그대로 두고, 기간 동안만 결제창에 Paddle 할인을 붙인다.
+# PROMO_ENDS는 그 시각 '전까지' (11월 1일까지 → 11월 2일 0시 KST). Paddle 할인에도 같은 만료일을 걸어 둔다
+PROMO_PRICE = int(os.getenv("PROMO_PRICE", "2900") or 0)
+PROMO_ENDS = datetime.fromisoformat(os.getenv("PROMO_ENDS", "2026-11-02T00:00:00+09:00"))
+KST = timezone(timedelta(hours=9))
 # 보관 기간: 결제 안 한 리포트는 짧게, 결제한 리포트는 사용자가 지우거나 탈퇴할 때까지 (최대 1년)
 UNPAID_DAYS = int(os.getenv("UNPAID_REPORT_DAYS", "7"))
 PAID_DAYS = int(os.getenv("PAID_REPORT_DAYS", "365"))
@@ -475,11 +480,27 @@ def withdraw(request: Request):
     return response
 
 
+def promo() -> Optional[Dict[str, Any]]:
+    """진행 중인 할인 {price, ends, last_day}. 결제창에 할인을 붙일 수 없으면(Paddle 할인 id 없음) 화면에도 안 보인다."""
+    if not 0 < PROMO_PRICE < PRICE or datetime.now(timezone.utc) >= PROMO_ENDS:
+        return None
+    if PAYMENT_MODE != "mock" and not billing.PROMO_DISCOUNT_ID:
+        return None
+    last = (PROMO_ENDS - timedelta(seconds=1)).astimezone(KST)
+    return {"price": PROMO_PRICE, "ends": PROMO_ENDS.isoformat(), "last_day": f"{last.month}월 {last.day}일"}
+
+
+def prices() -> Dict[str, Any]:
+    """화면에 넘기는 가격: price는 지금 실제로 내는 금액, list_price는 정가."""
+    p = promo()
+    return {"price": p["price"] if p else PRICE, "list_price": PRICE, "promo": p}
+
+
 # --- 설정·메일 서비스 -------------------------------------------------------------
 
 @app.get("/api/config")
 def config():
-    return {"price": PRICE, "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG, "ga_id": GA_ID,
+    return {**prices(), "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG, "ga_id": GA_ID,
             "contact_email": BUSINESS["email"], "business": BUSINESS, "profile_options": PROFILE_OPTIONS}
 
 
@@ -687,7 +708,7 @@ def report_status(report_id: str, request: Request):
         "debug": job.get("debug") if DEBUG else None,
         "paid": report.paid,
         "sample": report.sample,
-        "price": PRICE,
+        **prices(),
         "summary": summarize(data) if data is not None else None,
     }
 
@@ -708,7 +729,8 @@ def checkout(report_id: str, request: Request):
         report.save()
         return {"paid": True}
     try:
-        options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"))
+        options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
+                                           promo=promo() is not None)
     except billing.BillingError as e:
         raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
     return {"paid": False, "paddle": options}
@@ -747,7 +769,7 @@ def dev_confirm(report_id: str, request: Request):
     if not DEBUG:
         raise ApiError(404, "없는 기능이에요.")
     report = _get(report_id, request)
-    db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", PRICE, "KRW", "dev_confirm")
+    db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", prices()["price"], "KRW", "dev_confirm")
     for other in _reports.values():
         if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
             other.paid = True
@@ -810,6 +832,11 @@ def legal(page: str):
     body = (HERE / "static" / "legal" / f"{page}.html").read_text(encoding="utf-8")
     # {{name}} 같은 자리에 사업자 정보·가격을 넣는다 (비어 있으면 '준비 중')
     fields = {**BUSINESS, "price": f"₩{PRICE:,}"}
+    # 할인 중이면 가격 카드에 할인가와 기간을 덧붙인다 (정가 표시는 그대로)
+    p = promo()
+    body = body.replace("{{promo}}", f'<p class="price-promo">{p["last_day"]}까지 할인가 ₩{p["price"]:,}<br>'
+                                     f'<span>Limited-time price ₩{p["price"]:,} through {(PROMO_ENDS - timedelta(seconds=1)).astimezone(KST):%Y-%m-%d} (KST)</span></p>'
+                        if p else "")
     body = re.sub(r"\{\{(\w+)\}\}", lambda m: escape(fields.get(m.group(1)) or "준비 중"), body)
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{LEGAL_PAGES[page]} · IDly</title>

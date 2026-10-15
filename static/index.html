@@ -288,6 +288,8 @@
     <a class="btn btn-main" id="pay-retry" href="#connect" data-ga="other_mail_click" hidden>다른 메일 연결하기</a>
     <!-- 결제 전에 전체 리포트가 어떻게 생겼는지 예시로 먼저 본다. 내 리포트로 오해하지 않게 버튼이 아닌 텍스트 링크로 둔다 (샘플에서 뒤로 가면 이 결제 화면으로 돌아온다) -->
     <p class="sample-cta" id="sample-cta" hidden>결제가 고민되시나요? <a id="sample-link" href="#sample" data-ga="sample_click">샘플 리포트 보기</a></p>
+    <!-- 기간 한정 할인 (서버에 진행 중인 할인이 있을 때만): 마감까지 남은 날. 할인가는 결제 버튼에 -->
+    <p class="promo" id="promo" hidden><span class="promo-tag">기간 한정 할인</span><span id="promo-left"></span></p>
     <button class="btn btn-main" id="pay"></button>
     <p class="cta-note" id="pay-note"></p>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>

@@ -2,7 +2,7 @@
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
-let config = { price: 4900, payment_mode: "mock", sample: false };
+let config = { price: 4900, list_price: 4900, promo: null, payment_mode: "mock", sample: false };
 let providers = [];
 let pollTimer = null;
 // 방금 결제한 리포트: 열자마자 PDF를 내려받는다
@@ -827,6 +827,20 @@ async function renderResult(r) {
     return;
   }
   $("#preview-body").innerHTML = view.html;
+  // 이름을 가린 목록을 누르면 '누구인지' 궁금한 바로 그때 결제창을 연다
+  for (const card of $("#preview-body").querySelectorAll("[data-unlock]")) {
+    const unlock = () => {
+      track("locked_click", { section: card.dataset.unlock });
+      if (!$("#pay").disabled) onPay();
+    };
+    card.onclick = unlock;
+    card.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        unlock();
+      }
+    };
+  }
   // 찾은 계정이 하나도 없으면 결제할 내용이 없다: 결제 대신 다른 메일 연결을 권한다
   const empty = !(r.summary && r.summary.accounts);
   $("#pay-empty").hidden = !empty;
@@ -837,7 +851,8 @@ async function renderResult(r) {
   // 결제 전이면 언제나 샘플을 볼 수 있게 (찾은 계정이 없을 때도)
   $("#sample-cta").hidden = !config.sample;
   $("#pay").disabled = false;
-  $("#pay").textContent = `${won(r.price)} 결제하고 전체 리포트 받기`;
+  setPayLabel(r);
+  renderPromo(r, empty);
   renderCoffee(r);
   const note = $("#pay-note");
   note.innerHTML = "";
@@ -861,12 +876,31 @@ async function renderResult(r) {
   if (!empty) track("view_item", reportItem(r.price));
 }
 
-// 통계(GA 전자상거래)에 보내는 상품 정보: 상품은 전체 리포트 하나뿐이다
+// 결제 버튼: 할인 중이면 버튼에서도 정가에 줄을 긋고 '지금만' 가격임을 보여 준다
+function setPayLabel(r) {
+  const button = $("#pay");
+  button.textContent = "";
+  if (r.promo) button.append(el("s", "pay-list", won(r.list_price)), " ");
+  button.append(r.promo ? `${won(r.price)}(지금만) 전체 리포트 받기` : `${won(r.price)} 결제하고 전체 리포트 받기`);
+}
+
+// 기간 한정 할인: 마감까지 남은 날과 마감 뒤 가격을 알린다 (할인가는 결제 버튼에 있다)
+function renderPromo(r, empty) {
+  const p = r.promo;
+  $("#promo").hidden = empty || !p;
+  if (!p) return;
+  const days = Math.ceil((new Date(p.ends) - Date.now()) / 86400000);
+  $("#promo-left").textContent =
+    `${p.last_day}까지 · ${days <= 1 ? "오늘 마감" : `${days}일 남음`} · 이후 ${won(r.list_price)}`;
+}
+
+// 통계(GA 전자상거래)에 보내는 상품 정보: 상품은 전체 리포트 하나뿐이다 (할인 중이면 정가와의 차액을 discount로)
 function reportItem(price, currency = "KRW") {
+  const discount = config.promo && config.list_price > price ? config.list_price - price : 0;
   return {
     currency,
     value: price,
-    items: [{ item_id: "full_report", item_name: "Full report", price, quantity: 1 }],
+    items: [{ item_id: "full_report", item_name: "Full report", price, quantity: 1, ...(discount ? { discount } : {}) }],
   };
 }
 
@@ -952,7 +986,7 @@ function waitForPayment(id) {
         clearInterval(payPoll);
         payPoll = null;
         button.disabled = false;
-        button.textContent = `${won(r.price)} 결제하고 전체 리포트 받기`;
+        setPayLabel(r);
         showError(
           "#pay-error",
           "결제 확인이 늦어지고 있어요.\n결제했다면 잠시 뒤 홈에서 다시 열어 보세요.\n계속 안 열리면 문의해 주세요.",
@@ -1009,7 +1043,7 @@ function loadPaddle(opts) {
   return paddleReady;
 }
 
-// 팀원·테스트용 링크(/?discount=코드)로 들어오면 그 할인 코드를 결제창에 자동 적용한다.
+// 팀원·테스트용 링크(/?discount=코드)로 들어오면 그 할인 코드를 결제창에 자동 적용한다 (기간 한정 할인 대신).
 // 로그인 리다이렉트를 거쳐도 남도록 이 탭의 sessionStorage에 둔다
 const DISCOUNT_KEY = "idly.discount";
 
@@ -1041,7 +1075,7 @@ async function openCheckout(opts, id) {
     items: [{ priceId: opts.priceId, quantity: 1 }],
     customData: opts.customData,
     ...(opts.email ? { customer: { email: opts.email } } : {}),
-    ...(discountCode ? { discountCode } : {}),
+    ...(discountCode ? { discountCode } : opts.discountId ? { discountId: opts.discountId } : {}),
     settings: { displayMode: "overlay", locale: "ko", theme: "light", allowLogout: false, showAddDiscounts: true },
   });
 }
@@ -1151,7 +1185,9 @@ async function init() {
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
-  $("#help-price").textContent = won(config.price);
+  $("#help-price").textContent = config.promo
+    ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
+    : won(config.price);
   renderBusiness();
   const form = $("#connect-form");
   form.email.addEventListener("input", () => {

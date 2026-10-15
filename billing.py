@@ -22,6 +22,8 @@ from typing import Any, Dict, Optional
 ENVIRONMENT = os.getenv("PADDLE_ENV", "production")
 CLIENT_TOKEN = os.getenv("PADDLE_CLIENT_TOKEN", "")
 PRICE_ID = os.getenv("PADDLE_PRICE_ID", "")
+# 기간 한정 할인: Catalog > Discounts의 할인 id (dsc_…, 정가에서 고정 금액 KRW 할인, 만료일 설정). 할인 기간에만 결제창에 붙인다
+PROMO_DISCOUNT_ID = os.getenv("PADDLE_PROMO_DISCOUNT_ID", "")
 WEBHOOK_SECRET = os.getenv("PADDLE_WEBHOOK_SECRET", "")
 # 서명 시각이 이보다 오래된 웹훅은 재전송 공격으로 보고 버린다
 SIGNATURE_TOLERANCE = 300
@@ -31,7 +33,7 @@ class BillingError(Exception):
     pass
 
 
-def checkout_options(report_id: str, user_id: str, email: Optional[str]) -> Dict[str, Any]:
+def checkout_options(report_id: str, user_id: str, email: Optional[str], promo: bool = False) -> Dict[str, Any]:
     """화면이 Paddle.Checkout.open에 넘길 값."""
     if not (CLIENT_TOKEN and PRICE_ID):
         raise BillingError("PADDLE_CLIENT_TOKEN·PADDLE_PRICE_ID가 설정되지 않았어요.")
@@ -41,6 +43,7 @@ def checkout_options(report_id: str, user_id: str, email: Optional[str]) -> Dict
         "priceId": PRICE_ID,
         "email": email or None,
         "customData": {"report_id": report_id, "user_id": user_id},
+        "discountId": PROMO_DISCOUNT_ID if promo else None,
     }
 
 

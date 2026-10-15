@@ -333,6 +333,12 @@ h1, h2, p { margin: 0; }
 /* 스크립트가 넣는 여러 문장짜리 안내는 문장마다 줄을 바꾼다 (\n) */
 .error, .cta-note, #guest-note-text { white-space: pre-line; }
 
+/* 결제 화면: 기간 한정 할인. 태그는 상태 칩(.state)과 같은 모양, 빨강은 보안 경고에만 쓰므로 가격 색(--main) */
+.promo { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--sub); }
+.promo-tag { padding: 2px 8px; border-radius: 10px; background: var(--info-bg); color: var(--main); font-size: 11px; font-weight: 600; }
+.pay-list { font-weight: 500; opacity: 0.6; }
+.price-promo { font-size: 14px; font-weight: 700; color: var(--main); }
+.price-promo span { font-size: 12px; font-weight: 400; color: var(--sub); }
 /* 결제 화면: 결제 버튼 위 샘플 리포트 텍스트 링크 (버튼처럼 보이지 않게) */
 .sample-cta { font-size: 13px; color: var(--sub); text-align: center; }
 .sample-cta a { color: var(--main); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
