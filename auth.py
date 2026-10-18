@@ -11,9 +11,9 @@ Apple (Sign in with Apple JS, 팝업)
 - APPLE_SERVICES_ID(웹용 Services ID), APPLE_WEB_REDIRECT_URI(Services ID에 등록한 https 주소)
 - 토큰 교환(client_secret)이 필요 없어서 개인키 없이 동작한다
 
-목업 로그인 (AUTH_MODE=mock, 지금 기본값)
+목업 로그인 (AUTH_MODE=mock, 로컬 개발용)
 - 카카오·Apple 버튼은 화면만 있고, 누르면 그 서비스 이름의 테스트 계정으로 바로 로그인한다
-- 실제 연동은 AUTH_MODE=oauth로 켠다 (지금은 카카오·Apple만 구현돼 있다)
+- 기본은 AUTH_MODE=oauth(실제 연동, 카카오·Apple). 배포 환경변수를 빠뜨려도 목업 로그인이 열리지 않게
 """
 
 import os
@@ -35,7 +35,7 @@ class AuthError(Exception):
     pass
 
 
-AUTH_MODE = os.getenv("AUTH_MODE", "mock")
+AUTH_MODE = os.getenv("AUTH_MODE", "oauth")
 MOCK_PROVIDERS = {"kakao": "카카오", "apple": "Apple"}
 
 
