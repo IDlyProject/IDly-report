@@ -11,6 +11,7 @@ import json
 import os
 import re
 import secrets
+import ssl
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import time
@@ -33,6 +34,7 @@ import httpx  # noqa: E402
 import auth  # noqa: E402
 import billing  # noqa: E402
 import db  # noqa: E402
+import security  # noqa: E402
 from imap_sync import MAX_PER_FOLDER, Credential, SyncJob, connect, start_sync  # noqa: E402
 from providers import PROVIDERS, explain_login_error, get_provider, resolve_provider  # noqa: E402
 from report_view import render_fragment, render_html, render_pdf, summarize, summarize_many, _money_line  # noqa: E402
@@ -51,8 +53,9 @@ SAMPLE_ENABLED = os.getenv("IDLY_SAMPLE", "1") == "1"
 # Google Analytics 4 측정 ID (G-…). 비어 있으면 통계 스크립트를 싣지 않는다 (static/analytics.js)
 GA_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
 ID_LOGIN_PROVIDERS = {"naver", "nate"}
-# 1이면 실패 응답에 debug(메일 서버 원문 오류·시도한 사용자 이름·스택)를 붙이고 개발용 로그인을 연다. 배포 때는 0
-DEBUG = os.getenv("IDLY_DEBUG", "1") == "1"
+# 1이면 실패 응답에 debug(메일 서버 원문 오류·시도한 사용자 이름·스택)를 붙이고 개발용 로그인·테스트 결제를 연다.
+# 기본은 0: 배포 환경변수를 빠뜨려도 열리지 않게. 로컬 개발은 .env에 IDLY_DEBUG=1
+DEBUG = os.getenv("IDLY_DEBUG", "0") == "1"
 SESSION_COOKIE = "idly_session"
 # 로그인 없이 쓸 때: 브라우저(localStorage)에 둔 무작위 토큰을 이 헤더로 보낸다. 서버는 해시만 저장한다
 GUEST_HEADER = "X-IDly-Guest"
@@ -69,6 +72,32 @@ BUSINESS = {
 }
 
 app = FastAPI(title="IDly report")
+
+# 모든 응답에 붙이는 보안 헤더. 스크립트 출처까지 막는 CSP는 Paddle·Apple·GA를 깨뜨릴 수 있어 아직 넣지 않는다
+SECURITY_HEADERS = {
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+if SECURE_COOKIE:
+    SECURITY_HEADERS["Strict-Transport-Security"] = "max-age=31536000"
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for name, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(name, value)
+    return response
+
+
+# 메일 연결 시도 횟수 제한: 남의 메일 비밀번호를 대입해 보는 데 이 서버를 쓰지 못하게 (틀린 비밀번호도 센다)
+REPORT_IP_LIMIT = security.RateLimiter(int(os.getenv("REPORT_IP_LIMIT", "20")), 60 * 60)
+REPORT_OWNER_LIMIT = security.RateLimiter(int(os.getenv("REPORT_OWNER_LIMIT", "6")), 60 * 60)
+# 동시에 도는 분석 수: 전체, 그리고 한 사람(계정·게스트)당
+MAX_ACTIVE_REPORTS = int(os.getenv("MAX_ACTIVE_REPORTS", "3"))
 
 FEEDBACK_LIMIT = 3
 FEEDBACK_WINDOW = 60 * 60
@@ -234,7 +263,7 @@ async def submit_feedback(request: Request, message: str = Form(...), screenPath
         print("[feedback] DISCORD_WEBHOOK_URL 미설정")
         raise ApiError(503, "제보를 보낼 수 없어요. 잠시 후 다시 시도해 주세요.")
 
-    ip = request.client.host if request.client else "unknown"
+    ip = security.client_ip(request)
     now = time.monotonic()
     with _feedback_lock:
         count, reset_at = _feedback_buckets.get(ip, (0, now + FEEDBACK_WINDOW))
@@ -590,6 +619,34 @@ def delete_report(report_id: str, request: Request):
     return {"ok": True}
 
 
+class _analysis_slot:
+    """분석 자리를 잡는다: 전체 MAX_ACTIVE_REPORTS개, 한 사람당 1개. 메일 서버 연결을 확인하는 몇 초 동안에도
+    자리를 잡아 두어, 같은 사람이 동시에 여러 번 보내도 한도를 넘지 못하게 한다."""
+
+    def __init__(self, owner: str, debug: Dict[str, Any]):
+        self.owner, self.debug = owner, debug
+
+    def __enter__(self) -> None:
+        with _start_lock:
+            active = [r.user_id or f"guest:{r.guest}" for r in _reports.values()
+                      if r.job and r.data is None and r.job.status not in ("완료", "실패")]
+            owners = active + list(_starting)
+            if self.owner in owners:
+                raise ApiError(429, "이미 분석 중인 메일함이 있어요. 끝난 뒤에 다시 시도해주세요.", self.debug)
+            if len(owners) >= MAX_ACTIVE_REPORTS:
+                raise ApiError(429, "지금 분석하는 사람이 많아요. 몇 분 뒤에 다시 시도해주세요.", self.debug)
+            _starting.add(self.owner)
+
+    def __exit__(self, *exc: Any) -> None:
+        with _start_lock:
+            _starting.discard(self.owner)
+
+
+_start_lock = threading.Lock()
+# 메일 서버 연결을 확인하는 중인 사람 (아직 _reports에 없다)
+_starting: set = set()
+
+
 @app.post("/api/reports")
 def start_report(body: StartBody, request: Request):
     user = _user(request)
@@ -636,45 +693,55 @@ def start_report(body: StartBody, request: Request):
     # 메일 서버 로그인은 영문·숫자·기호만 보낼 수 있다. 한/영 전환 없이 입력한 경우가 많다
     if debug["password"]["has_non_ascii"]:
         raise ApiError(400, "비밀번호에 한글 같은 문자가 들어 있어요. 한/영 키를 확인하고 다시 입력해주세요.", debug)
-    # 네이버·네이트는 IMAP 사용자 이름이 '아이디'다. 아이디로 먼저, 안 되면 전체 주소로 한 번 더 시도한다
-    usernames = [email.split("@")[0], email] if provider["id"] in ID_LOGIN_PROVIDERS else [email]
-    # 연결이 되는지 먼저 확인하고 탐색은 백그라운드로 돈다. 서버 원문 오류는 로그에만 남긴다
-    cred, error = None, None
-    for username in usernames:
-        attempt = Credential(email, host, body.port, username, password)
-        started = time.time()
-        try:
-            connect(attempt).logout()
-            cred = attempt
-            debug["attempts"].append({"username": username, "result": "ok", "ms": int((time.time() - started) * 1000)})
-            break
-        except imaplib.IMAP4.error as e:
-            raw = e.args[0].decode(errors="replace") if e.args and isinstance(e.args[0], bytes) else str(e)
-            debug["attempts"].append({"username": username, "result": "auth_failed", "server_said": raw,
-                                      "ms": int((time.time() - started) * 1000)})
-            error = e
-            # 설정이 꺼져 있는 등 사용자 이름과 무관한 실패면 다시 시도하지 않는다
-            if "username" not in raw.lower() and "invalid credentials" not in raw.lower():
+    owner = user["id"] if user else f"guest:{guest}"
+    if not (REPORT_IP_LIMIT.hit(security.client_ip(request)) and REPORT_OWNER_LIMIT.hit(owner)):
+        raise ApiError(429, "메일 연결을 너무 많이 시도했어요. 한 시간 뒤에 다시 시도해주세요.", debug)
+    with _analysis_slot(owner, debug):
+        # 네이버·네이트는 IMAP 사용자 이름이 '아이디'다. 아이디로 먼저, 안 되면 전체 주소로 한 번 더 시도한다
+        usernames = [email.split("@")[0], email] if provider["id"] in ID_LOGIN_PROVIDERS else [email]
+        # 연결이 되는지 먼저 확인하고 탐색은 백그라운드로 돈다. 서버 원문 오류는 로그에만 남긴다
+        cred, error = None, None
+        for username in usernames:
+            attempt = Credential(email, host, body.port, username, password)
+            started = time.time()
+            try:
+                connect(attempt).logout()
+                cred = attempt
+                debug["attempts"].append({"username": username, "result": "ok", "ms": int((time.time() - started) * 1000)})
                 break
-        except OSError as e:
-            debug["attempts"].append({"username": username, "result": "connect_failed", "error": repr(e),
-                                      "ms": int((time.time() - started) * 1000)})
-            raise ApiError(502, f"{host}:{body.port} 메일 서버에 연결하지 못했어요. 서버 주소와 포트를 확인해주세요.", debug)
-    if cred is None:
-        raise ApiError(401, explain_login_error(str(error), provider), debug)
-    report = Report(cred.email, user["id"] if user else None, guest=guest)
-    # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
-    report.paid = bool(user) and db.unlock_of(user["id"], cred.email) == "paid"
-    # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
-    # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
-    def on_done(_data: Dict[str, Any]) -> None:
-        report.save()
-        report.prepare_pdf()
+            except imaplib.IMAP4.error as e:
+                raw = e.args[0].decode(errors="replace") if e.args and isinstance(e.args[0], bytes) else str(e)
+                debug["attempts"].append({"username": username, "result": "auth_failed", "server_said": raw,
+                                          "ms": int((time.time() - started) * 1000)})
+                error = e
+                # 설정이 꺼져 있는 등 사용자 이름과 무관한 실패면 다시 시도하지 않는다
+                if "username" not in raw.lower() and "invalid credentials" not in raw.lower():
+                    break
+            except security.UnsafeHost as e:
+                debug["attempts"].append({"username": username, "result": "unsafe_host", "error": str(e)})
+                raise ApiError(400, "이 메일 서버 주소로는 연결할 수 없어요. 서버 주소와 포트(993)를 확인해주세요.", debug)
+            except ssl.SSLCertVerificationError as e:
+                debug["attempts"].append({"username": username, "result": "cert_failed", "error": repr(e)})
+                raise ApiError(502, f"{host} 메일 서버의 보안 인증서를 확인하지 못해 연결을 멈췄어요. 서버 주소를 확인해주세요.", debug)
+            except OSError as e:
+                debug["attempts"].append({"username": username, "result": "connect_failed", "error": repr(e),
+                                          "ms": int((time.time() - started) * 1000)})
+                raise ApiError(502, f"{host}:{body.port} 메일 서버에 연결하지 못했어요. 서버 주소와 포트를 확인해주세요.", debug)
+        if cred is None:
+            raise ApiError(401, explain_login_error(str(error), provider), debug)
+        report = Report(cred.email, user["id"] if user else None, guest=guest)
+        # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
+        report.paid = bool(user) and db.unlock_of(user["id"], cred.email) == "paid"
+        # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
+        # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
+        def on_done(_data: Dict[str, Any]) -> None:
+            report.save()
+            report.prepare_pdf()
 
-    report.job = start_sync(cred, MAX_PER_FOLDER, owner_id=0, on_done=on_done)
-    _reports[report.id] = report
-    report.save()
-    return {"id": report.id}
+        report.job = start_sync(cred, MAX_PER_FOLDER, owner_id=0, on_done=on_done)
+        _reports[report.id] = report
+        report.save()
+        return {"id": report.id}
 
 
 @app.post("/api/reports/sample")
@@ -682,6 +749,10 @@ def sample_report():
     if not SAMPLE_ENABLED:
         raise ApiError(404, "샘플이 꺼져 있어요.")
     _purge()
+    # 샘플은 하나를 만들어 모두가 같이 본다 (부를 때마다 만들면 서버 메모리가 계속 찬다)
+    existing = next((r for r in _reports.values() if r.sample), None)
+    if existing is not None:
+        return {"id": existing.id}
     data = json.loads((HERE / "sample_report.json").read_text(encoding="utf-8"))
     report = Report("sample@idly.kr", None, data=data)
     # 샘플은 결제 후 받게 될 전체 리포트를 그대로 보여준다

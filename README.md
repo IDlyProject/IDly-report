@@ -46,6 +46,14 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 http://127.0.0.1:47830 · 메일 없이 보려면 "샘플 리포트 먼저 보기"
 
+## 보안 (security.py)
+
+- 메일 서버: 인증서·호스트 이름을 확인하는 TLS 1.2+로만 붙는다. 주소를 미리 풀어 공인 IP일 때만, 그 IP로 접속한다 (내부망 차단). 포트는 993만
+- 메일 연결 시도: IP당 시간당 `REPORT_IP_LIMIT`(20)번, 계정·게스트당 `REPORT_OWNER_LIMIT`(6)번. 동시 분석은 전체 `MAX_ACTIVE_REPORTS`(3)개, 한 사람당 1개
+- 모든 응답에 보안 헤더(X-Frame-Options, frame-ancestors, nosniff, Referrer-Policy, https면 HSTS). 스크립트 CSP는 Paddle·Apple·GA 때문에 아직 없다
+- `IDLY_DEBUG` 기본값은 0, `AUTH_MODE` 기본값은 oauth. 로컬 개발은 `.env.example`을 복사하면 둘 다 개발용으로 켜진다
+- 로그인 세션 토큰은 DB에 해시로만 둔다
+
 ## 배포 DB
 
 - Vercel에는 Supabase PostgreSQL 연결 문자열을 `DATABASE_URL` 환경변수로 등록한다. IDly_PoC와 같은 Supabase 프로젝트를 쓸 수 있으며, 이 앱은 기존 `idly` 스키마와 분리된 `idly_report` 스키마를 사용한다.

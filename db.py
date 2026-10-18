@@ -4,6 +4,7 @@
 - 회원 탈퇴하면 그 사용자의 리포트·결제 기록·세션을 모두 지운다 (결제사 거래 기록은 결제사가 보관).
 """
 
+import hashlib
 import json
 import os
 import secrets
@@ -100,6 +101,10 @@ def _initialize(conn) -> None:
         conn.execute("ALTER TABLE reports ADD COLUMN guest TEXT")
         conn.commit()
     conn.execute("CREATE INDEX IF NOT EXISTS reports_guest ON reports(guest, created)")
+    # 세션 토큰은 해시(64자)로만 둔다. 예전에 원문으로 넣은 세션은 지운다 (그 사용자는 한 번 다시 로그인)
+    conn.execute("DELETE FROM sessions WHERE length(token) <> 64")
+    if not USE_POSTGRES:
+        conn.commit()
 
 
 def conn():
@@ -188,24 +193,29 @@ def delete_user(user_id: str) -> None:
     _exec("DELETE FROM users WHERE id = ?", (user_id,))
 
 
+def _token_hash(token: str) -> str:
+    """DB에는 세션 토큰의 해시만 둔다 (DB가 새어도 남의 로그인 쿠키를 만들 수 없게)."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
 def create_session(user_id: str) -> str:
     token = secrets.token_urlsafe(32)
     _exec("INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)",
-          (token, user_id, (datetime.now() + timedelta(days=SESSION_DAYS)).isoformat(timespec="seconds")))
+          (_token_hash(token), user_id, (datetime.now() + timedelta(days=SESSION_DAYS)).isoformat(timespec="seconds")))
     return token
 
 
 def session_user(token: str) -> Optional[Dict[str, Any]]:
     if not token:
         return None
-    row = _one("SELECT u.* , s.expires FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?", (token,))
+    row = _one("SELECT u.* , s.expires FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?", (_token_hash(token),))
     if not row or row["expires"] < _now():
         return None
     return row
 
 
 def delete_session(token: str) -> None:
-    _exec("DELETE FROM sessions WHERE token = ?", (token,))
+    _exec("DELETE FROM sessions WHERE token = ?", (_token_hash(token),))
 
 
 # --- 선택 정보 (내부 통계) ---------------------------------------------------------

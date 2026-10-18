@@ -19,6 +19,7 @@ from email.parser import BytesHeaderParser
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from analysis import HeaderRecord, discover_accounts, header_record
+from security import PinnedIMAP4_SSL, resolve_public
 
 HEADER_BATCH = 500
 # 본문을 동시에 읽을 메일 서버 연결 수 (메일 서비스가 동시 연결을 막지 않는 선에서)
@@ -47,7 +48,9 @@ class Credential:
 
 
 def connect(cred: Credential) -> imaplib.IMAP4_SSL:
-    conn = imaplib.IMAP4_SSL(cred.host, cred.port, timeout=60)
+    # 공인 IP·허용 포트인지 먼저 보고(security.UnsafeHost), 인증서를 확인하며 그 IP로만 접속한다
+    ips = resolve_public(cred.host, cred.port)
+    conn = PinnedIMAP4_SSL(cred.host, ips, cred.port, timeout=60)
     conn.login(cred.username, cred.password)
     return conn
 
