@@ -74,9 +74,14 @@ function trackApiOk() {
   gaLastApiError = "";
 }
 
-// data-ga="이벤트 이름"을 단 버튼·링크는 누르면 그 이름으로 보낸다 (data-ga-label은 label로)
+// data-ga="이벤트 이름"을 단 버튼·링크는 누르면 그 이름으로 보낸다.
+// 나머지 data-ga-* 속성은 파라미터로 보낸다 (data-ga-label → label, data-ga-action → action)
 document.addEventListener("click", (e) => {
   const target = e.target.closest && e.target.closest("[data-ga]");
   if (!target) return;
-  track(target.dataset.ga, target.dataset.gaLabel ? { label: target.dataset.gaLabel } : {});
+  const params = {};
+  for (const [key, value] of Object.entries(target.dataset)) {
+    if (key.startsWith("ga") && key !== "ga" && value) params[key[2].toLowerCase() + key.slice(3)] = value;
+  }
+  track(target.dataset.ga, params);
 });

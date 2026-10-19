@@ -183,11 +183,17 @@ def _stats(s: Dict[str, Any]) -> str:
     return f'<div class="rp-stats">{cells}</div>'
 
 
+# GA 이벤트용 조치 이름. 서비스 이름은 리포트 내용이라 보내지 않는다 (static/analytics.js)
+_GA_ACTION = {"해지": "cancel", "탈퇴": "delete", "보안": "security"}
+
+
 def _action_button(link: Dict[str, str], action: str) -> str:
     """조치 페이지로 가는 버튼. 구글 검색 대체 링크는 문구·모양을 달리해 조치 페이지로 간다고 착각하지 않게 한다."""
-    search = link.get("source") == "fallback"
+    source = link.get("source") or ""
+    search = source == "fallback"
     return (f'<a class="rp-action{" is-search" if search else ""}" href="{_e(link["url"])}" target="_blank" '
-            f'rel="noopener noreferrer">{_e(action_links.label(action, link.get("source") or ""))}</a>')
+            f'rel="noopener noreferrer" data-ga="action_click" data-ga-action="{_GA_ACTION[action]}" '
+            f'data-ga-source="{_e(source)}">{_e(action_links.label(action, source))}</a>')
 
 
 def _account_button(a: Dict[str, Any], action: str) -> str:

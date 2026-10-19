@@ -90,6 +90,17 @@ class RenderActionTests(unittest.TestCase):
         self.assertIn("https://myaccount.google.com/device-activity", html)
         self.assertIn(al.CURATED["netflix.com"]["해지"][0], html)
 
+    def test_buttons_send_ga_event_without_service_name(self):
+        found = buttons(rv.render_fragment(self.data(), NOW, full=True))
+        attrs = [dict(re.findall(r'(data-ga[\w-]*)="([^"]*)"', b)) for b in found]
+        self.assertEqual(attrs, [
+            {"data-ga": "action_click", "data-ga-action": "cancel", "data-ga-source": "curated"},
+            {"data-ga": "action_click", "data-ga-action": "security", "data-ga-source": "fallback"},
+            {"data-ga": "action_click", "data-ga-action": "delete", "data-ga-source": "fallback"},
+        ])
+        for b in found:
+            self.assertNotIn("넷플릭스", re.sub(r'href="[^"]*"', "", b))
+
     def test_sample_report_renders_curated_buttons(self):
         data = json.loads((Path(rv.__file__).parent / "sample_report.json").read_text(encoding="utf-8"))
         with patch.object(al.db, "get_action_link", side_effect=AssertionError("DB 사용 금지")):
