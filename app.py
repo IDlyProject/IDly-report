@@ -31,6 +31,7 @@ from pydantic import BaseModel  # noqa: E402
 import httpx  # noqa: E402
 
 import auth  # noqa: E402
+from action_links import attach_offline, upgrade_report  # noqa: E402
 import billing  # noqa: E402
 import db  # noqa: E402
 from imap_sync import MAX_PER_FOLDER, Credential, SyncJob, connect, start_sync  # noqa: E402
@@ -121,6 +122,11 @@ class Report:
         self.created = datetime.now()
         self._pdf: Optional[bytes] = None
         self._pdf_lock = threading.Lock()
+        # 조치 링크를 정했는지: 분석 결과(job.report)는 on_done보다 먼저 생기므로, 링크를 정하는 중에 결제돼도
+        # 웹 검색은 정하기가 끝난 뒤에 돈다. 저장된 리포트(data가 있음)는 이미 끝난 것으로 본다
+        self._links_attached = data is not None
+        # 결제 후 조치 링크 웹 검색을 이미 돌렸는지 (리포트마다 한 번)
+        self._links_upgraded = False
 
     @property
     def data(self) -> Optional[Dict[str, Any]]:
@@ -162,6 +168,12 @@ class Report:
 
         _pdf_pool.submit(run)
 
+    def invalidate_pdf(self) -> None:
+        """리포트 내용이 바뀌었다: 만들어 둔 PDF를 버리고 다시 만든다. 만드는 중이면 끝날 때까지 기다렸다가 버린다."""
+        with self._pdf_lock:
+            self._pdf = None
+        self.prepare_pdf()
+
 
 _reports: Dict[str, Report] = {}
 # Playwright(크로뮴)는 무거워서 PDF는 한 번에 하나씩 만든다
@@ -180,6 +192,58 @@ def _load_saved() -> None:
 
 
 _load_saved()
+
+
+_upgrade_lock = threading.Lock()
+
+
+def _run_background(fn) -> None:
+    threading.Thread(target=fn, daemon=True).start()
+
+
+def _upgrade_links(report: Report) -> None:
+    """결제한 리포트의 조치 링크 중 구글 검색 대체 링크로 채운 칸만 웹 검색으로 다시 찾는다 (리포트마다 한 번).
+    결제 처리(웹훅 응답)를 기다리게 하지 않도록 백그라운드에서 돈다. 실패해도 리포트는 그대로다."""
+    with _upgrade_lock:
+        # 링크를 정하는 중이면 _finish_report가 끝나고 다시 부른다
+        if report._links_upgraded or not report._links_attached or report.data is None or report.sample:
+            return
+        report._links_upgraded = True
+
+    def run() -> None:
+        try:
+            # 예전 리포트(링크가 저장돼 있지 않음)도 빈 칸을 먼저 채운 뒤 찾는다
+            attach_offline(report.data)
+            if upgrade_report(report.data):
+                report.save()
+                report.invalidate_pdf()
+        except Exception as e:
+            print(f"[links] {report.id} 웹 검색 실패: {e!r}")
+
+    _run_background(run)
+
+
+def _mark_paid(report: Report) -> None:
+    """결제 확인: 그 리포트와 같은 메일함의 리포트를 연다 (게스트는 그 리포트만, DB의 record_payment와 같은 기준).
+    새로 열린 리포트는 조치 링크를 웹 검색으로 다시 찾는다."""
+    for other in list(_reports.values()):
+        if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
+            other.paid = True
+            _upgrade_links(other)
+
+
+def _finish_report(report: Report, data: Dict[str, Any]) -> None:
+    """분석이 끝났다: 조치 링크를 (네트워크 없이) 정하고 DB에 쓴 뒤, 결제 전에 PDF까지 만들어 둔다.
+    이미 결제된 메일함이면 링크 웹 검색도 바로 돌린다."""
+    try:
+        attach_offline(data)
+    except Exception as e:
+        print(f"[links] {report.id} 링크 정하기 실패: {e!r}")
+    report._links_attached = True
+    report.save()
+    if report.paid:
+        _upgrade_links(report)
+    report.prepare_pdf()
 
 
 def _purge() -> None:
@@ -665,11 +729,9 @@ def start_report(body: StartBody, request: Request):
     report = Report(cred.email, user["id"] if user else None, guest=guest)
     # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
     report.paid = bool(user) and db.unlock_of(user["id"], cred.email) == "paid"
-    # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
-    # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
+    # 분석이 끝나면 조치 링크를 정해 결과를 DB에 쓰고 (서버를 다시 켜도 남게), 결제 전에 PDF까지 만들어 둔다
     def on_done(_data: Dict[str, Any]) -> None:
-        report.save()
-        report.prepare_pdf()
+        _finish_report(report, _data)
 
     report.job = start_sync(cred, MAX_PER_FOLDER, owner_id=0, on_done=on_done)
     _reports[report.id] = report
@@ -727,6 +789,7 @@ def checkout(report_id: str, request: Request):
     if PAYMENT_MODE == "mock":
         report.paid = True
         report.save()
+        _upgrade_links(report)
         return {"paid": True}
     try:
         options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
@@ -754,10 +817,13 @@ async def paddle_webhook(request: Request):
         changed = db.record_payment(event["order_id"], report.id, report.user_id, event["status"],
                                     event["amount"], event["currency"], event["event"])
         # 같은 메일함의 다른 리포트도 같이 열거나 잠근다
-        # 게스트 리포트는 결제한 그 리포트만 (DB의 record_payment와 같은 기준)
-        for other in _reports.values():
-            if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
-                other.paid = event["status"] == "paid"
+        # 게스트 리포트는 결제한 그 리포트만 (DB의 record_payment와 같은 기준). 환불은 조치 링크를 되돌리지 않는다
+        if event["status"] == "paid":
+            _mark_paid(report)
+        else:
+            for other in _reports.values():
+                if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
+                    other.paid = False
         print(f"[billing] {event['event']} order={event['order_id']} report={report.id} paid={report.paid} "
               f"env={billing.ENVIRONMENT} changed={changed}")
     return {"ok": True}
@@ -770,9 +836,7 @@ def dev_confirm(report_id: str, request: Request):
         raise ApiError(404, "없는 기능이에요.")
     report = _get(report_id, request)
     db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", prices()["price"], "KRW", "dev_confirm")
-    for other in _reports.values():
-        if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
-            other.paid = True
+    _mark_paid(report)
     return {"paid": True}
 
 

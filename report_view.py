@@ -17,6 +17,8 @@ from html import escape
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import action_links
+
 STATIC = Path(__file__).parent / "static"
 ACTIVE = ("활성", "만료 예정")
 FONT_CSS = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
@@ -181,6 +183,30 @@ def _stats(s: Dict[str, Any]) -> str:
     return f'<div class="rp-stats">{cells}</div>'
 
 
+# GA 이벤트용 조치 이름. 서비스 이름은 리포트 내용이라 보내지 않는다 (static/analytics.js)
+_GA_ACTION = {"해지": "cancel", "탈퇴": "delete", "보안": "security"}
+
+
+def _action_button(link: Dict[str, str], action: str) -> str:
+    """조치 페이지로 가는 버튼. 구글 검색 대체 링크는 문구·모양을 달리해 조치 페이지로 간다고 착각하지 않게 한다."""
+    source = link.get("source") or ""
+    search = source == "fallback"
+    return (f'<a class="rp-action{" is-search" if search else ""}" href="{_e(link["url"])}" target="_blank" '
+            f'rel="noopener noreferrer" data-ga="action_click" data-ga-action="{_GA_ACTION[action]}" '
+            f'data-ga-source="{_e(source)}">{_e(action_links.label(action, source))}</a>')
+
+
+def _account_button(a: Dict[str, Any], action: str) -> str:
+    # 링크는 분석 때 정해 저장해 둔 값을 쓴다. 예전 리포트(저장된 값 없음)는 DB·네트워크 없이 그 자리에서 정한다
+    link = (a.get("actions") or {}).get(action) or action_links.resolve_offline(a, action, use_cache=False)
+    return _action_button(link, action)
+
+
+def _security_button(a: Dict[str, Any], insight: Dict[str, Any]) -> str:
+    link = insight.get("action") or action_links.security_link(a, insight, use_cache=False)
+    return _action_button(link, "보안")
+
+
 def _subscriptions(accounts: List[Dict[str, Any]]) -> str:
     subs = _active_subs(accounts)
     if not subs:
@@ -201,7 +227,7 @@ def _subscriptions(accounts: List[Dict[str, Any]]) -> str:
         rows.append(
             f'<div class="rp-row"><span class="rp-bubble t-info">{_img("ic-event.svg")}</span>'
             f'<div class="rp-row-body"><p class="rp-title">{_e(a["service"])}</p>'
-            f'<p class="rp-text">{text}</p></div>'
+            f'<p class="rp-text">{text}</p>{_account_button(a, "해지")}</div>'
             f'<p class="rp-amount">{price}<span>{per}</span></p></div>'
         )
     return f'<h2 class="rp-h2">구독 <small>{len(subs)}</small></h2><div class="rp-card">{"".join(rows)}</div>'
@@ -219,7 +245,8 @@ def _todo(accounts: List[Dict[str, Any]]) -> str:
             f'<div class="rp-row"><span class="rp-bubble {tint}">{_img(icon)}</span>'
             f'<div class="rp-row-body"><div class="rp-row-head"><p class="rp-title">{_e(a["service"])} · {_e(i["kind"])}</p>'
             f'<span class="rp-meta">{_md(i.get("date"))}</span></div>'
-            f'<p class="rp-text">{_lines(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p></div></div>'
+            f'<p class="rp-text">{_lines(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p>'
+            + (_security_button(a, i) if i["kind"] == "보안" else "") + "</div></div>"
         )
     return (f'<h2 class="rp-h2">확인할 일 <small>{len(items)}</small></h2>'
             f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-card">{"".join(rows)}</div>')
@@ -244,7 +271,8 @@ def _unused(accounts: List[Dict[str, Any]]) -> str:
         rows.append(
             f'<div class="rp-row"><span class="rp-dot {dot}"></span><div class="rp-row-body">'
             f'<p class="rp-title">{_e(a["service"])}</p><p class="rp-text">{last} · 가입 {_d(a.get("signupDate"))}</p>'
-            + (f'<p class="rp-advice">{advice}</p>' if advice else "") + "</div></div>"
+            + (f'<p class="rp-advice">{advice}</p>' if advice else "")
+            + _account_button(a, "해지" if rec == "구독 해지" else "탈퇴") + "</div></div>"
         )
     return (f'<h2 class="rp-h2">안 쓰는 계정 <small>{len(unused)}</small></h2>'
             '<p class="rp-note">1년 넘게 활동 메일이 없거나 휴면 안내가 온 계정이에요.<br>탈퇴는 휴면 안내가 왔거나 2년 넘게 활동이 없을 때만 권해요.</p>'

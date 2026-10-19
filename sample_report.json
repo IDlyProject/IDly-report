@@ -43,7 +43,13 @@
    ],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-10-06"
+   "lastSeen": "2026-10-06",
+   "actions": {
+    "해지": {
+     "url": "https://claude.ai/settings/billing",
+     "source": "curated"
+    }
+   }
   },
   {
    "id": "Apple Music",
@@ -80,7 +86,13 @@
    "permissions": [],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-10-01"
+   "lastSeen": "2026-10-01",
+   "actions": {
+    "해지": {
+     "url": "https://apps.apple.com/account/subscriptions",
+     "source": "curated"
+    }
+   }
   },
   {
    "id": "넷플릭스",
@@ -110,7 +122,13 @@
    "permissions": [],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-09-27"
+   "lastSeen": "2026-09-27",
+   "actions": {
+    "해지": {
+     "url": "https://www.netflix.com/cancelplan",
+     "source": "curated"
+    }
+   }
   },
   {
    "id": "Notion",
@@ -142,7 +160,13 @@
    ],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-10-05"
+   "lastSeen": "2026-10-05",
+   "actions": {
+    "해지": {
+     "url": "https://www.google.com/search?q=Notion+%ED%95%B4%EC%A7%80+%EB%B0%A9%EB%B2%95",
+     "source": "fallback"
+    }
+   }
   },
   {
    "id": "쿠팡",
@@ -172,7 +196,13 @@
    "permissions": [],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-10-04"
+   "lastSeen": "2026-10-04",
+   "actions": {
+    "해지": {
+     "url": "https://loyalty.coupang.com/loyalty/management/home",
+     "source": "curated"
+    }
+   }
   },
   {
    "id": "네이버",
@@ -202,7 +232,13 @@
    "permissions": [],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2026-10-02"
+   "lastSeen": "2026-10-02",
+   "actions": {
+    "해지": {
+     "url": "https://www.google.com/search?q=%EB%84%A4%EC%9D%B4%EB%B2%84+%ED%95%B4%EC%A7%80+%EB%B0%A9%EB%B2%95",
+     "source": "fallback"
+    }
+   }
   },
   {
    "id": "인스타그램",
@@ -220,7 +256,11 @@
      "kind": "보안",
      "date": "2026-10-03",
      "status": "10/3 새 기기(Android, 부산) 로그인과 비밀번호 재설정 요청 안내. 본인이 하지 않았다면 다른 사람이 접속했을 수 있어요.",
-     "advice": "본인 로그인이 아니면 바로 비밀번호를 바꾸고, 로그인 활동에서 모르는 기기를 로그아웃한 뒤 2단계 인증 켜기"
+     "advice": "본인 로그인이 아니면 바로 비밀번호를 바꾸고, 로그인 활동에서 모르는 기기를 로그아웃한 뒤 2단계 인증 켜기",
+     "action": {
+      "url": "https://www.google.com/search?q=%EC%9D%B8%EC%8A%A4%ED%83%80%EA%B7%B8%EB%9E%A8+%EB%B3%B4%EC%95%88+%EB%B0%A9%EB%B2%95",
+      "source": "fallback"
+     }
     }
    ],
    "permissions": [],
@@ -250,7 +290,13 @@
    "permissions": [],
    "recommended": "탈퇴",
    "signals": [],
-   "lastSeen": "2026-08-20"
+   "lastSeen": "2026-08-20",
+   "actions": {
+    "탈퇴": {
+     "url": "https://www.facebook.com/help/224562897555674",
+     "source": "curated"
+    }
+   }
   },
   {
    "id": "카카오",
@@ -337,7 +383,13 @@
    "permissions": [],
    "recommended": "탈퇴",
    "signals": [],
-   "lastSeen": "2023-11-25"
+   "lastSeen": "2023-11-25",
+   "actions": {
+    "탈퇴": {
+     "url": "https://www.google.com/search?q=11%EB%B2%88%EA%B0%80+%ED%83%88%ED%87%B4+%EB%B0%A9%EB%B2%95",
+     "source": "fallback"
+    }
+   }
   },
   {
    "id": "인터파크 티켓",
@@ -354,7 +406,13 @@
    "permissions": [],
    "recommended": null,
    "signals": [],
-   "lastSeen": "2025-04-14"
+   "lastSeen": "2025-04-14",
+   "actions": {
+    "탈퇴": {
+     "url": "https://www.google.com/search?q=%EC%9D%B8%ED%84%B0%ED%8C%8C%ED%81%AC+%ED%8B%B0%EC%BC%93+%ED%83%88%ED%87%B4+%EB%B0%A9%EB%B2%95",
+     "source": "fallback"
+    }
+   }
   }
  ],
  "connected_apps": [

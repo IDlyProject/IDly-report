@@ -80,6 +80,15 @@ CREATE TABLE IF NOT EXISTS profiles (
     job TEXT,
     updated TEXT NOT NULL
 );
+-- 리포트 조치 링크 검색 캐시: 웹 검색으로 찾아 도메인 검증을 통과한 링크만. 사용자 데이터가 아니라 탈퇴해도 지우지 않는다
+CREATE TABLE IF NOT EXISTS action_links (
+    domain TEXT NOT NULL,
+    action TEXT NOT NULL,             -- 해지 | 탈퇴 | 보안
+    url TEXT NOT NULL,
+    source TEXT NOT NULL,             -- search
+    found_at TEXT NOT NULL,
+    PRIMARY KEY (domain, action)
+);
 """
 
 
@@ -278,6 +287,19 @@ def unlock_of(user_id: str, mailbox: str) -> Optional[str]:
     """이 메일함을 결제했으면 'paid'."""
     row = _one("SELECT how FROM unlocks WHERE user_id = ? AND mailbox = ?", (user_id, mailbox.lower()))
     return row["how"] if row else None
+
+
+# --- 조치 링크 캐시 ---------------------------------------------------------------
+
+def get_action_link(domain: str, action: str) -> Optional[Dict[str, Any]]:
+    return _one("SELECT url, source, found_at FROM action_links WHERE domain = ? AND action = ?", (domain, action))
+
+
+def put_action_link(domain: str, action: str, url: str, source: str) -> None:
+    _exec("""INSERT INTO action_links (domain, action, url, source, found_at) VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(domain, action) DO UPDATE SET url = excluded.url, source = excluded.source,
+             found_at = excluded.found_at""",
+          (domain, action, url, source, _now()))
 
 
 # --- 결제 -------------------------------------------------------------------------

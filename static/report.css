@@ -64,6 +64,11 @@
 .rp-meta { flex: none; font-size: 11px; color: var(--mute); }
 .rp-text { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--sub); }
 .rp-advice { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--main); font-weight: 500; }
+/* 조치 버튼: 해지·탈퇴·보안 설정 페이지로 바로 간다. 구글 검색으로 가는 버튼(is-search)은 테두리만 */
+.rp-action { display: inline-flex; align-items: center; height: 28px; margin-top: 8px; padding: 0 12px;
+  border-radius: 14px; background: var(--main); color: #fff; font-size: 12px; font-weight: 600;
+  text-decoration: none; white-space: nowrap; }
+.rp-action.is-search { background: #fff; color: var(--main); box-shadow: inset 0 0 0 1px var(--main); }
 .rp-amount { flex: none; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .rp-amount span { display: block; font-size: 11px; font-weight: 400; color: var(--mute); }
 .rp-dot { flex: none; width: 8px; height: 8px; margin: 5px 4px 0; border-radius: 50%; }
