@@ -3,7 +3,7 @@ import threading
 import unittest
 from unittest.mock import patch
 from datetime import datetime, timedelta
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlsplit
 
 import httpx
 
@@ -32,6 +32,21 @@ class ValidateTests(unittest.TestCase):
         self.assertFalse(al.is_valid("https://netflix.com.evil.io/x", "netflix.com"))
         self.assertFalse(al.is_valid("https://evilnetflix.com/x", "netflix.com"))
         self.assertTrue(al.is_valid("https://NETFLIX.COM./x", "netflix.com"))
+
+    def test_validate_rejects_backslash_whitespace_and_non_ascii(self):
+        for url in ["https://evil.io\\.netflix.com/cancel", "https://www.netflix.com/cancelplan에서",
+                    "https://www.netflix.com/ cancel", "https://www.netflix.com/cancel\n", "https://www.netflix.com/cancelplan`",
+                    123, None]:
+            self.assertFalse(al.is_valid(url, "netflix.com"), repr(url))
+
+    def test_validate_rejects_user_content_hosts(self):
+        cases = [("https://blog.naver.com/someone/123", "naver.com"), ("https://m.blog.naver.com/x", "navercorp.com"),
+                 ("https://cafe.naver.com/x", "naver.com"), ("https://sites.google.com/view/x", "youtube.com"),
+                 ("https://pf.kakao.com/_x", "daum.net"), ("https://community.spotify.com/t5/x", "spotify.com"),
+                 ("https://support.google.com/youtube/thread/123", "youtube.com")]
+        for url, domain in cases:
+            self.assertFalse(al.is_valid(url, domain), url)
+        self.assertTrue(al.is_valid("https://support.google.com/youtube/answer/6308278", "youtube.com"))
 
     def test_base_domain(self):
         self.assertEqual(al.base_domain("apps.apple.com/claude"), "apple.com")
@@ -217,6 +232,26 @@ class UpgradeTests(unittest.TestCase):
             url = al.search_link("넷플릭스", "netflix.com", "해지", "k")
         self.assertEqual(url, "https://www.netflix.com/cancelplan")
 
+    def test_search_strips_markdown_and_korean_suffixes(self):
+        for text in ["`https://www.netflix.com/cancelplan`", "**https://www.netflix.com/cancelplan**",
+                     "https://www.netflix.com/cancelplan에서 해지하세요", "https://www.netflix.com/cancelplan。",
+                     "<https://www.netflix.com/cancelplan>", '"https://www.netflix.com/cancelplan"']:
+            fake = FakeOpenAI(lambda body, t=text: (200, openai_reply(t)))
+            with patch.object(al.httpx, "post", fake):
+                self.assertEqual(al.search_link("넷플릭스", "netflix.com", "해지", "k"),
+                                 "https://www.netflix.com/cancelplan", text)
+
+    def test_search_prefers_citation_over_text(self):
+        fake = FakeOpenAI(lambda body: (200, openai_reply("https://svc-a.com/guess",
+                                                           ["https://help.svc-a.com/cancel"])))
+        with patch.object(al.httpx, "post", fake):
+            self.assertEqual(al.search_link("에이", "svc-a.com", "해지", "k"), "https://help.svc-a.com/cancel")
+
+    def test_search_survives_non_string_citation(self):
+        fake = FakeOpenAI(lambda body: (200, openai_reply("NONE", [123, None])))
+        with patch.object(al.httpx, "post", fake):
+            self.assertIsNone(al.search_link("에이", "svc-a.com", "해지", "k"))
+
     def test_search_uses_citation_when_text_has_no_valid_url(self):
         fake = FakeOpenAI(lambda body: (200, openai_reply("https://evil.io/x 참고", ["https://help.svc-a.com/cancel"])))
         with patch.object(al.httpx, "post", fake):
@@ -285,8 +320,19 @@ class CuratedTests(unittest.TestCase):
             self.assertIn("해지", al.CURATED.get(d, {}), d)
 
     def test_alias_domains_share_entries(self):
-        self.assertEqual(al.CURATED["kakaocorp.com"], al.CURATED["kakao.com"])
         self.assertEqual(al.CURATED["behance.com"], al.CURATED["behance.net"])
+
+    def test_curated_urls_are_not_site_or_portal_roots(self):
+        for domain, actions in al.CURATED.items():
+            for action, (url, _) in actions.items():
+                # privacy.apple.com은 Apple 공식 도움말이 안내하는 계정 삭제 전용 사이트라 첫 화면이 곧 조치 페이지다
+                if url != "https://privacy.apple.com":
+                    self.assertNotIn(urlsplit(url).path, ("", "/"), (domain, action, url))
+
+    def test_curated_drops_mismatched_pages(self):
+        for domain, action in [("dacon.io", "탈퇴"), ("any.do", "탈퇴"), ("evernote.com", "탈퇴"),
+                               ("samsung.com", "탈퇴"), ("linkedin.com", "탈퇴"), ("simplenote.com", "탈퇴")]:
+            self.assertNotIn(action, al.CURATED.get(domain, {}), domain)
 
     def test_no_third_party_help_hosts(self):
         for actions in al.CURATED.values():

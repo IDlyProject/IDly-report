@@ -122,6 +122,9 @@ class Report:
         self.created = datetime.now()
         self._pdf: Optional[bytes] = None
         self._pdf_lock = threading.Lock()
+        # 조치 링크를 정했는지: 분석 결과(job.report)는 on_done보다 먼저 생기므로, 링크를 정하는 중에 결제돼도
+        # 웹 검색은 정하기가 끝난 뒤에 돈다. 저장된 리포트(data가 있음)는 이미 끝난 것으로 본다
+        self._links_attached = data is not None
         # 결제 후 조치 링크 웹 검색을 이미 돌렸는지 (리포트마다 한 번)
         self._links_upgraded = False
 
@@ -202,12 +205,15 @@ def _upgrade_links(report: Report) -> None:
     """결제한 리포트의 조치 링크 중 구글 검색 대체 링크로 채운 칸만 웹 검색으로 다시 찾는다 (리포트마다 한 번).
     결제 처리(웹훅 응답)를 기다리게 하지 않도록 백그라운드에서 돈다. 실패해도 리포트는 그대로다."""
     with _upgrade_lock:
-        if report._links_upgraded or report.data is None or report.sample:
+        # 링크를 정하는 중이면 _finish_report가 끝나고 다시 부른다
+        if report._links_upgraded or not report._links_attached or report.data is None or report.sample:
             return
         report._links_upgraded = True
 
     def run() -> None:
         try:
+            # 예전 리포트(링크가 저장돼 있지 않음)도 빈 칸을 먼저 채운 뒤 찾는다
+            attach_offline(report.data)
             if upgrade_report(report.data):
                 report.save()
                 report.invalidate_pdf()
@@ -233,6 +239,7 @@ def _finish_report(report: Report, data: Dict[str, Any]) -> None:
         attach_offline(data)
     except Exception as e:
         print(f"[links] {report.id} 링크 정하기 실패: {e!r}")
+    report._links_attached = True
     report.save()
     if report.paid:
         _upgrade_links(report)

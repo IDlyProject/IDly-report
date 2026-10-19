@@ -117,6 +117,23 @@ class AppLinkTests(unittest.TestCase):
         app._finish_report(report, report.data)
         self.assertEqual(self.upgrade_mock.call_count, 1)
 
+    def test_payment_during_attach_waits_for_finish(self):
+        token_report = app.Report("me@example.com", None, guest="g" * 64)
+        data = report_data()
+        token_report._data = data  # 분석 결과가 나왔지만 링크를 정하는 중 (job.report는 on_done 전에 생긴다)
+        token_report.paid = True
+        app._upgrade_links(token_report)
+        self.assertEqual(self.upgrade_mock.call_count, 0)
+        app._finish_report(token_report, data)
+        self.assertEqual(self.upgrade_mock.call_count, 1)
+
+    def test_upgrade_attaches_links_for_old_reports(self):
+        report, _ = self.guest_report(paid=True)
+        self.assertNotIn("actions", report.data["accounts"][2])
+        app._upgrade_links(report)
+        self.assertIn("actions", report.data["accounts"][2])
+        self.assertEqual(self.upgrade_mock.call_count, 1)
+
     def test_upgrade_failure_keeps_report(self):
         self.upgrade_mock.side_effect = RuntimeError("boom")
         report, _ = self.guest_report(paid=True)

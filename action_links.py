@@ -48,17 +48,11 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
         "탈퇴": ("https://claude.ai/settings/account",
                "https://support.claude.com/en/articles/9028421-delete-your-claude-account"),
     },
-    "any.do": {
-        "탈퇴": ("https://support.any.do/en/articles/9608389-account-security-and-privacy-in-any-do",
-               "https://support.any.do/en/articles/9608389-account-security-and-privacy-in-any-do"),
-    },
     "apple.com": {
         "해지": ("https://account.apple.com/account/manage/section/subscriptions",
                "https://support.apple.com/en-us/118428"),
         "탈퇴": ("https://privacy.apple.com",
                "https://support.apple.com/en-us/102283"),
-        "보안": ("https://account.apple.com",
-               "https://support.apple.com/en-us/101567"),
     },
     "aws.amazon.com": {
         "탈퇴": ("https://console.aws.amazon.com/billing/home#/account",
@@ -100,14 +94,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
         "탈퇴": ("https://www.coursera.support/s/article/209818563-Delete-your-Coursera-account",
                "https://www.coursera.support/s/article/209818563-Delete-your-Coursera-account"),
     },
-    "dacon.io": {
-        "탈퇴": ("https://dacon.io/more/faq",
-               "https://dacon.io/more/faq"),
-    },
-    "daum.net": {
-        "탈퇴": ("https://accounts.kakao.com",
-               "https://cs.kakao.com/helps_html/1073185457?locale=ko"),
-    },
     "distrokid.com": {
         "해지": ("https://distrokid.com/leave/",
                "https://support.distrokid.com/hc/en-us/articles/360013535374"),
@@ -135,8 +121,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
     "evernote.com": {
         "해지": ("https://accounts.evernote.com/settings/account/manage-plans",
                "https://help.evernote.com/hc/en-us/articles/115005949208-How-to-cancel-your-Evernote-subscription"),
-        "탈퇴": ("https://accounts.evernote.com/settings/security/summary",
-               "https://help.evernote.com/hc/en-us/articles/360056549574-Permanently-close-your-Evernote-account"),
         "보안": ("https://accounts.evernote.com/settings/security/summary",
                "https://help.evernote.com/hc/en-us/articles/360056549574-Permanently-close-your-Evernote-account"),
     },
@@ -184,10 +168,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
         "탈퇴": ("https://accountscenter.instagram.com/personal_info/account_ownership_and_control",
                "https://help.instagram.com/139886812848894"),
     },
-    "kakao.com": {
-        "탈퇴": ("https://accounts.kakao.com",
-               "https://cs.kakao.com/helps_html/1073185457?locale=ko"),
-    },
     "laftel.net": {
         "해지": ("https://help.laftel.net/hc/ko/articles/6011133529231",
                "https://help.laftel.net/hc/ko/articles/6011133529231"),
@@ -200,8 +180,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
     },
     "linkedin.com": {
         "해지": ("https://linkedin.com/premium/cancel",
-               "https://www.linkedin.com/help/learning/answer/63"),
-        "탈퇴": ("https://www.linkedin.com/psettings/account-management/close-action-needed",
                "https://www.linkedin.com/help/learning/answer/63"),
         "보안": ("https://www.linkedin.com/mypreferences/d/change-password",
                "https://www.linkedin.com/help/linkedin/answer/a1379143"),
@@ -269,8 +247,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
     "nintendo.com": {
         "탈퇴": ("https://accounts.nintendo.com/withdraw/confirm",
                "https://en-americas-support.nintendo.com/app/answers/detail/a_id/15986/~/how-to-delete-a-nintendo-account"),
-        "보안": ("https://accounts.nintendo.com/",
-               "https://en-americas-support.nintendo.com/app/answers/detail/a_id/27496"),
     },
     "notion.so": {
         "탈퇴": ("https://www.notion.com/help/delete-your-account",
@@ -298,10 +274,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
         "보안": ("https://trainer.pokemon.com/profile/change-password",
                "https://support.pokemon.com/hc/en-us/articles/360002070073"),
     },
-    "polar.com": {
-        "탈퇴": ("https://account.polar.com/",
-               "https://support.polar.com/en/support/tips/How_to_unregister_Polar_Account"),
-    },
     "postype.com": {
         "해지": ("https://www.postype.com/membership",
                "https://help.postype.com/hc/ko/articles/900004046146"),
@@ -325,16 +297,10 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
     "riotgames.com": {
         "탈퇴": ("https://support.riotgames.com/en-us/riot/account/deleting-your-riot-account-and-all-your-data",
                "https://support.riotgames.com/en-us/riot/account/deleting-your-riot-account-and-all-your-data"),
-        "보안": ("https://account.riotgames.com/",
-               "https://support.riotgames.com/en-us/riot/account/multi-factor-authentication-how-to-faq"),
     },
     "runtastic.com": {
         "탈퇴": ("https://help.runtastic.com/hc/en-us/articles/200370082-Delete-Account",
                "https://help.runtastic.com/hc/en-us/articles/200370082-Delete-Account"),
-    },
-    "samsung.com": {
-        "탈퇴": ("https://www.samsung.com/latin_en/support/apps-services/how-can-i-delete-my-samsung-account/",
-               "https://www.samsung.com/latin_en/support/apps-services/how-can-i-delete-my-samsung-account/"),
     },
     "saramin.co.kr": {
         "탈퇴": ("https://www.saramin.co.kr/zf_user/help/help-word/view?idx=319",
@@ -345,14 +311,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
                "https://support.send-anywhere.com/hc/en-us/articles/16261798546585"),
         "탈퇴": ("https://send-anywhere.com/user/settings/#account",
                "https://support.send-anywhere.com/hc/en-us/articles/115003885394"),
-    },
-    "simplenote.com": {
-        "탈퇴": ("https://app.simplenote.com/",
-               "https://simplenote.com/help/"),
-    },
-    "snapchat.com": {
-        "탈퇴": ("https://accounts.snapchat.com/",
-               "https://help.snapchat.com/hc/en-us/articles/7012328360596-How-do-I-deactivate-or-delete-my-Snapchat-account"),
     },
     "snyk.io": {
         "탈퇴": ("https://support.snyk.io/hc/en-us/articles/360000921998-How-can-I-delete-my-account",
@@ -426,7 +384,6 @@ CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
     },
 }
 # 같은 서비스의 다른 도메인 (analysis.py가 둘 중 하나로 묶는다)
-CURATED["kakaocorp.com"] = CURATED["kakao.com"]
 CURATED["behance.com"] = CURATED["behance.net"]
 CURATED["smilegate.com"] = CURATED["onstove.com"]
 CURATED["navercorp.com"] = CURATED["naver.com"]
@@ -472,10 +429,22 @@ def _host_allowed(host: str, domain: str) -> bool:
     return any(host == d or host.endswith("." + d) for d in allowed)
 
 
+# URL에 올 수 있는 ASCII 문자만 (RFC 3986). 역슬래시·공백·한글은 거절한다:
+# 파이썬 urlsplit은 `https://evil.io\.netflix.com`의 호스트를 `evil.io\.netflix.com`으로 읽지만 브라우저는 `evil.io`로 간다
+_URL_CHARS_RE = re.compile(r"[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+")
+# 공식 도메인 안의 사용자 글 공간 (블로그·카페·커뮤니티). 광고 블로그로 보내지 않게 검색 결과에서 거절한다
+_USER_CONTENT_LABELS = {"blog", "cafe", "kin", "post", "community", "communities", "forum", "forums", "groups",
+                        "sites", "pf", "open", "answers", "discuss", "discussions"}
+
+
 def is_valid(url: str, domain: str) -> bool:
-    """https, 사용자 정보·포트 없음, IP 아닌 호스트가 그 계정의 도메인(하위 도메인 포함) 또는 허용 도메인일 때만."""
+    """https, 사용자 정보·포트 없음, IP 아닌 호스트가 그 계정의 도메인(하위 도메인 포함) 또는 허용 도메인일 때만.
+    웹 검색 결과는 검색된 페이지의 글(프롬프트 주입)에 휘둘릴 수 있어서, 이 검사가 사용자를 엉뚱한 곳으로
+    보내지 않게 막는 유일한 관문이다."""
+    if not isinstance(url, str) or not _URL_CHARS_RE.fullmatch(url):
+        return False
     try:
-        parts = urlsplit(url or "")
+        parts = urlsplit(url)
         if parts.scheme != "https" or parts.username is not None or parts.password is not None:
             return False
         # 포트는 빈 값(`host:`)까지 거절한다. IPv6 호스트도 콜론이 있지만 어차피 IP라 거절된다
@@ -491,6 +460,11 @@ def is_valid(url: str, domain: str) -> bool:
         return False
     except ValueError:
         pass
+    if _USER_CONTENT_LABELS & set(host.split(".")[:-2]):
+        return False
+    # Google 도움말 커뮤니티 글 (support.google.com/<제품>/thread/…)
+    if host == "support.google.com" and "/thread/" in parts.path:
+        return False
     return _host_allowed(host, base_domain(domain))
 
 
@@ -579,7 +553,8 @@ def attach_offline(report: Dict[str, Any]) -> None:
 
 # --- 웹 검색 (결제한 리포트에서만) -----------------------------------------------------
 
-_URL_RE = re.compile(r"https://[^\s)\]>\"'<]+")
+_URL_RE = re.compile(r"https://[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+")
+_TRAILING = ".,;:!?)]'*"
 _QUERY_WHAT = {"해지": "구독 해지(취소) 페이지", "탈퇴": "회원 탈퇴(계정 삭제) 페이지", "보안": "비밀번호·로그인 보안 설정 페이지"}
 
 
@@ -591,8 +566,9 @@ def _candidates(body: Dict[str, Any]) -> List[str]:
         for part in item.get("content") or []:
             if not isinstance(part, dict) or part.get("type") != "output_text":
                 continue
-            urls += [u.rstrip(".,;:!?)") for u in _URL_RE.findall(part.get("text") or "")]
-            urls += [a.get("url") or "" for a in part.get("annotations") or [] if isinstance(a, dict)]
+            # 인용(실제 검색 결과)을 먼저 보고, 모델이 쓴 글 속 URL은 그다음
+            urls += [a.get("url") for a in part.get("annotations") or [] if isinstance(a, dict)]
+            urls += [u.rstrip(_TRAILING) for u in _URL_RE.findall(part.get("text") or "")]
     return urls
 
 
