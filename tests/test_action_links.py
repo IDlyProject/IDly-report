@@ -8,6 +8,7 @@ from urllib.parse import quote_plus
 import httpx
 
 import action_links as al
+import analysis
 import db
 
 
@@ -263,6 +264,34 @@ class UpgradeTests(unittest.TestCase):
         self.assertTrue(fake.calls)
         for _, kwargs in fake.calls:
             self.assertNotIn("me@example.com", json.dumps(kwargs, ensure_ascii=False))
+
+
+
+class CuratedTests(unittest.TestCase):
+    def test_every_curated_url_passes_validation(self):
+        for domain, actions in al.CURATED.items():
+            for action, (url, source) in actions.items():
+                self.assertIn(action, al.ACTIONS)
+                self.assertTrue(al.is_valid(url, domain), (domain, action, url))
+                self.assertTrue(source.startswith("https://"), (domain, action))
+
+    def test_curated_keys_are_known_services(self):
+        self.assertLessEqual(set(al.CURATED), set(analysis.KNOWN_SERVICES))
+        self.assertLessEqual(set(al.ALLOWED_DOMAINS), set(analysis.KNOWN_SERVICES))
+
+    def test_curated_covers_major_subscriptions(self):
+        for d in ["netflix.com", "youtube.com", "spotify.com", "coupang.com", "apple.com", "microsoft.com",
+                  "dropbox.com", "linkedin.com", "grammarly.com", "anthropic.com"]:
+            self.assertIn("해지", al.CURATED.get(d, {}), d)
+
+    def test_alias_domains_share_entries(self):
+        self.assertEqual(al.CURATED["kakaocorp.com"], al.CURATED["kakao.com"])
+        self.assertEqual(al.CURATED["behance.com"], al.CURATED["behance.net"])
+
+    def test_no_third_party_help_hosts(self):
+        for actions in al.CURATED.values():
+            for url, _ in actions.values():
+                self.assertNotIn("helpshift", url)
 
 
 if __name__ == "__main__":

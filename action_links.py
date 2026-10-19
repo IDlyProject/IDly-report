@@ -38,18 +38,419 @@ APPLE_SUBSCRIPTIONS = "https://apps.apple.com/account/subscriptions"
 
 # 도메인 → {조치: (URL, 확인한 출처)}. 확인하지 못한 칸은 비워 둔다 (추측으로 채우지 않는다)
 CURATED: Dict[str, Dict[str, Tuple[str, str]]] = {
-    "netflix.com": {
-        "해지": ("https://www.netflix.com/cancelplan", "https://help.netflix.com/en/node/407"),
+    "aladin.co.kr": {
+        "탈퇴": ("https://www.aladin.co.kr/account/waccount_guide.aspx",
+               "https://www.aladin.co.kr/cs_center/wcs_guide_detail.aspx?pn=account_01"),
+    },
+    "anthropic.com": {
+        "해지": ("https://claude.ai/settings/billing",
+               "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"),
+        "탈퇴": ("https://claude.ai/settings/account",
+               "https://support.claude.com/en/articles/9028421-delete-your-claude-account"),
+    },
+    "any.do": {
+        "탈퇴": ("https://support.any.do/en/articles/9608389-account-security-and-privacy-in-any-do",
+               "https://support.any.do/en/articles/9608389-account-security-and-privacy-in-any-do"),
+    },
+    "apple.com": {
+        "해지": ("https://account.apple.com/account/manage/section/subscriptions",
+               "https://support.apple.com/en-us/118428"),
+        "탈퇴": ("https://privacy.apple.com",
+               "https://support.apple.com/en-us/102283"),
+        "보안": ("https://account.apple.com",
+               "https://support.apple.com/en-us/101567"),
+    },
+    "aws.amazon.com": {
+        "탈퇴": ("https://console.aws.amazon.com/billing/home#/account",
+               "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-closing.html"),
+        "보안": ("https://console.aws.amazon.com/iam/home?#security_credential",
+               "https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-password.html"),
+    },
+    "bandlab.com": {
+        "해지": ("https://www.bandlab.com/settings/membership",
+               "https://help.bandlab.com/hc/en-us/articles/61321024101017-Manage-your-Subscription"),
+        "탈퇴": ("https://www.bandlab.com/settings/account",
+               "https://help.bandlab.com/hc/en-us/articles/115003830774-How-do-I-delete-my-account"),
+        "보안": ("https://www.bandlab.com/settings/security",
+               "https://help.bandlab.com/hc/en-us/articles/10011626053145-How-do-I-improve-the-security-of-my-account"),
+    },
+    "beatstars.com": {
+        "탈퇴": ("https://help.beatstars.com/hc/en-us/articles/360007986854-How-do-I-Close-my-Account",
+               "https://help.beatstars.com/hc/en-us/articles/360007986854-How-do-I-Close-my-Account"),
+    },
+    "behance.net": {
+        "탈퇴": ("https://help.behance.net/hc/en-us/articles/204484854-Guide-Delete-Your-Behance-Profile",
+               "https://help.behance.net/hc/en-us/articles/204484854-Guide-Delete-Your-Behance-Profile"),
+    },
+    "bizhows.com": {
+        "탈퇴": ("https://help.bizhows.com/hc/ko/articles/56581042688153",
+               "https://help.bizhows.com/hc/ko/articles/56581042688153"),
+    },
+    "clipstudio.net": {
+        "탈퇴": ("https://support.clip-studio.com/en-us/faq/articles/20190316",
+               "https://support.clip-studio.com/en-us/faq/articles/20190316"),
+    },
+    "coupang.com": {
+        "해지": ("https://loyalty.coupang.com/loyalty/management/home",
+               "https://news.coupang.com/archives/64216/"),
+        "탈퇴": ("https://login.coupang.com/login/secession.pang",
+               "https://news.coupang.com/archives/64377/"),
+    },
+    "coursera.org": {
+        "탈퇴": ("https://www.coursera.support/s/article/209818563-Delete-your-Coursera-account",
+               "https://www.coursera.support/s/article/209818563-Delete-your-Coursera-account"),
+    },
+    "dacon.io": {
+        "탈퇴": ("https://dacon.io/more/faq",
+               "https://dacon.io/more/faq"),
+    },
+    "daum.net": {
+        "탈퇴": ("https://accounts.kakao.com",
+               "https://cs.kakao.com/helps_html/1073185457?locale=ko"),
+    },
+    "distrokid.com": {
+        "해지": ("https://distrokid.com/leave/",
+               "https://support.distrokid.com/hc/en-us/articles/360013535374"),
+    },
+    "dropbox.com": {
+        "해지": ("https://www.dropbox.com/account/billing",
+               "https://help.dropbox.com/plans/downgrade-dropbox-plus-professional-plans"),
+        "탈퇴": ("https://help.dropbox.com/account-access/delete-account",
+               "https://help.dropbox.com/account-access/delete-account"),
+    },
+    "ea.com": {
+        "탈퇴": ("https://myaccount.ea.com/am/ui/security-privacy",
+               "https://help.ea.com/en/articles/ea-account/delete-ea-account/"),
+        "보안": ("https://myaccount.ea.com/am/ui/security-privacy",
+               "https://help.ea.com/en/articles/ea-account/delete-ea-account/"),
+    },
+    "ebs.co.kr": {
+        "탈퇴": ("https://sso.ebs.co.kr/secession/auth",
+               "https://sso.ebs.co.kr/secession/auth"),
+    },
+    "etoos.com": {
+        "탈퇴": ("https://www.etoos.com/customer/faq_r.asp?cosl_lclass=CS03&idx=14829276",
+               "https://www.etoos.com/customer/faq_r.asp?cosl_lclass=CS03&idx=14829276"),
+    },
+    "evernote.com": {
+        "해지": ("https://accounts.evernote.com/settings/account/manage-plans",
+               "https://help.evernote.com/hc/en-us/articles/115005949208-How-to-cancel-your-Evernote-subscription"),
+        "탈퇴": ("https://accounts.evernote.com/settings/security/summary",
+               "https://help.evernote.com/hc/en-us/articles/360056549574-Permanently-close-your-Evernote-account"),
+        "보안": ("https://accounts.evernote.com/settings/security/summary",
+               "https://help.evernote.com/hc/en-us/articles/360056549574-Permanently-close-your-Evernote-account"),
+    },
+    "expo.dev": {
+        "해지": ("https://expo.dev/settings/billing",
+               "https://docs.expo.dev/billing/manage/"),
+        "탈퇴": ("https://expo.dev/settings",
+               "https://docs.expo.dev/accounts/sso/"),
+        "보안": ("https://expo.dev/settings#two-factor-auth",
+               "https://docs.expo.dev/accounts/two-factor/"),
+    },
+    "facebook.com": {
+        "탈퇴": ("https://www.facebook.com/help/224562897555674",
+               "https://www.facebook.com/help/224562897555674"),
+        "보안": ("https://www.facebook.com/settings?tab=security",
+               "https://www.facebook.com/help/285695718429403"),
     },
     "google.com": {
-        "보안": ("https://myaccount.google.com/security", "https://support.google.com/accounts/answer/46526"),
+        "탈퇴": ("https://myaccount.google.com/deleteaccount",
+               "https://support.google.com/accounts/answer/32046"),
+        "보안": ("https://myaccount.google.com/security",
+               "https://support.google.com/accounts/answer/46526"),
+    },
+    "grammarly.com": {
+        "해지": ("https://account.grammarly.com/subscription",
+               "https://support.grammarly.com/hc/en-us/articles/115000090172-How-do-I-cancel-my-subscription"),
+        "탈퇴": ("https://account.grammarly.com/profile",
+               "https://support.grammarly.com/hc/en-us/articles/115000090052-Delete-your-Grammarly-account"),
+    },
+    "hackthebox.com": {
+        "탈퇴": ("https://help.hackthebox.com/en/articles/9189654-manage-your-htb-account",
+               "https://help.hackthebox.com/en/articles/9189654-manage-your-htb-account"),
+        "보안": ("https://account.hackthebox.com/security-settings",
+               "https://help.hackthebox.com/en/articles/9189654-manage-your-htb-account"),
+    },
+    "hancom.com": {
+        "탈퇴": ("https://support.hancom.com/fcaff86f-6e76-437f-af69-e7c3ec958e10",
+               "https://support.hancom.com/fcaff86f-6e76-437f-af69-e7c3ec958e10"),
+    },
+    "huggingface.co": {
+        "보안": ("https://hf.co/settings/authentication",
+               "https://huggingface.co/docs/hub/security-2fa"),
+    },
+    "instagram.com": {
+        "탈퇴": ("https://accountscenter.instagram.com/personal_info/account_ownership_and_control",
+               "https://help.instagram.com/139886812848894"),
+    },
+    "kakao.com": {
+        "탈퇴": ("https://accounts.kakao.com",
+               "https://cs.kakao.com/helps_html/1073185457?locale=ko"),
+    },
+    "laftel.net": {
+        "해지": ("https://help.laftel.net/hc/ko/articles/6011133529231",
+               "https://help.laftel.net/hc/ko/articles/6011133529231"),
+        "탈퇴": ("https://help.laftel.net/hc/ko/articles/6011122211471",
+               "https://help.laftel.net/hc/ko/articles/6011122211471"),
+    },
+    "lastpass.com": {
+        "탈퇴": ("https://lastpass.com/delete_account.php",
+               "https://support.lastpass.com/help/delete-your-lastpass-account-lp010012"),
+    },
+    "linkedin.com": {
+        "해지": ("https://linkedin.com/premium/cancel",
+               "https://www.linkedin.com/help/learning/answer/63"),
+        "탈퇴": ("https://www.linkedin.com/psettings/account-management/close-action-needed",
+               "https://www.linkedin.com/help/learning/answer/63"),
+        "보안": ("https://www.linkedin.com/mypreferences/d/change-password",
+               "https://www.linkedin.com/help/linkedin/answer/a1379143"),
+    },
+    "manus.im": {
+        "해지": ("https://help.manus.im/en/articles/11711087-how-can-i-cancel-my-subscription",
+               "https://help.manus.im/en/articles/11711087-how-can-i-cancel-my-subscription"),
+        "탈퇴": ("https://help.manus.im/en/articles/11711969-how-can-i-delete-my-account",
+               "https://help.manus.im/en/articles/11711969-how-can-i-delete-my-account"),
+    },
+    "mediafire.com": {
+        "탈퇴": ("https://www.mediafire.com/myaccount",
+               "https://www.mediafire.com/common_questions/"),
+    },
+    "megastudy.net": {
+        "탈퇴": ("https://www.megastudy.net/help/faq/faq_search_view.asp?varFaqNum=ANSW20030708000001",
+               "https://www.megastudy.net/help/faq/faq_search_view.asp?varFaqNum=ANSW20030708000001"),
+    },
+    "microsoft.com": {
+        "해지": ("https://account.microsoft.com/services",
+               "https://support.microsoft.com/en-us/accounts-billing/subscriptions/cancel-your-microsoft-subscription"),
+        "탈퇴": ("https://go.microsoft.com/fwlink/?linkid=2272280",
+               "https://support.microsoft.com/en-us/accounts-billing/manage/how-to-close-your-microsoft-account"),
+        "보안": ("https://account.microsoft.com/security",
+               "https://support.microsoft.com/en-us/accounts-billing/manage/change-your-microsoft-account-password"),
+    },
+    "miricanvas.com": {
+        "해지": ("https://www.miricanvas.com/ko/workspace/setting/billing",
+               "https://help.miricanvas.com/hc/ko/articles/6121039777817"),
+        "탈퇴": ("https://help.miricanvas.com/hc/ko/articles/360036090071",
+               "https://help.miricanvas.com/hc/ko/articles/360036090071"),
+    },
+    "n8n.io": {
+        "해지": ("https://app.n8n.cloud/manage",
+               "https://support.n8n.io/article/i-want-to-cancel-my-subscription"),
+        "탈퇴": ("https://app.n8n.cloud/manage",
+               "https://support.n8n.io/article/how-do-i-delete-my-n-8-n-account"),
+    },
+    "nate.com": {
+        "탈퇴": ("https://helpdesk.nate.com/web/member/out",
+               "https://helpdesk.nate.com/web/member/info"),
+        "보안": ("https://helpdesk.nate.com/web/member/password",
+               "https://helpdesk.nate.com/web/member/info"),
+    },
+    "naver.com": {
+        "탈퇴": ("https://help.naver.com/service/5640/contents/1435?lang=ko",
+               "https://help.naver.com/service/5640/contents/1435?lang=ko"),
+        "보안": ("https://nid.naver.com/user2/help/myInfoV2?m=viewSecurity",
+               "https://help.naver.com/service/5640/contents/18980?lang=ko"),
+    },
+    "netflix.com": {
+        "해지": ("https://www.netflix.com/cancelplan",
+               "https://help.netflix.com/en/node/407"),
+        "보안": ("https://netflix.com/password",
+               "https://help.netflix.com/en/node/365"),
+    },
+    "nexon.com": {
+        "탈퇴": ("https://cs.nexon.com/helpBoard/popuphelpview/14057",
+               "https://cs.nexon.com/helpBoard/popuphelpview/14057"),
+    },
+    "nike.com": {
+        "탈퇴": ("https://www.nike.com/help/a/delete-nike-profile",
+               "https://www.nike.com/help/a/delete-nike-profile"),
+    },
+    "nintendo.com": {
+        "탈퇴": ("https://accounts.nintendo.com/withdraw/confirm",
+               "https://en-americas-support.nintendo.com/app/answers/detail/a_id/15986/~/how-to-delete-a-nintendo-account"),
+        "보안": ("https://accounts.nintendo.com/",
+               "https://en-americas-support.nintendo.com/app/answers/detail/a_id/27496"),
+    },
+    "notion.so": {
+        "탈퇴": ("https://www.notion.com/help/delete-your-account",
+               "https://www.notion.com/help/delete-your-account"),
+    },
+    "onstove.com": {
+        "탈퇴": ("https://support.onstove.com/hc/ko/articles/226740728",
+               "https://support.onstove.com/hc/ko/articles/226740728"),
+    },
+    "openai.com": {
+        "탈퇴": ("https://help.openai.com/en/articles/6378407-how-to-delete-your-account",
+               "https://help.openai.com/en/articles/6378407-how-to-delete-your-account"),
+    },
+    "pixiv.net": {
+        "탈퇴": ("https://www.pixiv.help/hc/en-us/articles/235792407-I-want-to-delete-my-pixiv-account",
+               "https://www.pixiv.help/hc/en-us/articles/235792407-I-want-to-delete-my-pixiv-account"),
+    },
+    "plusdocs.com": {
+        "해지": ("https://app.plusdocs.com/billing-portal",
+               "https://guide.plusdocs.com/plus-ai/plus-ai-plans-and-billing"),
+    },
+    "pokemon.com": {
+        "탈퇴": ("https://trainer.pokemon.com/profile/data-security",
+               "https://support.pokemon.com/hc/en-us/articles/360000965826"),
+        "보안": ("https://trainer.pokemon.com/profile/change-password",
+               "https://support.pokemon.com/hc/en-us/articles/360002070073"),
+    },
+    "polar.com": {
+        "탈퇴": ("https://account.polar.com/",
+               "https://support.polar.com/en/support/tips/How_to_unregister_Polar_Account"),
+    },
+    "postype.com": {
+        "해지": ("https://www.postype.com/membership",
+               "https://help.postype.com/hc/ko/articles/900004046146"),
+        "탈퇴": ("https://www.postype.com/account/settings",
+               "https://help.postype.com/hc/ko/articles/360000117453"),
+        "보안": ("https://www.postype.com/account/settings",
+               "https://help.postype.com/hc/ko/articles/360006022773"),
+    },
+    "prezi.com": {
+        "해지": ("https://prezi.com/settings/",
+               "https://support.prezi.com/hc/en-us/articles/360003478894-How-to-manage-your-Prezi-subscription"),
+        "탈퇴": ("https://prezi.com/settings/",
+               "https://support.prezi.com/hc/en-us/articles/360003499213-Deleting-an-account"),
+    },
+    "readdle.com": {
+        "해지": ("https://sparkmailapp.com/help/billing-subscription/how-to-cancel-the-subscription",
+               "https://sparkmailapp.com/help/billing-subscription/how-to-cancel-the-subscription"),
+        "탈퇴": ("https://sparkmailapp.com/help/privacy-data/remove-data-from-spark-request-data-copy-or-deletion",
+               "https://sparkmailapp.com/help/privacy-data/remove-data-from-spark-request-data-copy-or-deletion"),
+    },
+    "riotgames.com": {
+        "탈퇴": ("https://support.riotgames.com/en-us/riot/account/deleting-your-riot-account-and-all-your-data",
+               "https://support.riotgames.com/en-us/riot/account/deleting-your-riot-account-and-all-your-data"),
+        "보안": ("https://account.riotgames.com/",
+               "https://support.riotgames.com/en-us/riot/account/multi-factor-authentication-how-to-faq"),
+    },
+    "runtastic.com": {
+        "탈퇴": ("https://help.runtastic.com/hc/en-us/articles/200370082-Delete-Account",
+               "https://help.runtastic.com/hc/en-us/articles/200370082-Delete-Account"),
+    },
+    "samsung.com": {
+        "탈퇴": ("https://www.samsung.com/latin_en/support/apps-services/how-can-i-delete-my-samsung-account/",
+               "https://www.samsung.com/latin_en/support/apps-services/how-can-i-delete-my-samsung-account/"),
+    },
+    "saramin.co.kr": {
+        "탈퇴": ("https://www.saramin.co.kr/zf_user/help/help-word/view?idx=319",
+               "https://www.saramin.co.kr/zf_user/help/help-word/view?idx=319"),
+    },
+    "sendanywhere.com": {
+        "해지": ("https://send-anywhere.com/user/settings/#plan",
+               "https://support.send-anywhere.com/hc/en-us/articles/16261798546585"),
+        "탈퇴": ("https://send-anywhere.com/user/settings/#account",
+               "https://support.send-anywhere.com/hc/en-us/articles/115003885394"),
+    },
+    "simplenote.com": {
+        "탈퇴": ("https://app.simplenote.com/",
+               "https://simplenote.com/help/"),
+    },
+    "snapchat.com": {
+        "탈퇴": ("https://accounts.snapchat.com/",
+               "https://help.snapchat.com/hc/en-us/articles/7012328360596-How-do-I-deactivate-or-delete-my-Snapchat-account"),
+    },
+    "snyk.io": {
+        "탈퇴": ("https://support.snyk.io/hc/en-us/articles/360000921998-How-can-I-delete-my-account",
+               "https://support.snyk.io/hc/en-us/articles/360000921998-How-can-I-delete-my-account"),
+    },
+    "soundcloud.com": {
+        "해지": ("https://soundcloud.com/you/subscriptions",
+               "https://help.soundcloud.com/hc/en-us/articles/360056011234-Cancel-your-subscription"),
+        "탈퇴": ("https://help.soundcloud.com/hc/en-us/articles/115003563188-How-can-I-delete-my-account",
+               "https://help.soundcloud.com/hc/en-us/articles/115003563188-How-can-I-delete-my-account"),
+    },
+    "spotify.com": {
+        "해지": ("https://www.spotify.com/account/subscription/manage/",
+               "https://support.spotify.com/us/article/cancel-premium/"),
+        "탈퇴": ("https://www.spotify.com/account/close/",
+               "https://support.spotify.com/us/article/close-account/"),
+        "보안": ("https://www.spotify.com/account/login-methods-v2/password/",
+               "https://support.spotify.com/us/article/change-password/"),
+    },
+    "tinkercad.com": {
+        "탈퇴": ("https://www.tinkercad.com/help-center/deleting-an-account-and-all-data",
+               "https://www.tinkercad.com/help-center/deleting-an-account-and-all-data"),
+    },
+    "toss.im": {
+        "탈퇴": ("https://support.toss.im/faq/218",
+               "https://support.toss.im/faq/218?from=12&page=1"),
+    },
+    "twitch.tv": {
+        "보안": ("https://www.twitch.tv/settings/security",
+               "https://help.twitch.tv/s/article/authy-faq"),
+    },
+    "upstage.ai": {
+        "탈퇴": ("https://get.support.upstage.ai/servicedesk/customer/portal/7/create/10089",
+               "https://get.support.upstage.ai/servicedesk/customer/portal/7/create/10089"),
+    },
+    "viarail.ca": {
+        "탈퇴": ("https://www.viarail.ca/en/plan/faq/booking-and-ticket-purchase/how-do-i-delete-my-account",
+               "https://www.viarail.ca/en/plan/faq/booking-and-ticket-purchase/how-do-i-delete-my-account"),
+    },
+    "watcha.com": {
+        "탈퇴": ("https://help.watcha.com/hc/ko/articles/900002408246",
+               "https://help.watcha.com/hc/ko/articles/900002408246"),
+    },
+    "wish.com": {
+        "탈퇴": ("https://cs-help.wish.com/hc/en-us/articles/360028156211-Deactivate-or-Deleting-Wish-Accounts",
+               "https://cs-help.wish.com/hc/en-us/articles/360028156211-Deactivate-or-Deleting-Wish-Accounts"),
+    },
+    "wishket.com": {
+        "탈퇴": ("https://www.wishket.com/customer-support/10/44/149",
+               "https://www.wishket.com/customer-support/10/44/149"),
+    },
+    "x.com": {
+        "탈퇴": ("https://help.x.com/managing-your-account/how-to-deactivate-x-account",
+               "https://help.x.com/managing-your-account/how-to-deactivate-x-account"),
+    },
+    "yorba.co": {
+        "탈퇴": ("https://yorba.app/settings",
+               "https://helpcenter.yorba.co/en/articles/7843637-delete-your-yorba-account"),
+    },
+    "youtube.com": {
+        "해지": ("https://www.youtube.com/paid_memberships",
+               "https://support.google.com/youtube/answer/6308278?hl=ko"),
+        "보안": ("https://myaccount.google.com/signinoptions/two-step-verification",
+               "https://support.google.com/accounts/answer/185839?hl=ko"),
+    },
+    "zoom.us": {
+        "해지": ("https://zoom.us/billing",
+               "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0066687"),
+        "탈퇴": ("https://zoom.us/account",
+               "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067341"),
     },
 }
+# 같은 서비스의 다른 도메인 (analysis.py가 둘 중 하나로 묶는다)
+CURATED["kakaocorp.com"] = CURATED["kakao.com"]
+CURATED["behance.com"] = CURATED["behance.net"]
+CURATED["smilegate.com"] = CURATED["onstove.com"]
+CURATED["navercorp.com"] = CURATED["naver.com"]
 
 # 기준 도메인 밖에 있는 같은 회사의 페이지 (검색 결과 검증에도 쓴다)
 ALLOWED_DOMAINS: Dict[str, List[str]] = {
-    "youtube.com": ["google.com"],
+    "anthropic.com": ["claude.ai", "claude.com"],
+    "aws.amazon.com": ["console.aws.amazon.com"],
+    "behance.com": ["behance.net"],
+    "clipstudio.net": ["clip-studio.com"],
+    "coursera.org": ["coursera.support"],
+    "daum.net": ["kakao.com"],
     "google.com": ["youtube.com"],
+    "huggingface.co": ["hf.co"],
+    "kakaocorp.com": ["kakao.com"],
+    "n8n.io": ["n8n.cloud"],
+    "navercorp.com": ["naver.com"],
+    "notion.so": ["notion.com"],
+    "pixiv.net": ["pixiv.help"],
+    "readdle.com": ["sparkmailapp.com"],
+    "sendanywhere.com": ["send-anywhere.com"],
+    "smilegate.com": ["onstove.com"],
+    "yorba.co": ["yorba.app"],
+    "youtube.com": ["google.com"],
 }
 
 _LABELS = {
