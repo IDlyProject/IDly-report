@@ -91,3 +91,12 @@
   .rp-row, .rp-stat, .rp-hero { break-inside: avoid; }
   .rp-h2 { break-after: avoid; }
 }
+
+/* 사용자 크롬 확장: 작업 패널과 기존 조치 링크 옆 실행 버튼 */
+.rp-extension-start { margin-left: 8px; cursor: pointer; font: inherit; }
+.rp-extension-start:disabled { opacity: .5; cursor: default; }
+.rp-extension-run { padding: 12px 0; border-top: 1px solid #eceef2; }
+.rp-extension-run .rp-action { margin-right: 8px; cursor: pointer; }
+#extension-hint, #extension-runs { font-size: 14px; line-height: 1.6; }
+#extension-error { color: #b42318; }
+@media print { .rp-extension-start, .rp-extension-run { display: none; } }

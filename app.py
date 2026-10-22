@@ -27,10 +27,12 @@ load_dotenv()
 from fastapi import FastAPI, File, Form, Request, UploadFile  # noqa: E402
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
 import httpx  # noqa: E402
 
 import auth  # noqa: E402
+import action_links  # noqa: E402
+from actions import extension_runs  # noqa: E402
 from action_links import attach_offline, upgrade_report  # noqa: E402
 import billing  # noqa: E402
 import db  # noqa: E402
@@ -602,6 +604,118 @@ def _paid(report_id: str, request: Request) -> Report:
     return report
 
 
+# --- 사용자 크롬 확장 ---------------------------------------------------------------
+
+def _extension_enabled() -> bool:
+    return os.getenv("IDLY_EXTENSION", "0") == "1" and bool(os.getenv("OPENAI_API_KEY", "").strip())
+
+
+class ExtensionStart(BaseModel):
+    account_id: str = Field(max_length=300)
+    action: str = Field(pattern="^(해지|탈퇴)$")
+    consented: bool = False
+
+
+@app.post("/api/reports/{report_id}/extension-runs")
+def start_extension(report_id: str, body: ExtensionStart, request: Request):
+    report = _paid(report_id, request)
+    if report.sample:
+        raise ApiError(403, "샘플 리포트에서는 계정 조치를 실행할 수 없어요.")
+    if not _extension_enabled():
+        raise ApiError(409, "브라우저 확장 에이전트가 아직 설정되지 않았어요.")
+    if not body.consented:
+        raise ApiError(422, "브라우저 화면 정보 전송에 동의가 필요해요.")
+    account = next((a for a in report.data["accounts"] if a.get("id") == body.account_id), None)
+    if not account or body.action not in action_links.needed_actions(account):
+        raise ApiError(422, "리포트에 있는 해지·탈퇴 항목만 실행할 수 있어요.")
+    domain = action_links.base_domain(account["id"])
+    if not action_links.is_valid(f"https://{domain}", domain):
+        raise ApiError(422, "서비스 주소를 확인하지 못했어요. 직접 처리 링크를 이용해주세요.")
+    for run in extension_runs.list_for(report_id):
+        if run.domain == domain and run.action == body.action and run.status not in ("완료", "실패", "취소됨"):
+            raise ApiError(409, "이미 진행 중인 작업이 있어요.")
+    run = extension_runs.create(extension_runs.ExtensionRun(
+        report_id, domain, body.action, account["service"], ""))
+    return run.launch_info(str(request.base_url).rstrip("/"))
+
+
+@app.get("/api/reports/{report_id}/extension-runs")
+def list_extension_runs(report_id: str, request: Request):
+    _paid(report_id, request)
+    return {"runs": [r.to_dict() for r in extension_runs.list_for(report_id)]}
+
+
+def _owned_extension_run(report_id: str, run_id: str, request: Request):
+    _paid(report_id, request)
+    run = extension_runs.get(run_id)
+    if run is None or run.owner_id != report_id:
+        raise ApiError(404, "작업을 찾지 못했어요.")
+    return run
+
+
+class ExtensionCommand(BaseModel):
+    type: str = Field(pattern="^(resume|confirm|cancel)$")
+
+
+@app.post("/api/reports/{report_id}/extension-runs/{run_id}/commands")
+def extension_command(report_id: str, run_id: str, body: ExtensionCommand, request: Request):
+    _owned_extension_run(report_id, run_id, request).send({"type": body.type})
+    return {"ok": True}
+
+
+def _ext_run(run_id: str, request: Request):
+    run = extension_runs.by_token(run_id, request.headers.get("authorization", ""))
+    report = _reports.get(run.owner_id) if run else None
+    if run is None or report is None or not report.paid:
+        raise ApiError(401, "작업 토큰이 올바르지 않거나 끝난 작업이에요.")
+    return run
+
+
+class AgentElement(BaseModel):
+    i: int = Field(ge=0, lt=150)
+    tag: str = Field(max_length=30)
+    text: str = Field(max_length=80)
+    href: str = Field(default="", max_length=120)
+
+
+class AgentPage(BaseModel):
+    url: str = Field(max_length=4096)
+    text: str = Field(default="", max_length=2000)
+    elements: list[AgentElement] = Field(default_factory=list, max_length=150)
+    history: list[str] = Field(default_factory=list, max_length=25)
+    step: int = Field(default=0, ge=0, lt=25)
+
+
+@app.post("/api/agent/{run_id}/decide")
+def agent_decide(run_id: str, body: AgentPage, request: Request):
+    run = _ext_run(run_id, request)
+    if not _extension_enabled():
+        raise ApiError(409, "브라우저 확장 에이전트가 아직 설정되지 않았어요.")
+    state = {"elements": [e.model_dump() for e in body.elements], "text": body.text}
+    try:
+        return run.decide(os.environ["OPENAI_API_KEY"], body.url, state, [h[:200] for h in body.history][-8:])
+    except RuntimeError as exc:
+        raise ApiError(502, str(exc)) from exc
+
+
+class AgentStatus(BaseModel):
+    status: str = Field(pattern="^(대기|진행 중|입력 필요|확인 필요|완료|실패|취소됨)$")
+    message: str = Field(default="", max_length=300)
+    step: int = Field(default=0, ge=0, lt=25)
+    error: Optional[str] = Field(default=None, max_length=300)
+
+
+@app.post("/api/agent/{run_id}/status")
+def agent_status(run_id: str, body: AgentStatus, request: Request):
+    _ext_run(run_id, request).report(body.status, body.message, body.step, body.error)
+    return {"ok": True}
+
+
+@app.get("/api/agent/{run_id}/commands")
+def agent_commands(run_id: str, request: Request):
+    return {"commands": _ext_run(run_id, request).take_commands()}
+
+
 class StartBody(BaseModel):
     email: str
     password: str
@@ -861,7 +975,8 @@ def report_view(report_id: str, request: Request):
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    return {"paid": report.paid, "html": render_fragment(report.data, report.created, full=report.paid)}
+    return {"paid": report.paid, "extension_enabled": _extension_enabled() and report.paid and not report.sample,
+            "html": render_fragment(report.data, report.created, full=report.paid)}
 
 
 @app.get("/api/reports/{report_id}/pdf")
