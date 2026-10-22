@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "IDly 계정 정리 에이전트",
+  "version": "0.1.0",
+  "description": "IDly에서 고른 계정의 탈퇴·구독 해지를 내 크롬에서 대신 진행합니다. 비밀번호와 로그인 정보는 브라우저 밖으로 나가지 않습니다.",
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:47830/*",
+        "http://127.0.0.1:47830/*",
+        "https://idly.kr/*",
+        "https://www.idly.kr/*",
+        "https://idly.up.railway.app/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "IDly 계정 정리 에이전트"
+  }
+}

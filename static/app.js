@@ -804,6 +804,7 @@ async function renderResult(r) {
   const view = await api(`/api/reports/${r.id}/view`);
   if (view.paid) {
     $("#report-body").innerHTML = view.html;
+    window.mountExtension?.(r.id, view.extension_enabled);
     // 샘플은 로그인 없이도 볼 수 있다. 돌아갈 곳과 아래 안내를 샘플에 맞춘다
     const backToPay = r.sample && sampleFromPay;
     $("#report-title").textContent = r.sample ? "샘플 리포트 (예시)" : "계정 리포트";
