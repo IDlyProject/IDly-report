@@ -180,8 +180,8 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     return f"""{notice}
 <section class="rp-hero">
   <div class="rp-hero-top"><span class="rp-date">{created.year}년 {created.month}월 {created.day}일 기준</span><span class="rp-chips">{sample}{chip}</span></div>
-  <p class="rp-label">{_e(label)}</p>
-  <p class="rp-desc">{_e(desc)}</p>
+  <div class="rp-hero-main"><p class="rp-label">{_e(label)}</p>
+  <p class="rp-desc">{_e(desc)}</p></div>
   {_funnel(report, s)}
 </section>"""
 
@@ -485,19 +485,25 @@ def _locked(accounts: List[Dict[str, Any]]) -> str:
 def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: bool = True) -> str:
     accounts = report["accounts"]
     s = summarize(report)
-    # 넓은 화면에서는 왼쪽(요약)과 오른쪽(목록) 두 칸으로 나뉜다 (report.css). 좁은 화면과 PDF는 위에서 아래로 한 줄
-    side = [_hero(report, s, created), _stats(s), _discoveries(report, created, full)]
+    # 넓은 화면(피그마 홈 H1처럼): 위에 요약 한 줄, 그 아래 숫자와 찾아낸 것, 가운데 세 칸(구독 · 확인할 일 · 안 쓰는 계정),
+    # 맨 아래 두 칸(전체 목록 등). 좁은 화면과 PDF는 같은 순서로 위에서 아래로 한 줄 (report.css)
+    block = lambda html: f'<section class="rp-block">{html}</section>' if html else ""
+    top = _hero(report, s, created)
+    band = [_stats(s), _discoveries(report, created, full)]
     if full:
-        main = [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
-                _timeline(accounts, created), _all_accounts(accounts)]
-        if web and accounts:
-            main.append(_office(accounts))
-        main.append(_method(report, s))
+        cols = [_subscriptions(accounts), _todo(accounts), _unused(accounts)]
+        wide = [_all_accounts(accounts), _connected_apps(report), _timeline(accounts, created)]
+        after = (_office(accounts) if web and accounts else "") + _method(report, s)
     else:
-        main = [_locked(accounts), _timeline(accounts, created)]
+        cols = [_locked(accounts)]
+        wide = [_timeline(accounts, created)]
+        after = ""
     tail = _WATERMARK if report.get("sample") else ""
-    return (f'<div class="rp rp-doc"><div class="rp-side">{"".join(side)}</div>'
-            f'<div class="rp-main">{"".join(main)}</div>{tail}</div>')
+    return (f'<div class="rp rp-doc"><div class="rp-top">{top}</div>'
+            f'<div class="rp-band">{"".join(band)}</div>'
+            f'<div class="rp-cols">{"".join(block(c) for c in cols)}</div>'
+            f'<div class="rp-wide">{"".join(block(w) for w in wide)}</div>'
+            f'<div class="rp-after">{after}</div>{tail}</div>')
 
 
 # --- PDF -----------------------------------------------------------------------
