@@ -1,30 +1,28 @@
-/* Hallmark · shape: custom (scroll story after the IR deck, bookended by an inbox being read and a compose window) · genre: editorial · theme: brand · redesign: full
- * paper: #f9f9fd · accent: #ff9b54 · display: Pretendard · body: Pretendard · hero: Stage (the IR closing line beside an inbox being read) · nav: edge-aligned, wordmark and four quiet links · footer: colophon · signature: IDly reading an example inbox line by line, then one statement per screen with the deck's own numbers
- * axes: light/grotesk-sans/warm · posture: committed (navy carries two scenes, orange marks only what IDly found) · contrast: pass · fold: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V5 · weakest: E, a pinned stage run has many moving parts; it unpins under 60rem and every scene is readable with scripts off */
-/* 시작 화면 = IDly 소개. IR 덱 순서의 스크롤 이야기 (레퍼런스 pfct.co.kr: 한 화면에 한 문장, 숫자는 크게).
+/* Hallmark · shape: custom (a sales self-check: tick what bothers you, IDly answers beside it, then the free report) · genre: editorial · theme: brand · redesign: full
+ * paper: #f9f9fd · accent: #ff9b54 · display: Pretendard · body: Pretendard · hero: Stage (the checklist beside an answer panel that starts as an inbox being read) · nav: edge-aligned, wordmark and three quiet links · footer: colophon · signature: ticking a pain swaps in IDly's answer with the real app screen
+ * axes: light/grotesk-sans/warm · posture: restrained (navy carries the closing band, orange marks the primary action and what IDly found) · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V5 · weakest: H, the first screen holds a list and a panel; the question head is the one large thing and the panel answers only what was ticked */
+/* 시작 화면 = IDly 소개. 세일즈 흐름: 이런 거 불편하셨죠? → 저희는 → 지금 리포트로 확인하세요.
    앱 화면(style.css)에 새지 않도록 전부 .landing 아래에 둔다. 로고와 글꼴(Pretendard)은 그대로,
-   색은 IDly 디자인 시스템: 네이비 #202F61, 오렌지 #FF9B54 (오렌지는 IDly가 찾아낸 것과 숫자에만) */
+   색은 IDly 디자인 시스템: 네이비 #202F61, 오렌지 #FF9B54 */
 :root {
   --ld-paper: #f9f9fd; --ld-paper-2: #eef0f7; --ld-surface: #fdfdff;
   --ld-ink: #1b2740; --ld-ink-2: #4a5165; --ld-muted: #646a7d; --ld-faint: #9aa0b2; --ld-rule: #dde0ea;
-  --ld-navy: #202f61; --ld-navy-2: #2a2f8f; --ld-navy-deep: #17234b; --ld-on-navy: #f6f7fc; --ld-on-navy-2: #b9bfd6; --ld-on-navy-3: #6f7899; --ld-navy-rule: #34416f;
-  --ld-accent: #ff9b54; --ld-accent-hover: #ffad70; --ld-accent-bg: #ffe9d3; --ld-accent-deep: #7a3f12; --ld-focus: #2a2f8f; --ld-focus-on-navy: #ff9b54; --ld-mask: #000;
+  --ld-navy: #202f61; --ld-navy-2: #2a2f8f; --ld-navy-deep: #17234b; --ld-on-navy: #f6f7fc; --ld-on-navy-2: #b9bfd6; --ld-navy-rule: #34416f;
+  --ld-accent: #ff9b54; --ld-accent-hover: #ffad70; --ld-accent-bg: #ffe9d3; --ld-accent-deep: #7a3f12;
+  --ld-focus: #2a2f8f; --ld-focus-on-navy: #ff9b54; --ld-mask: #000;
   --ld-shadow: 0 1px 2px rgba(27, 39, 64, 0.05);
   --ld-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 
   --ld-space-2xs: 4px; --ld-space-xs: 8px; --ld-space-sm: 12px; --ld-space-md: 16px; --ld-space-lg: 24px; --ld-space-xl: 40px; --ld-space-2xl: 64px; --ld-space-3xl: 96px; --ld-space-4xl: 144px;
   --ld-container: 1200px; --ld-gutter: 56px;
   --ld-text-display: clamp(2.25rem, 2.6vw + 1.25rem, 3.75rem);
-  --ld-text-say: clamp(2rem, 3vw + 1rem, 4rem);
-  --ld-text-say-s: clamp(1.375rem, 1.2vw + 1rem, 2.25rem);
-  --ld-text-mega: clamp(6rem, 17vw, 15rem);
-  --ld-text-stat: clamp(3.5rem, 6vw, 6rem);
+  --ld-text-say: clamp(1.875rem, 2.2vw + 1rem, 3.25rem);
+  --ld-text-title: clamp(1.375rem, 0.9vw + 1.05rem, 1.875rem);
   --ld-text-lead: clamp(1.0625rem, 0.4vw + 1rem, 1.3125rem);
-  --ld-text-title: clamp(1.5rem, 1.2vw + 1.1rem, 2.25rem);
   --ld-text-md: 1rem; --ld-text-sm: 0.875rem; --ld-text-xs: 0.8125rem;
   --ld-radius: 10px; --ld-radius-box: 16px;
-  --ld-ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ld-dur-micro: 120ms; --ld-dur-short: 220ms; --ld-dur-long: 420ms; --ld-dur-reveal: 700ms;
+  --ld-ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ld-dur-micro: 120ms; --ld-dur-short: 220ms; --ld-dur-long: 420ms;
 }
 @media (max-width: 60rem) { :root { --ld-gutter: 32px; } }
 @media (max-width: 40rem) { :root { --ld-gutter: 20px; } }
@@ -37,14 +35,14 @@ body.is-landing .app { max-width: none; }
 .landing *, .landing *::before, .landing *::after { box-sizing: border-box; }
 /* 초기화는 :where로 (특이도 0) 해서 아래 규칙이 이긴다 */
 :where(.landing) :where(h1, h2, h3, p, ul, ol, dl, dd, dt, figure) { margin: 0; padding: 0; }
+:where(.landing) a { color: inherit; }
 .landing h1, .landing h2, .landing h3 { font-family: var(--ld-font); color: inherit; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
 .landing p { text-wrap: pretty; }
 .landing img { display: block; max-width: 100%; height: auto; }
-:where(.landing) a { color: inherit; }
 .landing a:focus-visible, .landing button:focus-visible { outline: 2px solid var(--ld-focus); outline-offset: 3px; border-radius: 6px; }
 .ld-container { width: 100%; max-width: var(--ld-container); margin-inline: auto; padding-inline: var(--ld-gutter); }
 
-/* 맨 위: 왼쪽 로고, 오른쪽 조용한 링크 */
+/* 맨 위 */
 .ld-top { display: flex; align-items: center; justify-content: space-between; gap: var(--ld-space-md); max-width: var(--ld-container); margin-inline: auto;
   padding: var(--ld-space-lg) var(--ld-gutter) 0; }
 .ld-mark { display: flex; }
@@ -54,15 +52,12 @@ body.is-landing .app { max-width: none; }
 .ld-top-links a:hover { color: var(--ld-navy); }
 
 /* 버튼 */
-.ld-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--ld-space-lg); border-radius: var(--ld-radius);
-  border: 1px solid transparent; font: inherit; font-size: var(--ld-text-md); font-weight: 600; letter-spacing: -0.01em; white-space: nowrap;
+.ld-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 28px; border-radius: var(--ld-radius);
+  border: 1px solid transparent; font: inherit; font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap;
   text-decoration: none; cursor: pointer;
   transition: background-color var(--ld-dur-short) var(--ld-ease-out), border-color var(--ld-dur-short) var(--ld-ease-out), transform var(--ld-dur-micro) var(--ld-ease-out); }
 .ld-btn:active { transform: translateY(1px); }
 .ld-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-.ld-btn-main { background: var(--ld-navy); border-color: var(--ld-navy); color: var(--ld-on-navy); }
-.ld-btn-main:hover { background: var(--ld-navy-2); border-color: var(--ld-navy-2); }
-.ld-btn-main:active { background: var(--ld-navy-deep); }
 .ld-btn-accent { background: var(--ld-accent); border-color: var(--ld-accent); color: var(--ld-ink); }
 .ld-btn-accent:hover { background: var(--ld-accent-hover); border-color: var(--ld-accent-hover); }
 .ld-btn-accent:active { background: var(--ld-accent); }
@@ -70,18 +65,40 @@ body.is-landing .app { max-width: none; }
   text-decoration-color: var(--ld-accent); text-decoration-thickness: 2px; text-underline-offset: 6px; white-space: nowrap; }
 .ld-link:hover { color: var(--ld-navy-2); }
 .ld-link:active { color: var(--ld-navy-deep); }
+.ld-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ld-space-sm) var(--ld-space-lg); }
 
-/* 4. IDly가 대신 읽는 장면: 왼쪽 문장, 오른쪽 읽히고 있는 받은편지함 */
-.ld-demo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-2xl); align-items: center;
-  max-width: var(--ld-container); min-height: 100dvh; margin-inline: auto; padding: var(--ld-space-4xl) var(--ld-gutter); }
-.ld-demo h1 { font-size: var(--ld-text-display); font-weight: 800; line-height: 1.2; letter-spacing: -0.04em; max-width: 14ch; }
-.ld-lead { margin-top: var(--ld-space-lg) !important; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-ink-2); max-width: 32ch; }
-.ld-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ld-space-sm) var(--ld-space-lg); margin-top: var(--ld-space-xl); }
-.ld-note { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-sm); color: var(--ld-muted); }
+/* 1. 이런 거 불편하셨죠? 왼쪽 체크리스트, 오른쪽 IDly의 답 */
+.ld-check { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--ld-space-2xl); align-items: center;
+  max-width: var(--ld-container); min-height: calc(100dvh - 92px); margin-inline: auto; padding: var(--ld-space-xl) var(--ld-gutter) var(--ld-space-2xl); }
+.ld-check h1 { font-size: var(--ld-text-display); font-weight: 800; line-height: 1.18; letter-spacing: -0.04em; }
+.ld-hint { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-md); color: var(--ld-muted); }
+.ld-pains { margin-top: var(--ld-space-lg) !important; list-style: none; border-top: 1px solid var(--ld-rule); }
+.ld-pains > li { position: relative; border-bottom: 1px solid var(--ld-rule); }
+.ld-pains input { position: absolute; left: 4px; top: 18px; width: 22px; height: 22px; margin: 0; accent-color: var(--ld-navy); cursor: pointer; }
+.ld-pains label { display: block; padding: var(--ld-space-md) var(--ld-space-sm) var(--ld-space-md) 40px; font-size: 1.0625rem; font-weight: 600; line-height: 1.5;
+  color: var(--ld-ink-2); cursor: pointer; border-radius: 8px; transition: background-color var(--ld-dur-short) var(--ld-ease-out), color var(--ld-dur-short) var(--ld-ease-out); }
+.ld-pains label:hover { background: var(--ld-paper-2); color: var(--ld-ink); }
+.ld-pains input:checked + label { color: var(--ld-ink); }
+.ld-pains input:focus-visible { outline: 2px solid var(--ld-focus); outline-offset: 2px; }
+.ld-pains li.on label { background: var(--ld-paper-2); }
+/* 답: 스크립트가 없으면 항목 아래에 펼쳐 둔다. 있으면 옆 창(.ld-panel)으로 옮겨 보여 준다 */
+.ld-ans { display: grid; gap: var(--ld-space-md); padding: 0 var(--ld-space-sm) var(--ld-space-lg) 40px; color: var(--ld-ink-2); }
+.js .landing .ld-pains .ld-ans { display: none; }
+.ld-ans h2, .ld-panel h2 { font-size: var(--ld-text-title); font-weight: 800; line-height: 1.3; letter-spacing: -0.03em; color: var(--ld-ink); }
+.ld-verdict { margin-top: var(--ld-space-xl); }
+.ld-verdict > p { margin-bottom: var(--ld-space-md) !important; font-size: 1.125rem; font-weight: 700; color: var(--ld-navy); }
 
-.ld-inbox { display: flex; flex-direction: column; height: min(560px, 68dvh); min-height: 420px; border: 1px solid var(--ld-rule); border-radius: var(--ld-radius-box);
-  background: var(--ld-surface); box-shadow: var(--ld-shadow); overflow: hidden; }
-.ld-inbox-head { display: flex; align-items: center; justify-content: space-between; padding: var(--ld-space-sm) var(--ld-space-lg); border-bottom: 1px solid var(--ld-rule);
+.ld-panel { align-self: stretch; display: flex; flex-direction: column; max-height: min(720px, 82dvh); padding: var(--ld-space-xl); border: 1px solid var(--ld-rule);
+  border-radius: var(--ld-radius-box); background: var(--ld-surface); box-shadow: var(--ld-shadow); overflow: auto; }
+.ld-panel-idle, .ld-panel-ans { display: grid; gap: var(--ld-space-md); align-content: start; min-height: 0; }
+.ld-panel-ans { color: var(--ld-ink-2); animation: ld-in var(--ld-dur-long) var(--ld-ease-out); }
+@keyframes ld-in { from { opacity: 0; transform: translateY(8px); } }
+.landing .ld-phone { justify-self: center; width: min(100%, 280px); aspect-ratio: 780 / 1100; object-fit: cover; object-position: top; border-radius: 22px;
+  box-shadow: var(--ld-shadow), 0 0 0 1px var(--ld-rule); background: var(--ld-surface); }
+
+/* 예시 받은편지함 (IDly가 읽는 중) */
+.ld-inbox { display: flex; flex-direction: column; height: 440px; border: 1px solid var(--ld-rule); border-radius: 12px; background: var(--ld-surface); overflow: hidden; }
+.ld-inbox-head { display: flex; align-items: center; justify-content: space-between; padding: var(--ld-space-xs) var(--ld-space-md); border-bottom: 1px solid var(--ld-rule);
   font-size: var(--ld-text-sm); font-weight: 700; }
 .ld-inbox-head small { margin-left: var(--ld-space-2xs); font-size: var(--ld-text-xs); font-weight: 500; color: var(--ld-muted); }
 .ld-pause { min-height: 36px; padding: 0 var(--ld-space-sm); border: 1px solid var(--ld-rule); border-radius: 8px; background: transparent; font: inherit;
@@ -90,125 +107,63 @@ body.is-landing .app { max-width: none; }
 .ld-pause:active { background: var(--ld-paper-2); }
 .ld-mails { position: relative; flex: 1; min-height: 0; overflow: hidden; list-style: none; padding-block: var(--ld-space-xs) !important;
   mask-image: linear-gradient(transparent, var(--ld-mask) 10%, var(--ld-mask) 88%, transparent); }
-.ld-mails li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto; gap: var(--ld-space-md); align-items: baseline; padding: var(--ld-space-sm) var(--ld-space-lg);
+.ld-mails li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--ld-space-sm); align-items: baseline; padding: var(--ld-space-sm) var(--ld-space-md);
   border-bottom: 1px solid var(--ld-paper-2); font-size: var(--ld-text-sm); color: var(--ld-ink-2);
   transition: background-color var(--ld-dur-long) var(--ld-ease-out), color var(--ld-dur-long) var(--ld-ease-out); }
 .ld-mails b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--ld-ink); }
 .ld-mails span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ld-mails time { font-size: var(--ld-text-xs); color: var(--ld-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ld-mails time { display: none; }
 .ld-mails li.reading { background: var(--ld-paper-2); }
 .ld-mails li.read:not(.found) { color: var(--ld-faint); }
 .ld-mails li.read:not(.found) b { color: var(--ld-faint); font-weight: 500; }
 .ld-mails li.found b { justify-self: start; max-width: 100%; padding: 0 var(--ld-space-2xs); border-radius: 4px; background: var(--ld-accent-bg); color: var(--ld-accent-deep); }
-.ld-found { display: grid; gap: var(--ld-space-xs); padding: var(--ld-space-md) var(--ld-space-lg); border-top: 1px solid var(--ld-rule); background: var(--ld-paper); }
+.ld-found { display: grid; gap: var(--ld-space-xs); padding: var(--ld-space-sm) var(--ld-space-md); border-top: 1px solid var(--ld-rule); background: var(--ld-paper); }
 .ld-found-count { font-size: var(--ld-text-sm); font-weight: 700; }
 .ld-found-count b { font-size: 1.125rem; color: var(--ld-navy); font-variant-numeric: tabular-nums; }
 .ld-found-list { display: flex; flex-wrap: wrap; gap: var(--ld-space-2xs); min-height: 28px; }
 .ld-found-list span { padding: 0 var(--ld-space-xs); border-radius: 6px; background: var(--ld-accent-bg); font-size: var(--ld-text-xs); font-weight: 600; line-height: 28px;
-  color: var(--ld-accent-deep); animation: ld-pop var(--ld-dur-long) var(--ld-ease-out); }
-@keyframes ld-pop { from { opacity: 0; transform: translateY(4px); } }
+  color: var(--ld-accent-deep); animation: ld-in var(--ld-dur-long) var(--ld-ease-out); }
 
-/* 1. 훅: 첫 화면을 숫자 하나가 차지한다 */
-.ld-hook { display: flex; align-items: center; min-height: calc(100dvh - 92px); padding-block: var(--ld-space-xl) var(--ld-space-2xl); }
-.ld-hook-pre { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.4; letter-spacing: -0.03em; color: var(--ld-ink-2); }
-.ld-hook-num { margin-block: var(--ld-space-xs) var(--ld-space-md) !important; font-size: calc(var(--ld-text-mega) * 0.3); font-weight: 800; line-height: 0.95;
-  letter-spacing: -0.05em; color: var(--ld-navy); max-width: none; }
-.ld-hook-num b { font-size: var(--ld-text-mega); font-weight: 800; font-variant-numeric: tabular-nums; }
-.ld-hook-post { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.45; letter-spacing: -0.03em; color: var(--ld-ink-2); }
-.ld-hook-post strong { font-weight: 800; color: var(--ld-ink); }
-.ld-hook .ld-actions .ld-btn { min-height: 52px; padding: 0 28px; font-size: 1.0625rem; }
-.ld-hook-note { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-sm); color: var(--ld-muted); }
-
-/* 장면: 한 화면에 한 문장 */
-.ld-scene { display: flex; align-items: center; min-height: 100dvh; padding-block: var(--ld-space-4xl); }
-.ld-dark { background: var(--ld-navy-deep); color: var(--ld-on-navy); }
-.ld-dark a:focus-visible, .ld-dark button:focus-visible { outline-color: var(--ld-focus-on-navy); }
-.ld-say { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.22; letter-spacing: -0.045em; max-width: 18ch; }
-.ld-say-s { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.4; letter-spacing: -0.03em; }
-.ld-after { margin-top: var(--ld-space-xl) !important; max-width: 40ch; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-ink-2); }
-.ld-dark .ld-after { color: var(--ld-on-navy-2); }
-
-/* 02 문제(개인): 목록이 스크롤에 맞춰 한 줄씩 밝아진다 (스크립트가 없으면 다 밝다) */
-.ld-roll { display: grid; gap: var(--ld-space-sm); margin-top: var(--ld-space-3xl) !important; list-style: none; }
-.ld-problem-sec { background: var(--ld-paper-2); }
-.ld-roll li { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.35; letter-spacing: -0.03em; color: var(--ld-ink);
-  transition: color var(--ld-dur-reveal) var(--ld-ease-out); }
-.js .landing .ld-roll li { color: var(--ld-faint); }
-.js .landing .ld-roll li.on { color: var(--ld-ink); }
-
-/* 2. 돈: 어두운 바탕에 금액 하나 (금액만 오렌지) */
-.ld-money .ld-mega { color: var(--ld-accent); }
-/* 일곱 자리 금액이 좁은 화면에서도 한 줄에 들어가게 */
-.ld-money .ld-mega b { font-size: clamp(3.5rem, 16vw, 15rem); }
-.ld-money .ld-say-s { color: var(--ld-on-navy); }
-.ld-money .ld-tags { margin-top: var(--ld-space-xl) !important; }
-/* 숫자 하나를 화면만큼 */
-.ld-mega { margin-block: var(--ld-space-md) !important; font-size: calc(var(--ld-text-mega) * 0.32); font-weight: 800; line-height: 1; letter-spacing: -0.05em; color: var(--ld-navy); }
-.ld-mega b { font-size: var(--ld-text-mega); font-weight: 800; font-variant-numeric: tabular-nums; }
-.ld-tags { display: flex; flex-wrap: wrap; gap: var(--ld-space-xs); list-style: none; }
-.ld-tags li { padding: 0 var(--ld-space-sm); border-radius: 6px; background: var(--ld-accent-bg); font-size: var(--ld-text-sm); font-weight: 600; line-height: 32px; color: var(--ld-accent-deep); }
-
-.ld-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: var(--ld-space-3xl) !important; border-top: 2px solid var(--ld-ink); }
-.ld-stats > div { padding: var(--ld-space-lg) var(--ld-space-lg) 0; }
-.ld-stats > div:first-child { padding-left: 0; }
-.ld-stats > div + div { border-left: 1px solid var(--ld-rule); }
-.ld-stats dt { font-variant-numeric: tabular-nums; font-size: calc(var(--ld-text-stat) * 0.45); font-weight: 800; line-height: 1; color: var(--ld-navy); }
-.ld-stats dt b { font-size: var(--ld-text-stat); font-weight: 800; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
-.ld-stats dd { margin-top: var(--ld-space-md) !important; font-size: 1.0625rem; font-weight: 600; line-height: 1.5; color: var(--ld-ink); }
-.ld-stats small { display: block; margin-top: var(--ld-space-xs); font-size: var(--ld-text-xs); font-weight: 400; color: var(--ld-muted); }
-
-/* 05~07 솔루션: 왼쪽 화면 고정, 오른쪽 단계가 지나가며 화면이 바뀐다 */
-.ld-solution { display: block; min-height: 0; }
-.ld-pin { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-3xl); margin-top: var(--ld-space-3xl); }
-.ld-pin-visual { position: sticky; top: 10dvh; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); align-self: start; height: 80dvh; max-height: 720px; }
-.landing .ld-pin-visual > * { grid-area: 1 / 1; justify-self: center; align-self: center; width: auto; height: 100%; max-width: 100%; aspect-ratio: 780 / 1688; object-fit: cover; object-position: top;
-  border-radius: 28px; box-shadow: var(--ld-shadow), 0 0 0 1px var(--ld-rule); background: var(--ld-surface);
-  transition: opacity var(--ld-dur-reveal) var(--ld-ease-out), transform var(--ld-dur-reveal) var(--ld-ease-out); }
-.js .landing .ld-pin-visual > :not(.on) { opacity: 0; transform: translateY(12px); }
-.ld-agent { display: flex; flex-direction: column; gap: var(--ld-space-md); min-height: 0; overflow: hidden; padding: var(--ld-space-xl) var(--ld-space-lg); }
-.ld-agent-title { font-weight: 800; }
+/* 에이전트 예시와 약속 목록 */
+.ld-agent { display: grid; gap: var(--ld-space-sm); padding: var(--ld-space-lg); border-radius: 12px; background: var(--ld-paper-2); }
+.ld-agent-title { font-weight: 800; color: var(--ld-ink); }
 .ld-agent ol { display: grid; list-style: none; border-top: 1px solid var(--ld-rule); }
 .ld-agent ol li { display: flex; justify-content: space-between; gap: var(--ld-space-sm); padding-block: var(--ld-space-sm); border-bottom: 1px solid var(--ld-rule); font-size: var(--ld-text-sm); }
+.ld-agent ol b { color: var(--ld-ink); }
 .ld-agent ol span { color: var(--ld-muted); white-space: nowrap; }
 .ld-agent ol li:first-child span { color: var(--ld-accent-deep); font-weight: 700; }
-.ld-agent-ask { padding: var(--ld-space-md); border-radius: 12px; background: var(--ld-paper-2); font-size: var(--ld-text-sm); line-height: 1.6; }
-.ld-agent-note { margin-top: auto !important; font-size: var(--ld-text-xs); color: var(--ld-muted); }
-.ld-stages { list-style: none; }
-.landing .ld-stage-shot { display: none; }
-.ld-stages > li { display: flex; flex-direction: column; justify-content: center; gap: var(--ld-space-md); min-height: 80dvh; padding-block: var(--ld-space-2xl); scroll-margin-top: 10dvh;
-  color: var(--ld-ink-2); font-size: var(--ld-text-lead); line-height: 1.65; transition: opacity var(--ld-dur-reveal) var(--ld-ease-out); }
-.js .landing .ld-stages > li:not(.on) { opacity: 0.35; }
-.ld-stages h3 { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.1; letter-spacing: -0.045em; color: var(--ld-ink); }
-.ld-stage-fact { padding-top: var(--ld-space-md); border-top: 1px solid var(--ld-rule); font-size: var(--ld-text-md); color: var(--ld-muted); }
-.ld-stage-fact.ld-soon { color: var(--ld-accent-deep); font-weight: 600; }
+.ld-agent-note { font-size: var(--ld-text-xs); color: var(--ld-muted); }
 .ld-rules { display: grid; list-style: none; border-top: 1px solid var(--ld-rule); }
-.ld-rules li { padding-block: var(--ld-space-sm); border-bottom: 1px solid var(--ld-rule); font-size: var(--ld-text-md); }
+.ld-rules li { padding-block: var(--ld-space-sm); border-bottom: 1px solid var(--ld-rule); font-size: 0.9375rem; }
 .ld-rules b { display: block; color: var(--ld-ink); }
 
+/* 2. 저희는 */
+.ld-sec { padding-block: var(--ld-space-4xl); }
+.ld-say { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.3; letter-spacing: -0.04em; max-width: 24ch; }
+.ld-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ld-space-xl); margin-top: var(--ld-space-2xl) !important; list-style: none; counter-reset: ld-step; }
+.ld-steps li { counter-increment: ld-step; padding-top: var(--ld-space-lg); border-top: 2px solid var(--ld-ink); color: var(--ld-ink-2); scroll-margin-top: var(--ld-space-lg); }
+.ld-steps li::before { content: counter(ld-step); display: block; margin-bottom: var(--ld-space-sm); font-weight: 800; color: var(--ld-accent-deep); font-variant-numeric: tabular-nums; }
+.ld-steps h3 { margin-bottom: var(--ld-space-xs) !important; font-size: var(--ld-text-title); font-weight: 800; letter-spacing: -0.03em; color: var(--ld-ink); }
+.ld-proof { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ld-space-xl); align-items: center; margin-top: var(--ld-space-3xl); padding: var(--ld-space-xl);
+  border-radius: var(--ld-radius-box); background: var(--ld-paper-2); }
+.ld-proof-num { font-size: clamp(1.5rem, 2vw, 2.25rem); font-weight: 800; line-height: 1; color: var(--ld-navy); }
+.ld-proof-num b { font-size: clamp(4rem, 9vw, 7.5rem); letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.ld-proof-text { max-width: 44ch; font-size: var(--ld-text-lead); color: var(--ld-ink-2); }
+.ld-proof-text b { color: var(--ld-ink); font-variant-numeric: tabular-nums; }
 
-/* 6. 회사라면: 숫자 셋 + 세무사 사무실 */
-.ld-office { background: var(--ld-paper-2); }
-.ld-office-in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--ld-space-3xl); align-items: start; margin-top: var(--ld-space-3xl); }
-.ld-office-in .ld-say-s { color: var(--ld-ink); }
-.ld-checks b { display: block; color: var(--ld-ink); font-weight: 800; }
-.ld-checks li { font-weight: 500; color: var(--ld-ink-2); }
-.ld-checks { display: grid; list-style: none; margin-bottom: var(--ld-space-xl) !important; border-top: 2px solid var(--ld-ink); }
-.ld-checks li { position: relative; padding: var(--ld-space-md) 0 var(--ld-space-md) 36px; border-bottom: 1px solid var(--ld-rule); font-weight: 600; line-height: 1.55; }
-.ld-checks li::before { content: ""; position: absolute; left: 0; top: 20px; width: 20px; height: 20px; border-radius: 50%; background: var(--ld-accent); }
-.ld-checks li::after { content: ""; position: absolute; left: 6px; top: 25px; width: 8px; height: 5px; border-left: 2px solid var(--ld-navy); border-bottom: 2px solid var(--ld-navy); transform: rotate(-45deg); }
+/* 3. 지금 리포트로 확인하세요 */
+.ld-dark { background: var(--ld-navy-deep); color: var(--ld-on-navy); }
+.ld-dark a:focus-visible, .ld-dark button:focus-visible { outline-color: var(--ld-focus-on-navy); }
+.ld-cta-in { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ld-space-2xl); align-items: center; }
+.ld-cta .ld-actions { margin-top: var(--ld-space-xl); }
+.ld-cta img { width: 200px; }
+.ld-after { margin-top: var(--ld-space-lg) !important; max-width: 40ch; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-on-navy-2); }
+.ld-link-dark { color: var(--ld-on-navy); }
+.ld-link-dark:hover { color: var(--ld-accent); }
+.ld-link-dark:active { color: var(--ld-on-navy-2); }
+.ld-note-dark { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-sm); color: var(--ld-on-navy-2); }
 
-/* 마지막: IDly에게 보내는 메일 (메일 쓰기 창) */
-.ld-compose { max-width: var(--ld-container); margin-inline: auto; padding: var(--ld-space-3xl) var(--ld-gutter) 0; }
-.ld-box-title { margin-bottom: var(--ld-space-lg) !important; font-size: var(--ld-text-title); font-weight: 800; letter-spacing: -0.03em; }
-.ld-compose-in { border: 1px solid var(--ld-rule); border-radius: var(--ld-radius-box); background: var(--ld-surface); }
-.ld-compose-row { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--ld-space-md); padding: var(--ld-space-md) var(--ld-space-2xl);
-  border-bottom: 1px solid var(--ld-rule); font-weight: 600; }
-.ld-compose-row span { font-size: var(--ld-text-sm); font-weight: 500; color: var(--ld-muted); }
-.ld-compose-body { min-height: 160px; padding: var(--ld-space-xl) var(--ld-space-2xl); font-size: var(--ld-text-lead); color: var(--ld-ink-2); }
-.ld-compose-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ld-space-lg); padding: 0 var(--ld-space-2xl) var(--ld-space-lg); }
-.ld-compose-foot img { width: 96px; flex-shrink: 0; }
-
-.ld-foot { display: grid; gap: var(--ld-space-xs); max-width: var(--ld-container); margin: var(--ld-space-3xl) auto 0; padding: var(--ld-space-lg) var(--ld-gutter) var(--ld-space-3xl); }
+.ld-foot { display: grid; gap: var(--ld-space-xs); max-width: var(--ld-container); margin-inline: auto; padding: var(--ld-space-xl) var(--ld-gutter) var(--ld-space-3xl); }
 .ld-foot-links { display: flex; flex-wrap: wrap; gap: 0 var(--ld-space-lg); }
 .ld-foot-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--ld-text-sm); font-weight: 600; color: var(--ld-ink-2); text-decoration: none; white-space: nowrap; }
 .ld-foot-links a:hover { color: var(--ld-navy); text-decoration: underline; text-underline-offset: 4px; }
@@ -216,46 +171,27 @@ body.is-landing .app { max-width: none; }
 
 body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-space-lg); }
 
-/* 한 번 나타나기: 스크립트가 있을 때만 숨겨 두고, 화면에 들어오면 올라온다 */
-.js .landing [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity var(--ld-dur-reveal) var(--ld-ease-out), transform var(--ld-dur-reveal) var(--ld-ease-out); }
-.js .landing [data-reveal].in { opacity: 1; transform: none; }
-
-/* 60rem 아래: 위에서 아래로. 솔루션의 화면은 위에 붙고 단계가 그 아래로 지나간다 */
+/* 60rem 아래: 한 줄. 체크하면 답이 그 항목 바로 아래에 열린다. 읽는 중인 받은편지함은 맨 아래로 */
 @media (max-width: 60rem) {
-  .ld-demo { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-xl); min-height: 0; padding-top: var(--ld-space-2xl); }
-  .ld-inbox { height: 460px; min-height: 0; }
-  .ld-scene { min-height: 0; padding-block: var(--ld-space-3xl); }
-  .ld-stats { grid-template-columns: minmax(0, 1fr); }
-  .ld-stats > div { padding-left: 0; padding-bottom: var(--ld-space-lg); }
-  .ld-stats > div + div { border-left: 0; border-top: 1px solid var(--ld-rule); }
-  /* 좁은 화면: 붙여 두는 화면 대신 단계마다 자기 화면을 위에 둔다 */
-  .ld-pin { grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: var(--ld-space-xl); }
-  .ld-pin-visual { display: none; }
-  .landing .ld-stage-shot { display: block; width: min(100%, 300px); aspect-ratio: 780 / 1200; object-fit: cover; object-position: top; border-radius: 24px;
-    box-shadow: var(--ld-shadow), 0 0 0 1px var(--ld-rule); background: var(--ld-surface); }
-  .ld-stages > li { min-height: 0; padding-block: var(--ld-space-xl); border-top: 1px solid var(--ld-rule); }
-  .js .landing .ld-stages > li:not(.on) { opacity: 1; }
-  .ld-office-in { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-xl); }
-  .ld-compose-row, .ld-compose-body, .ld-compose-foot { padding-inline: var(--ld-space-xl); }
+  .ld-check { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: var(--ld-space-2xl); padding-top: var(--ld-space-2xl); }
+  .js .landing .ld-pains li.on .ld-ans { display: grid; }
+  .ld-panel-ans { display: none !important; }
+  .ld-panel { max-height: none; padding: var(--ld-space-lg); }
+  .ld-steps { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-lg); }
+  .ld-proof { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-md); }
+  .ld-cta-in { grid-template-columns: minmax(0, 1fr); }
+  .ld-cta img { width: 140px; }
+  .ld-sec { padding-block: var(--ld-space-3xl); }
 }
 @media (max-width: 40rem) {
-  .ld-top-links { gap: var(--ld-space-md); }
-  .ld-top-links a[href="#ld-how"], .ld-top-links a[href="#ld-office"] { display: none; }
+  .ld-top-links a[href="#ld-how"] { display: none; }
   .ld-actions .ld-btn { width: 100%; }
-  .ld-inbox { height: 400px; }
-  .ld-mails li { grid-template-columns: 5.5rem minmax(0, 1fr); padding-inline: var(--ld-space-md); }
-  .ld-mails time { display: none; }
-  .ld-inbox-head, .ld-found { padding-inline: var(--ld-space-md); }
-  .ld-office-act .ld-btn { width: 100%; }
-  .ld-compose-row { grid-template-columns: 4.5rem minmax(0, 1fr); padding-inline: var(--ld-space-md); }
-  .ld-compose-body { padding: var(--ld-space-lg) var(--ld-space-md); min-height: 0; }
-  .ld-compose-foot { padding-inline: var(--ld-space-md); }
-  .ld-compose-foot .ld-btn { flex: 1; }
-  .ld-compose-foot img { width: 64px; }
+  .ld-ans { padding-left: var(--ld-space-sm); }
+  .ld-inbox { height: 380px; }
+  .ld-mails li { grid-template-columns: 5.5rem minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ld-btn, .ld-top-links a, .ld-mails li, .ld-pause, .ld-roll li, .ld-pin-visual > *, .ld-stages > li { transition: none; }
+  .ld-btn, .ld-top-links a, .ld-mails li, .ld-pause, .ld-pains label { transition: none; }
   .ld-btn:active { transform: none; }
-  .ld-found-list span { animation: none; }
-  .js .landing [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .ld-found-list span, .ld-panel-ans { animation: none; }
 }

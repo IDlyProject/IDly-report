@@ -104,64 +104,59 @@
     reduce.addEventListener("change", () => (reduce.matches ? showStatic() : location.reload()));
   }
 
-  // --- 2. 스크롤 이야기 -------------------------------------------------------------
-  // 스크립트가 있을 때만 .js를 붙여 숨김·흐림을 켠다 (없으면 전부 보이는 그대로)
+  // --- 2. 이런 거 불편하셨죠? 체크하면 옆 창에 IDly의 답 -------------------------------
   const landing = document.querySelector(".landing");
-  if (!landing || !("IntersectionObserver" in window)) return;
+  const pains = landing ? [...landing.querySelectorAll("[data-pain]")] : [];
+  if (!pains.length) return;
+  // 스크립트가 있을 때만 답을 항목 아래에서 숨기고 옆 창으로 옮긴다 (없으면 항목 아래에 펼쳐진 그대로)
   document.documentElement.classList.add("js");
+  const idle = document.getElementById("ld-idle");
+  const ansBox = document.getElementById("ld-panel-ans");
+  const verdict = document.getElementById("ld-verdict");
+  const verdictBase = verdict.textContent;
+  let shown = null;
 
-  // 한 번 나타나기 + 숫자 세기
-  const fmt = (n) => n.toLocaleString("ko-KR");
-  function countUp(el) {
-    const end = Number(el.dataset.count);
-    if (reduce.matches || !end) return;
-    const start = performance.now();
-    const dur = 1100;
-    const tick = (now) => {
-      const p = Math.min(1, (now - start) / dur);
-      el.textContent = fmt(Math.round(end * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    el.textContent = "0";
-    requestAnimationFrame(tick);
+  function showAnswer(input) {
+    shown = input;
+    if (!input) {
+      ansBox.hidden = true;
+      ansBox.replaceChildren();
+      idle.hidden = false;
+      return;
+    }
+    const ans = document.getElementById(`ans-${input.dataset.pain}`);
+    ansBox.replaceChildren(...[...ans.children].map((c) => c.cloneNode(true)));
+    idle.hidden = true;
+    ansBox.hidden = false;
   }
-  const revealIO = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        e.target.classList.add("in");
-        e.target.querySelectorAll("[data-count]").forEach(countUp);
-        if (e.target.matches("[data-count]")) countUp(e.target);
-        revealIO.unobserve(e.target);
-      }
-    },
-    { threshold: 0, rootMargin: "0px 0px -12% 0px" },
-  );
-  landing.querySelectorAll("[data-reveal]").forEach((el) => revealIO.observe(el));
 
-  // 화면 가운데 띠에 들어온 것 하나만 '켜기' (문제 목록, 솔루션 단계)
-  function centerOn(items, onChange) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          items.forEach((x) => x.classList.toggle("on", x === e.target));
-          if (onChange) onChange(e.target);
-        }
-      },
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    items.forEach((x) => io.observe(x));
+  function syncPains(changed) {
+    const on = pains.filter((p) => p.checked);
+    pains.forEach((p) => p.closest("li").classList.toggle("on", p.checked));
+    const n = on.length;
+    verdict.textContent =
+      n === 0
+        ? verdictBase
+        : n === pains.length
+          ? "전부 해당되시네요. 지금 메일함에서 바로 확인해 보세요."
+          : `${n}개 해당되시네요. 지금 메일함에서 바로 확인해 보세요.`;
+    // 방금 체크한 것을 보여 주고, 체크를 풀면 남은 것 중 마지막, 없으면 다시 읽는 중 화면
+    if (changed && changed.checked) showAnswer(changed);
+    else if (!changed || shown === changed) showAnswer(on[on.length - 1] || null);
   }
-  const roll = [...landing.querySelectorAll("[data-roll] li")];
-  if (roll.length) centerOn(roll);
 
-  const stages = [...landing.querySelectorAll("[data-stage]")];
-  const shots = [...landing.querySelectorAll("[data-stage-img]")];
-  if (stages.length) {
-    stages[0].classList.add("on");
-    centerOn(stages, (li) => {
-      shots.forEach((s) => s.classList.toggle("on", s.dataset.stageImg === li.dataset.stage));
+  pains.forEach((p) => {
+    p.addEventListener("change", () => {
+      syncPains(p);
+      if (p.checked && typeof window.track === "function") window.track("pain_check", { pain: p.dataset.pain, count: pains.filter((x) => x.checked).length });
     });
-  }
+    // 넓은 화면: 마우스를 올리면 미리 보기 (체크한 게 없을 때만)
+    p.closest("li").addEventListener("mouseenter", () => {
+      if (!pains.some((x) => x.checked) && matchMedia("(min-width: 60rem)").matches) showAnswer(p);
+    });
+  });
+  document.getElementById("ld-pains").addEventListener("mouseleave", () => {
+    if (!pains.some((x) => x.checked)) showAnswer(null);
+  });
+  syncPains(null);
 })();
