@@ -127,7 +127,7 @@ function show(id) {
     .forEach((el) => (el.hidden = el.id !== id));
   // 시작 화면(랜딩)과 리포트는 앱 컬럼을 벗어나 넓게 쓴다 (landing.css, style.css)
   document.body.classList.toggle("is-landing", id === "intro");
-  document.body.classList.toggle("is-wide", id === "intro" || id === "report");
+  document.body.classList.toggle("is-wide", id === "intro" || id === "report" || id === "home");
   // 랜딩에서 로그인했거나 로그인 없이 쓰는 중이면 '내 리포트'로 가는 길을 보여 준다
   if (id === "intro") document.querySelectorAll("[data-my]").forEach((a) => (a.hidden = !signedIn()));
   window.scrollTo(0, 0);

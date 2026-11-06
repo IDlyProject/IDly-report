@@ -360,6 +360,9 @@ h1, h2, p { margin: 0; }
 body.is-wide .app { max-width: none; }
 #report { background: var(--bg); }
 #report .bar-head, #report .content, #report .cta { width: 100%; max-width: 1200px; margin-inline: auto; }
+/* 홈도 넓은 화면에서는 왼쪽 요약, 오른쪽 리포트 목록 */
+#home .logo-head, #home .content, #home .cta { width: 100%; max-width: 1200px; margin-inline: auto; }
+.home-side, .home-main { min-width: 0; }
 #report .bar-head { position: sticky; top: 0; z-index: 20; height: 56px; margin-top: 0; background: var(--bg); }
 #report .cta { background: linear-gradient(rgba(249, 249, 253, 0), var(--bg) 24px); }
 @media (min-width: 40rem) {
@@ -374,6 +377,16 @@ body.is-wide .app { max-width: none; }
   #report .cta { padding: 16px 40px 24px; }
   #report .foot-note { text-align: right; }
   body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
+  #home .logo-head { padding: 16px 40px 8px; }
+  #home .home-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; padding: 16px 40px 48px; }
+  #home .home-main .rp-h2 { margin-top: 0 !important; }
+  #home .cta { display: flex; justify-content: flex-end; padding: 16px 40px 24px; background: none; }
+  #home .cta .btn { width: auto; min-width: 240px; padding: 0 32px; }
+}
+@media (min-width: 40rem) and (max-width: 59.99rem) {
+  #home .logo-head { padding-inline: 32px; }
+  #home .content { padding-inline: 32px; }
+  #home .cta { padding-inline: 32px; }
 }
 
 /* 메뉴 줄 끝 꺾쇠: 글자 대신 선으로 그린다 */

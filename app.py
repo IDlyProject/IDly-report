@@ -870,7 +870,7 @@ def asset_version() -> str:
 def index():
     html = (HERE / "static" / "index.html").read_text(encoding="utf-8")
     version = asset_version()
-    for name in ("style.css", "report.css", "landing.css", "analytics.js", "app.js"):
+    for name in ("style.css", "report.css", "landing.css", "landing.js", "analytics.js", "app.js"):
         html = html.replace(f"/static/{name}", f"/static/{name}?v={version}")
     return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 

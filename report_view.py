@@ -496,7 +496,7 @@ def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: 
     else:
         main = [_locked(accounts), _timeline(accounts, created)]
     tail = _WATERMARK if report.get("sample") else ""
-    return (f'<div class="rp"><div class="rp-side">{"".join(side)}</div>'
+    return (f'<div class="rp rp-doc"><div class="rp-side">{"".join(side)}</div>'
             f'<div class="rp-main">{"".join(main)}</div>{tail}</div>')
 
 

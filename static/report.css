@@ -139,8 +139,9 @@
 
 /* 넓은 화면: 왼쪽에 요약(따라 내려온다), 오른쪽에 목록 */
 .rp-side, .rp-main { min-width: 0; }
+/* .rp-doc: 리포트 본문에만. 홈 화면도 .rp를 쓰므로 .rp 전체에 걸면 홈이 두 칸으로 쪼개진다 */
 @media screen and (min-width: 60rem) {
-  .rp { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 56px; align-items: start; }
+  .rp-doc { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 56px; align-items: start; }
   .rp-main > .rp-h2:first-child { margin-top: 0 !important; }
   .rp-hero { padding: 32px 32px 28px; }
   .rp-label { font-size: 36px; }
