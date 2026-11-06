@@ -104,47 +104,64 @@
     reduce.addEventListener("change", () => (reduce.matches ? showStatic() : location.reload()));
   }
 
-  // --- 2. IDly가 보낸 메일 -------------------------------------------------------------
-  const box = document.querySelector(".ld-box");
-  const tablist = box && box.querySelector('[role="tablist"]');
-  const tabs = tablist ? [...tablist.querySelectorAll('[role="tab"]')] : [];
-  const panels = tabs.map((t) => document.getElementById(t.getAttribute("aria-controls")));
-  const wide = matchMedia("(min-width: 60rem)");
+  // --- 2. 스크롤 이야기 -------------------------------------------------------------
+  // 스크립트가 있을 때만 .js를 붙여 숨김·흐림을 켠다 (없으면 전부 보이는 그대로)
+  const landing = document.querySelector(".landing");
+  if (!landing || !("IntersectionObserver" in window)) return;
+  document.documentElement.classList.add("js");
 
-  function open(i, focus) {
-    tabs.forEach((t, j) => {
-      const on = i === j;
-      t.setAttribute("aria-selected", String(on));
-      t.tabIndex = on ? 0 : -1;
-      panels[j].hidden = !on;
-    });
-    if (focus) tabs[i].focus();
+  // 한 번 나타나기 + 숫자 세기
+  const fmt = (n) => n.toLocaleString("ko-KR");
+  function countUp(el) {
+    const end = Number(el.dataset.count);
+    if (reduce.matches || !end) return;
+    const start = performance.now();
+    const dur = 1100;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = fmt(Math.round(end * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    el.textContent = "0";
+    requestAnimationFrame(tick);
   }
+  const revealIO = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add("in");
+        e.target.querySelectorAll("[data-count]").forEach(countUp);
+        if (e.target.matches("[data-count]")) countUp(e.target);
+        revealIO.unobserve(e.target);
+      }
+    },
+    { threshold: 0, rootMargin: "0px 0px -12% 0px" },
+  );
+  landing.querySelectorAll("[data-reveal]").forEach((el) => revealIO.observe(el));
 
-  if (tabs.length) {
-    tablist.hidden = false;
-    box.classList.add("tabs");
-    open(0, false);
-    tabs.forEach((t, i) => {
-      t.addEventListener("click", () => open(i, false));
-      t.addEventListener("keydown", (e) => {
-        const n = tabs.length;
-        const next = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: n - 1 }[e.key];
-        if (next === undefined) return;
-        e.preventDefault();
-        open((next + n) % n, true);
-      });
-    });
-    // 랜딩 안 링크(#ld-…): 그 메일을 먼저 열고 나서 app.js가 그쪽으로 스크롤한다
-    document.addEventListener(
-      "click",
-      (e) => {
-        const a = e.target.closest && e.target.closest('.landing a[href^="#ld-"]');
-        if (!a) return;
-        const i = panels.findIndex((p) => p.id === a.getAttribute("href").slice(1));
-        if (i >= 0 && wide.matches) open(i, false);
+  // 화면 가운데 띠에 들어온 것 하나만 '켜기' (문제 목록, 솔루션 단계)
+  function centerOn(items, onChange) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          items.forEach((x) => x.classList.toggle("on", x === e.target));
+          if (onChange) onChange(e.target);
+        }
       },
-      true,
+      { rootMargin: "-45% 0px -45% 0px" },
     );
+    items.forEach((x) => io.observe(x));
+  }
+  const roll = [...landing.querySelectorAll("[data-roll] li")];
+  if (roll.length) centerOn(roll);
+
+  const stages = [...landing.querySelectorAll("[data-stage]")];
+  const shots = [...landing.querySelectorAll("[data-stage-img]")];
+  if (stages.length) {
+    stages[0].classList.add("on");
+    centerOn(stages, (li) => {
+      shots.forEach((s) => s.classList.toggle("on", s.dataset.stageImg === li.dataset.stage));
+    });
   }
 })();
