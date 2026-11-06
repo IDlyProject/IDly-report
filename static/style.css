@@ -39,7 +39,8 @@ h1, h2, p { margin: 0; }
 .btn-main:hover { background: #1a2753; }
 .btn-outline { background: #fff; color: var(--ink); border: 0.762px solid var(--border);
   box-shadow: 0 4px 7px rgba(16, 24, 46, 0.06); }
-.btn:disabled { opacity: 0.5; cursor: default; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:focus-visible, .back:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* 상단: 로고 (Figma 홈 헤더) / 뒤로 + 제목 / 단계 점 */
@@ -50,6 +51,11 @@ h1, h2, p { margin: 0; }
 .bar-head { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 20px; margin-top: 8px; }
 .back { display: flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; border-radius: 22px; background: #fff; }
 .bar-head .back { margin-left: -10px; }
+.head-home { margin-left: auto; display: flex; align-items: center; height: 44px; padding: 0 8px; margin-right: -8px;
+  font-size: 14px; font-weight: 600; color: var(--sub); text-decoration: none; white-space: nowrap; }
+.head-home:hover { color: var(--main); }
+.head-home:focus-visible, .logo-head a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+.logo-head a { display: flex; }
 .head-title { font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
 .steps { display: flex; gap: 6px; }
 .steps i { width: 8px; height: 8px; border-radius: 4px; background: var(--border); }
@@ -67,7 +73,7 @@ h1, h2, p { margin: 0; }
 .field-hint { font-size: 12px; line-height: 1.5; color: var(--sub); }
 .input { display: flex; align-items: center; gap: 10px; min-width: 0; height: 48px; padding: 0 14px; border-radius: 12px;
   background: #fff; border: 0.762px solid var(--line); }
-.input:focus-within { border-color: var(--main); }
+.input:focus-within { outline: 2px solid var(--focus); outline-offset: -1px; }
 .input img { flex: none; }
 .input img.dim { opacity: 0.55; }
 .input input { flex: 1; width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent;
@@ -349,3 +355,38 @@ h1, h2, p { margin: 0; }
 .sample-cta { font-size: 13px; color: var(--sub); text-align: center; }
 .sample-cta a { color: var(--main); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .scan-ring.stopped, .scan-ring.stopped .scan-core { animation: none; }
+
+/* 리포트는 넓은 화면에서 앱 컬럼(430px)을 벗어나 두 칸으로 읽는다 (report.css의 .rp-side / .rp-main) */
+body.is-wide .app { max-width: none; }
+#report { background: var(--bg); }
+#report .bar-head, #report .content, #report .cta { width: 100%; max-width: 1200px; margin-inline: auto; }
+#report .bar-head { position: sticky; top: 0; z-index: 20; height: 56px; margin-top: 0; background: var(--bg); }
+#report .cta { background: linear-gradient(rgba(249, 249, 253, 0), var(--bg) 24px); }
+@media (min-width: 40rem) {
+  #report .bar-head { padding: 0 32px; }
+  #report .content { padding: 8px 32px 40px; }
+  #report .cta { display: flex; justify-content: flex-end; padding: 16px 32px 24px; }
+  #report .cta .btn { width: auto; min-width: 240px; padding: 0 32px; }
+}
+@media (min-width: 60rem) {
+  #report .bar-head { padding: 0 40px; }
+  #report .content { padding: 16px 40px 48px; }
+  #report .cta { padding: 16px 40px 24px; }
+  #report .foot-note { text-align: right; }
+  body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
+}
+
+/* 메뉴 줄 끝 꺾쇠: 글자 대신 선으로 그린다 */
+.chev { flex: none; width: 8px; height: 8px; margin-right: 4px; border-top: 2px solid var(--hint); border-right: 2px solid var(--hint); transform: rotate(45deg); }
+
+/* 체험으로 만든 리포트의 저장 줄 */
+.save-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 12px 16px;
+  border-radius: 12px; background: var(--lavender); font-size: 14px; line-height: 1.5; color: var(--sub); }
+.save-bar b { color: var(--ink); font-weight: 600; }
+.save-bar p { flex: 1 1 240px; }
+.save-bar-btn { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--main); color: var(--bg);
+  font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.save-bar-btn:hover { background: var(--main-2); }
+.save-bar-btn:active { transform: translateY(1px); }
+.save-bar-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#login-desc { white-space: pre-line; }

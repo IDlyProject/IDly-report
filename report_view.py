@@ -180,7 +180,7 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     return f"""{notice}
 <section class="rp-hero">
   <div class="rp-hero-top"><span class="rp-date">{created.year}년 {created.month}월 {created.day}일 기준</span><span class="rp-chips">{sample}{chip}</span></div>
-  <p class="rp-label">{_accent(label)}</p>
+  <p class="rp-label">{_e(label)}</p>
   <p class="rp-desc">{_e(desc)}</p>
   {_funnel(report, s)}
 </section>"""
@@ -485,18 +485,19 @@ def _locked(accounts: List[Dict[str, Any]]) -> str:
 def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: bool = True) -> str:
     accounts = report["accounts"]
     s = summarize(report)
-    parts = [_hero(report, s, created), _stats(s), _discoveries(report, created, full)]
+    # 넓은 화면에서는 왼쪽(요약)과 오른쪽(목록) 두 칸으로 나뉜다 (report.css). 좁은 화면과 PDF는 위에서 아래로 한 줄
+    side = [_hero(report, s, created), _stats(s), _discoveries(report, created, full)]
     if full:
-        parts += [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
-                  _timeline(accounts, created), _all_accounts(accounts)]
+        main = [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
+                _timeline(accounts, created), _all_accounts(accounts)]
         if web and accounts:
-            parts.append(_office(accounts))
-        parts.append(_method(report, s))
+            main.append(_office(accounts))
+        main.append(_method(report, s))
     else:
-        parts += [_locked(accounts), _timeline(accounts, created)]
-    if report.get("sample"):
-        parts.append(_WATERMARK)
-    return f'<div class="rp">{"".join(parts)}</div>'
+        main = [_locked(accounts), _timeline(accounts, created)]
+    tail = _WATERMARK if report.get("sample") else ""
+    return (f'<div class="rp"><div class="rp-side">{"".join(side)}</div>'
+            f'<div class="rp-main">{"".join(main)}</div>{tail}</div>')
 
 
 # --- PDF -----------------------------------------------------------------------

@@ -125,8 +125,11 @@ function show(id) {
   document
     .querySelectorAll(".screen")
     .forEach((el) => (el.hidden = el.id !== id));
-  // 시작 화면(랜딩)만 앱 컬럼을 벗어나 넓게 쓴다 (landing.css)
+  // 시작 화면(랜딩)과 리포트는 앱 컬럼을 벗어나 넓게 쓴다 (landing.css, style.css)
   document.body.classList.toggle("is-landing", id === "intro");
+  document.body.classList.toggle("is-wide", id === "intro" || id === "report");
+  // 랜딩에서 로그인했거나 로그인 없이 쓰는 중이면 '내 리포트'로 가는 길을 보여 준다
+  if (id === "intro") document.querySelectorAll("[data-my]").forEach((a) => (a.hidden = !signedIn()));
   window.scrollTo(0, 0);
   trackScreen(id);
 }
@@ -400,6 +403,9 @@ function openLoginSheet(error) {
   $("#login-desc").textContent = guest
     ? "로그인하면 이 브라우저에 저장한 리포트를 계정으로 옮겨 언제든 다시 볼 수 있어요."
     : "만든 리포트를 계정에 모아 두고 언제든 다시 볼 수 있어요.";
+  $("#login-title").textContent = "로그인하고 시작하기";
+  $("#login-skip").hidden = true;
+  saveAfter = null;
   showError("#login-error", error || "");
   if ($("#login-sheet").hidden) track("login_open");
   openLayer($("#login-sheet"), $('[data-login="kakao"]'));
@@ -417,6 +423,25 @@ function openGuestNotice(fromHelp) {
   $("#guest-ok").textContent = fromHelp ? "확인" : "확인하고 로그인 없이 시작";
   $("#guest-cancel").hidden = !!fromHelp;
   openLayer($("#guest-modal"), $("#guest-ok"));
+}
+
+// 로그인 없이 체험 시작: 안내 팝업 없이 게스트 토큰만 만든다 (저장 안내는 저장하려 할 때 보여 준다)
+function startTrial() {
+  guest = { token: newGuestToken(), terms: null };
+  saveGuest();
+  track("login", { method: "trial" });
+}
+
+// 리포트를 저장하려 할 때(저장 버튼·PDF): 로그인하면 계정에 남는다고 묻는다. 로그인 안 하면 PDF만 받는다
+let saveAfter = null;
+function askSave(reason, then) {
+  openLoginSheet();
+  saveAfter = then || null;
+  $("#login-title").textContent = "이 리포트, 저장할까요?";
+  $("#login-desc").textContent =
+    "지금은 이 브라우저에만 임시로 있어요.\n로그인하면 계정에 저장해서 언제든 다시 볼 수 있어요.";
+  $("#login-skip").hidden = !then;
+  track("save_prompt", { reason });
 }
 
 function onGuestConfirmed() {
@@ -442,7 +467,9 @@ async function afterLogin() {
       console.error("[IDly] 게스트 리포트를 계정으로 옮기지 못했어요", err);
     }
   }
-  location.hash = me.user && me.user.terms ? "home" : "terms";
+  // 리포트를 저장하려다 로그인했으면 그 리포트로 돌아간다 (약관이 남았으면 route가 먼저 묻는다)
+  const back = currentId();
+  location.hash = me.user && me.user.terms ? (back ? `r=${back}` : "home") : "terms";
   route();
 }
 
@@ -574,7 +601,7 @@ async function onTerms(event) {
     guest.terms = new Date().toISOString();
     saveGuest();
     track("sign_up", { method: "guest" });
-    return go("home");
+    return go("connect");
   }
   try {
     await api("/api/terms", {
@@ -727,15 +754,9 @@ async function renderHome() {
   reports.forEach((r) => list.append(reportRow(r)));
 }
 
-// '매달 47,280원' → 금액만 강조색 (서버 report_view._accent와 같은 규칙)
+// 홈 요약 문구 (한 문장은 한 색: 숫자만 따로 칠하지 않는다)
 function setAccent(node, text) {
-  node.replaceChildren();
-  let last = 0;
-  for (const m of text.matchAll(/[\d,]+(?:원|개)/g)) {
-    node.append(text.slice(last, m.index), el("em", "", m[0]));
-    last = m.index + m[0].length;
-  }
-  node.append(text.slice(last));
+  node.textContent = text;
 }
 
 function renderBusiness() {
@@ -842,6 +863,10 @@ async function renderResult(r) {
     $("#pdf").hidden = backToPay;
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
+    // 체험(로그인 없이)으로 만든 리포트: 저장 줄을 보여 주고, PDF를 받으려 하면 먼저 로그인을 묻는다 (onPdf)
+    const trial = !me.user && !r.sample;
+    $("#save-bar").hidden = !trial;
+    $("#pdf").dataset.trial = trial ? "1" : "";
     for (const b of $("#report-body").querySelectorAll("[data-share]")) b.onclick = () => shareOffice(b);
     show("report");
     if (r.sample) track("sample_view", { from: backToPay ? "pay" : "direct" });
@@ -1155,6 +1180,14 @@ async function onPdf(event) {
   event.preventDefault();
   const link = event.currentTarget;
   if (link.dataset.busy) return;
+  if (link.dataset.trial && !me.user) {
+    // 로그인 없이 PDF만 받기를 고르면 그때 내려받는다
+    return askSave("pdf", () => {
+      link.dataset.trial = "";
+      link.click();
+      link.dataset.trial = "1";
+    });
+  }
   link.dataset.busy = "1";
   link.textContent = "PDF 만드는 중…";
   try {
@@ -1198,6 +1231,8 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
   if (hash === "help") return renderHelp();
+  // #intro: 로그인했어도 랜딩(서비스 소개)을 다시 볼 수 있다
+  if (hash === "intro") return renderIntro();
   // 샘플이 아닌 리포트·연결·홈은 로그인(또는 로그인 없이 사용하기)이 필요하다 (샘플 리포트 주소는 그냥 열린다)
   if (!me.user && !guest) return id ? load(id) : renderIntro();
   // 로그인 없이: 약관 동의만 받고, 선택 정보(내부 통계)는 계정이 없어 묻지 않는다
@@ -1259,7 +1294,10 @@ async function init() {
   document.querySelectorAll("[data-start]").forEach((b) =>
     b.addEventListener("click", () => {
       track("landing_start_click", { label: b.dataset.gaLabel || "" });
-      openLoginSheet();
+      // 체험처럼 바로 시작: 로그인은 묻지 않고 이 브라우저용 임시 사용자로 메일 연결까지 간다.
+      // 저장(로그인)은 리포트를 다 본 뒤 저장하려 할 때 묻는다 (askSave). 약관 동의는 route가 먼저 받는다
+      if (!signedIn()) startTrial();
+      go("connect");
     }),
   );
   // 랜딩 안 이동(#ld-…)은 주소의 #을 바꾸지 않고 스크롤만 한다 (#은 화면 전환에 쓴다)
@@ -1272,6 +1310,13 @@ async function init() {
   );
   document.querySelectorAll("[data-sample-link]").forEach((a) => (a.hidden = !config.sample));
   $("#open-guest").addEventListener("click", () => openGuestNotice(false));
+  $("#save-login").addEventListener("click", () => askSave("save_bar"));
+  $("#login-skip").addEventListener("click", () => {
+    const then = saveAfter;
+    closeLoginSheet();
+    track("save_skip");
+    if (then) then();
+  });
   $("#guest-ok").addEventListener("click", onGuestConfirmed);
   $("#guest-cancel").addEventListener("click", () => {
     closeLayer($("#guest-modal"));
