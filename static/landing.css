@@ -38,7 +38,7 @@ body.is-landing .app { max-width: none; }
 .landing *, .landing *::before, .landing *::after { box-sizing: border-box; }
 .landing h1, .landing h2, .landing h3 { margin: 0; font-family: var(--ld-font); font-weight: 800; color: var(--ld-ink); letter-spacing: -0.035em;
   overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
-.landing h1 { font-size: var(--ld-text-display); line-height: 1.12; max-width: 14ch; }
+.landing h1 { font-size: var(--ld-text-display); line-height: 1.12; max-width: 16ch; }
 .landing h2 { font-size: var(--ld-text-section); line-height: 1.18; max-width: 20ch; }
 .landing h3 { font-size: var(--ld-text-title); line-height: 1.35; font-weight: 600; letter-spacing: -0.02em; }
 /* 초기화는 :where로 (특이도 0) 해서 아래 구역별 여백이 이긴다 */

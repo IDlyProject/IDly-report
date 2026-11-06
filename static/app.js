@@ -1231,8 +1231,8 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
   if (hash === "help") return renderHelp();
-  // #intro: 로그인했어도 랜딩(서비스 소개)을 다시 볼 수 있다
-  if (hash === "intro") return renderIntro();
+  // 루트(/)와 #intro는 언제나 랜딩. 로그인했거나 체험 중이면 랜딩 위쪽 '내 리포트'로 홈(#home)에 간다
+  if (hash === "" || hash === "intro") return renderIntro();
   // 샘플이 아닌 리포트·연결·홈은 로그인(또는 로그인 없이 사용하기)이 필요하다 (샘플 리포트 주소는 그냥 열린다)
   if (!me.user && !guest) return id ? load(id) : renderIntro();
   // 로그인 없이: 약관 동의만 받고, 선택 정보(내부 통계)는 계정이 없어 묻지 않는다

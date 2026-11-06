@@ -851,7 +851,7 @@ def legal(page: str):
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{LEGAL_PAGES[page]} · IDly</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="/static/style.css?v={ASSET_VERSION}">{GA_SNIPPET}</head>
+<link rel="stylesheet" href="/static/style.css?v={asset_version()}">{GA_SNIPPET}</head>
 <body><div class="app"><main class="screen legal">
 <header class="bar-head"><a class="back" href="/" aria-label="처음으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
 <h2 class="head-title">{LEGAL_PAGES[page]}</h2></header>
@@ -860,15 +860,18 @@ def legal(page: str):
 
 # --- 웹 화면 -----------------------------------------------------------------------
 
-# 화면 파일이 바뀌면 브라우저가 바로 새 파일을 받게 한다 (예전 화면이 캐시에 남아 없는 주소를 부르지 않게)
-ASSET_VERSION = str(int(max(f.stat().st_mtime for f in (HERE / "static").glob("*.*"))))
+# 화면 파일이 바뀌면 브라우저가 바로 새 파일을 받게 한다 (예전 화면이 캐시에 남아 없는 주소를 부르지 않게).
+# 서버를 켤 때 한 번만 재면 서버를 다시 켜지 않고 파일만 바꿨을 때 새 HTML과 예전 CSS가 섞여 화면이 깨진다: 요청마다 잰다
+def asset_version() -> str:
+    return str(int(max(f.stat().st_mtime for f in (HERE / "static").glob("*.*"))))
 
 
 @app.get("/")
 def index():
     html = (HERE / "static" / "index.html").read_text(encoding="utf-8")
+    version = asset_version()
     for name in ("style.css", "report.css", "landing.css", "analytics.js", "app.js"):
-        html = html.replace(f"/static/{name}", f"/static/{name}?v={ASSET_VERSION}")
+        html = html.replace(f"/static/{name}", f"/static/{name}?v={version}")
     return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
 
