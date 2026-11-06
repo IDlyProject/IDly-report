@@ -945,10 +945,10 @@ async function renderResult(r) {
   if (!empty) track("view_item", reportItem(r.price));
 }
 
-// 리포트 끝 '대표님께 IDly 공유하기': 리포트 주소가 아니라 소개 페이지(첫 화면)만 나눈다 (리포트 id는 열람 권한이라 남에게 주지 않는다)
+// 리포트 끝 'IDly 링크 보내기': 리포트 주소가 아니라 소개 페이지(첫 화면)만 나눈다 (리포트 id는 열람 권한이라 남에게 주지 않는다)
 async function shareOffice(button) {
   const url = `${location.origin}/`;
-  const text = "메일만 연결하면 흩어진 계정과 구독을 찾아 주는 IDly예요. 우리 사무실 계정도 정리해 보면 좋겠어요.";
+  const text = "메일만 연결하면 가입한 서비스와 구독을 찾아 주는 IDly예요.";
   track("office_share_click", { method: navigator.share ? "native" : "copy" });
   try {
     if (navigator.share) return await navigator.share({ title: "IDly", text, url });
