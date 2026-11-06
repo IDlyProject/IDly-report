@@ -84,8 +84,27 @@
     stage.style.setProperty("--my", "0");
   });
 
+  // 1-2, 1-3: 화면을 지나는 만큼(--p) 레이더가 돌고, 알림과 대화가 한 칸씩 나타난다
+  const progs = [...document.querySelectorAll("[data-progress]")];
+  function onProgress() {
+    for (const sec of progs) {
+      const r = sec.getBoundingClientRect();
+      // 섹션 윗변이 화면 아래 85%에 닿을 때 0, 섹션 가운데가 화면 가운데를 지날 때쯤 1
+      const p = Math.min(1, Math.max(0, (innerHeight * 0.85 - r.top) / (innerHeight * 0.85 + r.height * 0.15)));
+      sec.style.setProperty("--p", p.toFixed(3));
+      const steps = Number(sec.dataset.steps) || 1;
+      const at = Math.floor(p * (steps + 0.6));
+      sec.querySelectorAll("[data-step]").forEach((el) => el.classList.toggle("in", Number(el.dataset.step) <= at));
+    }
+  }
+  if (progs.length) {
+    addEventListener("scroll", () => requestAnimationFrame(onProgress), { passive: true });
+    addEventListener("resize", onProgress, { passive: true });
+    onProgress();
+  }
+
   // 랜딩이 다시 보일 때(다른 화면에서 돌아올 때) 상태를 다시 잰다
-  new MutationObserver(onScroll).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  new MutationObserver(() => { onScroll(); if (progs.length) onProgress(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   paint();
   onScroll();
 })();

@@ -13,6 +13,8 @@
   --ld-accent: #ff9b54; --ld-accent-bg: #ffe9d3; --ld-accent-deep: #7a3f12; --ld-focus: #2a2f8f;
   /* 오라: IDly 네이비 계열(라벤더·하늘)과 오렌지 계열(피치·살구) */
   --ld-aura-orange: #ffb47e; --ld-aura-peach: #ffd8bd; --ld-aura-lav: #c3ccf2; --ld-aura-sky: #bcd7f3; --ld-aura-indigo: #8f9de0;
+  --ld-radar-bg: #121c46; --ld-radar-ring: rgba(196, 204, 242, 0.22); --ld-radar-sweep: rgba(143, 157, 224, 0.55); --ld-radar-glow: rgba(255, 216, 189, 0.5);
+  --ld-alert-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5); --ld-alert-bg: rgba(246, 247, 252, 0.1); --ld-alert-edge: rgba(246, 247, 252, 0.28); --ld-on-navy-2: #c4c9de;
   --ld-shadow: 0 1px 2px rgba(27, 39, 64, 0.04), 0 12px 32px -8px rgba(32, 47, 97, 0.16);
   --ld-tick-shadow: 0 2px 6px rgba(32, 47, 97, 0.3);
   --ld-chip-shadow: 0 1px 2px rgba(27, 39, 64, 0.06), 0 6px 16px -6px rgba(32, 47, 97, 0.18);
@@ -163,6 +165,40 @@ body.is-landing .app { max-width: none; }
   transition: opacity var(--ld-dur-short) var(--ld-ease-out); }
 .ld-stage[data-s="5"] .ld-scroll-hint { opacity: 0; }
 
+/* 1-2, 1-3: 스크롤 진행(--p, data-at)이 레이더 바늘과 알림, 대화를 움직인다 */
+.ld-split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-2xl); align-items: center; }
+.ld-split-rev > :first-child { order: 2; }
+.ld-split-rev > :last-child { order: 1; }
+
+.ld-radar-sec { background: var(--ld-radar-bg); color: var(--ld-on-navy); }
+.ld-radar-sec .ld-say { color: var(--ld-on-navy); }
+.ld-radar-sec .ld-sub { color: var(--ld-on-navy-2); }
+.ld-radar { position: relative; justify-self: center; width: min(100%, 520px); aspect-ratio: 1; }
+.ld-radar-rings { position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 calc(12.5% - 1px), var(--ld-radar-ring) calc(12.5% - 1px) 12.5%),
+    radial-gradient(circle, var(--ld-radar-glow) 0, transparent 30%); }
+.ld-radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, var(--ld-radar-sweep), transparent 25%);
+  rotate: calc(var(--p, 0) * 540deg); transition: rotate var(--ld-dur-short) linear; }
+.ld-radar-owl { position: absolute; left: 50%; top: 50%; width: 26%; translate: -50% -50%; }
+.ld-alert { position: absolute; left: var(--ax); top: var(--ay); display: grid; gap: 2px; padding: var(--ld-space-sm) var(--ld-space-md); border-radius: 14px;
+  background: var(--ld-alert-bg); box-shadow: inset 0 0 0 1px var(--ld-alert-edge), var(--ld-alert-shadow); backdrop-filter: blur(8px);
+  font-size: var(--ld-text-sm); line-height: 1.4; color: var(--ld-on-navy-2); white-space: nowrap; }
+.ld-alert b { font-size: var(--ld-text-md); color: var(--ld-on-navy); }
+.js .landing .ld-alert, .js .landing .ld-bubble { opacity: 0; transform: translateY(14px) scale(0.96); filter: blur(6px);
+  transition: opacity var(--ld-dur-long) var(--ld-ease-out), transform var(--ld-dur-long) var(--ld-ease-out), filter var(--ld-dur-long) var(--ld-ease-out); }
+.js .landing .ld-alert.in, .js .landing .ld-bubble.in { opacity: 1; transform: none; filter: none; }
+.ld-alert:hover { box-shadow: inset 0 0 0 1px var(--ld-accent), var(--ld-alert-shadow); }
+
+.ld-chat { display: grid; gap: var(--ld-space-sm); align-content: start; min-height: 360px; padding: var(--ld-space-xl); border-radius: var(--ld-radius-card);
+  background: var(--ld-surface); box-shadow: var(--ld-shadow); }
+.ld-chat-head { display: flex; justify-content: space-between; gap: var(--ld-space-md); padding-bottom: var(--ld-space-md); margin-bottom: var(--ld-space-xs) !important;
+  border-bottom: 1px solid var(--ld-rule); font-weight: 800; color: var(--ld-ink); }
+.ld-chat-head span { font-size: var(--ld-text-xs); font-weight: 600; color: var(--ld-muted); }
+.ld-bubble { max-width: 82%; padding: var(--ld-space-sm) var(--ld-space-md); border-radius: 18px; font-size: 0.9375rem; line-height: 1.55; }
+.ld-bot { justify-self: start; background: var(--ld-paper-2); color: var(--ld-ink); border-top-left-radius: 6px; }
+.ld-me { justify-self: end; background: var(--ld-navy); color: var(--ld-on-navy); border-top-right-radius: 6px; }
+.ld-confirm { background: var(--ld-accent); color: var(--ld-ink); font-weight: 700; }
+
 /* 2. 그래서 IDly는 이렇게 달라요 */
 .ld-sec { position: relative; padding-block: var(--ld-space-4xl); overflow: clip; isolation: isolate; }
 .ld-say { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.25; letter-spacing: -0.04em; max-width: 22ch; color: var(--ld-navy); }
@@ -217,7 +253,9 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
   .ld-resolve { margin-top: var(--ld-space-lg) !important; }
   .ld-card { padding: var(--ld-space-lg); }
   .landing .ld-card-shot { max-height: 140px; }
-  .ld-faq-in { grid-template-columns: minmax(0, 1fr); }
+  .ld-faq-in, .ld-split { grid-template-columns: minmax(0, 1fr); }
+  .ld-split-rev > :first-child { order: 1; }
+  .ld-split-rev > :last-child { order: 2; }
   .ld-compare tbody th { width: 28%; }
   .ld-sec, .ld-cta { padding-block: var(--ld-space-3xl); }
 }
@@ -234,6 +272,9 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
   .ld-scroll-hint { display: none; }
   .ld-compare { font-size: 0.9375rem; }
   .ld-aura i { filter: blur(48px); }
+  .ld-alert { font-size: var(--ld-text-xs); padding: var(--ld-space-xs) var(--ld-space-sm); }
+  .ld-alert b { font-size: var(--ld-text-sm); }
+  .ld-chat { padding: var(--ld-space-lg); min-height: 0; }
 }
 @media (max-height: 44rem) and (min-width: 60.01rem) {
   .ld-sentence { font-size: clamp(1.25rem, 1.4vw + 0.8rem, 2rem); }
@@ -241,7 +282,7 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
 }
 @media (prefers-reduced-motion: reduce) {
   .ld-aura i { animation: none; }
-  .ld-aura, .ld-aura i, .ld-btn, .ld-top-links a, .ld-chip, .ld-tick, .js .landing .ld-card, .ld-faq-list summary::after, .ld-compare tbody tr { transition: none; }
+  .ld-radar-sweep, .js .landing .ld-alert, .js .landing .ld-bubble, .ld-aura, .ld-aura i, .ld-btn, .ld-top-links a, .ld-chip, .ld-tick, .js .landing .ld-card, .ld-faq-list summary::after, .ld-compare tbody tr { transition: none; }
   .js .landing .ld-card { filter: none; transform: none; }
   .ld-btn:active { transform: none; }
 }
