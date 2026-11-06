@@ -40,7 +40,7 @@ body.is-landing .app { max-width: none; }
 .landing h1, .landing h2, .landing h3 { font-family: var(--ld-font); color: inherit; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
 .landing p { text-wrap: pretty; }
 .landing img { display: block; max-width: 100%; height: auto; }
-.landing a { color: inherit; }
+:where(.landing) a { color: inherit; }
 .landing a:focus-visible, .landing button:focus-visible { outline: 2px solid var(--ld-focus); outline-offset: 3px; border-radius: 6px; }
 .ld-container { width: 100%; max-width: var(--ld-container); margin-inline: auto; padding-inline: var(--ld-gutter); }
 
@@ -71,10 +71,10 @@ body.is-landing .app { max-width: none; }
 .ld-link:hover { color: var(--ld-navy-2); }
 .ld-link:active { color: var(--ld-navy-deep); }
 
-/* 01 표지: 왼쪽 문장, 오른쪽 읽히고 있는 받은편지함 */
-.ld-cover { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-2xl); align-items: center;
-  max-width: var(--ld-container); min-height: calc(100dvh - 92px); margin-inline: auto; padding: var(--ld-space-xl) var(--ld-gutter) var(--ld-space-2xl); }
-.ld-cover h1 { font-size: var(--ld-text-display); font-weight: 800; line-height: 1.2; letter-spacing: -0.04em; max-width: 14ch; }
+/* 4. IDly가 대신 읽는 장면: 왼쪽 문장, 오른쪽 읽히고 있는 받은편지함 */
+.ld-demo { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-2xl); align-items: center;
+  max-width: var(--ld-container); min-height: 100dvh; margin-inline: auto; padding: var(--ld-space-4xl) var(--ld-gutter); }
+.ld-demo h1 { font-size: var(--ld-text-display); font-weight: 800; line-height: 1.2; letter-spacing: -0.04em; max-width: 14ch; }
 .ld-lead { margin-top: var(--ld-space-lg) !important; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-ink-2); max-width: 32ch; }
 .ld-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ld-space-sm) var(--ld-space-lg); margin-top: var(--ld-space-xl); }
 .ld-note { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-sm); color: var(--ld-muted); }
@@ -108,6 +108,17 @@ body.is-landing .app { max-width: none; }
   color: var(--ld-accent-deep); animation: ld-pop var(--ld-dur-long) var(--ld-ease-out); }
 @keyframes ld-pop { from { opacity: 0; transform: translateY(4px); } }
 
+/* 1. 훅: 첫 화면을 숫자 하나가 차지한다 */
+.ld-hook { display: flex; align-items: center; min-height: calc(100dvh - 92px); padding-block: var(--ld-space-xl) var(--ld-space-2xl); }
+.ld-hook-pre { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.4; letter-spacing: -0.03em; color: var(--ld-ink-2); }
+.ld-hook-num { margin-block: var(--ld-space-xs) var(--ld-space-md) !important; font-size: calc(var(--ld-text-mega) * 0.3); font-weight: 800; line-height: 0.95;
+  letter-spacing: -0.05em; color: var(--ld-navy); max-width: none; }
+.ld-hook-num b { font-size: var(--ld-text-mega); font-weight: 800; font-variant-numeric: tabular-nums; }
+.ld-hook-post { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.45; letter-spacing: -0.03em; color: var(--ld-ink-2); }
+.ld-hook-post strong { font-weight: 800; color: var(--ld-ink); }
+.ld-hook .ld-actions .ld-btn { min-height: 52px; padding: 0 28px; font-size: 1.0625rem; }
+.ld-hook-note { margin-top: var(--ld-space-md) !important; font-size: var(--ld-text-sm); color: var(--ld-muted); }
+
 /* 장면: 한 화면에 한 문장 */
 .ld-scene { display: flex; align-items: center; min-height: 100dvh; padding-block: var(--ld-space-4xl); }
 .ld-dark { background: var(--ld-navy-deep); color: var(--ld-on-navy); }
@@ -119,23 +130,24 @@ body.is-landing .app { max-width: none; }
 
 /* 02 문제(개인): 목록이 스크롤에 맞춰 한 줄씩 밝아진다 (스크립트가 없으면 다 밝다) */
 .ld-roll { display: grid; gap: var(--ld-space-sm); margin-top: var(--ld-space-3xl) !important; list-style: none; }
-.ld-roll li { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.35; letter-spacing: -0.03em; color: var(--ld-on-navy);
+.ld-problem-sec { background: var(--ld-paper-2); }
+.ld-roll li { font-size: var(--ld-text-say-s); font-weight: 700; line-height: 1.35; letter-spacing: -0.03em; color: var(--ld-ink);
   transition: color var(--ld-dur-reveal) var(--ld-ease-out); }
-.js .landing .ld-roll li { color: var(--ld-on-navy-3); }
-.js .landing .ld-roll li.on { color: var(--ld-on-navy); }
+.js .landing .ld-roll li { color: var(--ld-faint); }
+.js .landing .ld-roll li.on { color: var(--ld-ink); }
 
-/* 03 실사례: 숫자 하나를 화면만큼 */
-.ld-case { background: var(--ld-paper); text-align: left; }
+/* 2. 돈: 어두운 바탕에 금액 하나 (금액만 오렌지) */
+.ld-money .ld-mega { color: var(--ld-accent); }
+/* 일곱 자리 금액이 좁은 화면에서도 한 줄에 들어가게 */
+.ld-money .ld-mega b { font-size: clamp(3.5rem, 16vw, 15rem); }
+.ld-money .ld-say-s { color: var(--ld-on-navy); }
+.ld-money .ld-tags { margin-top: var(--ld-space-xl) !important; }
+/* 숫자 하나를 화면만큼 */
 .ld-mega { margin-block: var(--ld-space-md) !important; font-size: calc(var(--ld-text-mega) * 0.32); font-weight: 800; line-height: 1; letter-spacing: -0.05em; color: var(--ld-navy); }
 .ld-mega b { font-size: var(--ld-text-mega); font-weight: 800; font-variant-numeric: tabular-nums; }
-.ld-case-sub { display: grid; gap: var(--ld-space-lg); margin-top: var(--ld-space-2xl); padding-top: var(--ld-space-lg); border-top: 1px solid var(--ld-rule); }
-.ld-case-sub p { font-size: var(--ld-text-lead); color: var(--ld-ink-2); }
-.ld-case-sub p b { color: var(--ld-ink); font-weight: 800; font-variant-numeric: tabular-nums; }
 .ld-tags { display: flex; flex-wrap: wrap; gap: var(--ld-space-xs); list-style: none; }
 .ld-tags li { padding: 0 var(--ld-space-sm); border-radius: 6px; background: var(--ld-accent-bg); font-size: var(--ld-text-sm); font-weight: 600; line-height: 32px; color: var(--ld-accent-deep); }
 
-/* 04 문제(회사): 숫자 셋, 세로 선으로 나눈다 */
-.ld-company { background: var(--ld-paper-2); }
 .ld-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: var(--ld-space-3xl) !important; border-top: 2px solid var(--ld-ink); }
 .ld-stats > div { padding: var(--ld-space-lg) var(--ld-space-lg) 0; }
 .ld-stats > div:first-child { padding-left: 0; }
@@ -162,7 +174,7 @@ body.is-landing .app { max-width: none; }
 .ld-agent-ask { padding: var(--ld-space-md); border-radius: 12px; background: var(--ld-paper-2); font-size: var(--ld-text-sm); line-height: 1.6; }
 .ld-agent-note { margin-top: auto !important; font-size: var(--ld-text-xs); color: var(--ld-muted); }
 .ld-stages { list-style: none; }
-.ld-stage-shot { display: none; }
+.landing .ld-stage-shot { display: none; }
 .ld-stages > li { display: flex; flex-direction: column; justify-content: center; gap: var(--ld-space-md); min-height: 80dvh; padding-block: var(--ld-space-2xl); scroll-margin-top: 10dvh;
   color: var(--ld-ink-2); font-size: var(--ld-text-lead); line-height: 1.65; transition: opacity var(--ld-dur-reveal) var(--ld-ease-out); }
 .js .landing .ld-stages > li:not(.on) { opacity: 0.35; }
@@ -173,15 +185,13 @@ body.is-landing .app { max-width: none; }
 .ld-rules li { padding-block: var(--ld-space-sm); border-bottom: 1px solid var(--ld-rule); font-size: var(--ld-text-md); }
 .ld-rules b { display: block; color: var(--ld-ink); }
 
-/* 08~09 Why IDly */
-.ld-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ld-space-xl); margin-top: var(--ld-space-3xl) !important; list-style: none; counter-reset: ld-v; }
-.ld-values li { counter-increment: ld-v; padding-top: var(--ld-space-lg); border-top: 1px solid var(--ld-navy-rule); color: var(--ld-on-navy-2); }
-.ld-values li::before { content: counter(ld-v); display: block; margin-bottom: var(--ld-space-md); font-size: var(--ld-text-say-s); font-weight: 800; color: var(--ld-accent); font-variant-numeric: tabular-nums; }
-.ld-values b { display: block; margin-bottom: var(--ld-space-xs); font-size: 1.25rem; color: var(--ld-on-navy); }
 
-/* 10~11 첫 고객: 세무사 사무실 */
-.ld-office { background: var(--ld-paper); }
-.ld-office-in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--ld-space-3xl); align-items: end; }
+/* 6. 회사라면: 숫자 셋 + 세무사 사무실 */
+.ld-office { background: var(--ld-paper-2); }
+.ld-office-in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--ld-space-3xl); align-items: start; margin-top: var(--ld-space-3xl); }
+.ld-office-in .ld-say-s { color: var(--ld-ink); }
+.ld-checks b { display: block; color: var(--ld-ink); font-weight: 800; }
+.ld-checks li { font-weight: 500; color: var(--ld-ink-2); }
 .ld-checks { display: grid; list-style: none; margin-bottom: var(--ld-space-xl) !important; border-top: 2px solid var(--ld-ink); }
 .ld-checks li { position: relative; padding: var(--ld-space-md) 0 var(--ld-space-md) 36px; border-bottom: 1px solid var(--ld-rule); font-weight: 600; line-height: 1.55; }
 .ld-checks li::before { content: ""; position: absolute; left: 0; top: 20px; width: 20px; height: 20px; border-radius: 50%; background: var(--ld-accent); }
@@ -212,7 +222,7 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
 
 /* 60rem 아래: 위에서 아래로. 솔루션의 화면은 위에 붙고 단계가 그 아래로 지나간다 */
 @media (max-width: 60rem) {
-  .ld-cover { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-xl); min-height: 0; padding-top: var(--ld-space-2xl); }
+  .ld-demo { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-xl); min-height: 0; padding-top: var(--ld-space-2xl); }
   .ld-inbox { height: 460px; min-height: 0; }
   .ld-scene { min-height: 0; padding-block: var(--ld-space-3xl); }
   .ld-stats { grid-template-columns: minmax(0, 1fr); }
@@ -225,7 +235,6 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
     box-shadow: var(--ld-shadow), 0 0 0 1px var(--ld-rule); background: var(--ld-surface); }
   .ld-stages > li { min-height: 0; padding-block: var(--ld-space-xl); border-top: 1px solid var(--ld-rule); }
   .js .landing .ld-stages > li:not(.on) { opacity: 1; }
-  .ld-values { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-lg); }
   .ld-office-in { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-xl); }
   .ld-compose-row, .ld-compose-body, .ld-compose-foot { padding-inline: var(--ld-space-xl); }
 }
