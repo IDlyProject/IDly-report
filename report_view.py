@@ -296,7 +296,7 @@ def _office(accounts: List[Dict[str, Any]]) -> str:
     return ('<section class="rp-office"><img src="/static/assets/owl-stand.png" alt="" width="64" height="64">'
             f'<div class="rp-office-body"><p class="rp-office-title">사무실 계정도 이렇게 정리해 보세요</p>'
             f'<p class="rp-office-text">{lead}</p>'
-            '<div class="rp-office-actions"><button type="button" class="rp-office-share" data-share>IDly 링크 보내기</button>'
+            '<div class="rp-office-actions">'
             '<a class="rp-office-ask" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" '
             'data-ga="office_inquiry_click">사무실 도입 문의</a></div></div></section>')
 
