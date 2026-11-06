@@ -21,7 +21,7 @@
     const active = hovered ?? scrolled;
     stage.dataset.s = active < 0 ? "" : String(Math.min(active, n));
     chips.forEach((c, i) => {
-      c.classList.toggle("done", i <= Math.max(scrolled, hovered ?? -1));
+      c.classList.toggle("done", i <= (hovered ?? scrolled));
       c.classList.toggle("on", i === active);
     });
     // 카드: 켜진 칩의 답. 다 체크했으면 마지막 답을 그대로 둔다
@@ -53,25 +53,20 @@
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onScroll, { passive: true });
 
-  // 커서: 칩에 올리면 그 답으로, 장면 어디서든 빛이 커서 쪽으로 살짝 기운다
-  chips.forEach((c, i) => {
-    c.addEventListener("mouseenter", () => {
-      if (!fine.matches) return;
-      hovered = i;
-      paint();
-    });
-    c.addEventListener("focus", () => {
-      hovered = i;
-      paint();
-    });
-    c.addEventListener("blur", () => {
-      hovered = null;
-      paint();
-    });
+  // 커서: 스크롤과 같은 역할. 문장 줄 위에서 커서를 아래로 내리면 그 줄까지 체크되고, 올리면 풀린다. 장면을 떠나면 스크롤 상태로
+  const lineEls = [...stage.querySelectorAll(".ld-line")];
+  stage.addEventListener("pointermove", (e) => {
+    if (!fine.matches) return;
+    let k = -1;
+    lineEls.forEach((l, i) => { if (e.clientY >= l.getBoundingClientRect().top - 8) k = i; });
+    const next = k < 0 ? null : Math.min(k, n);
+    if (next !== hovered) { hovered = next; paint(); }
   });
-  stage.querySelector(".ld-lines").addEventListener("mouseleave", () => {
-    hovered = null;
-    paint();
+  stage.addEventListener("pointerleave", () => { hovered = null; paint(); });
+  chips.forEach((c, i) => {
+    c.tabIndex = 0;
+    c.addEventListener("focus", () => { hovered = i; paint(); });
+    c.addEventListener("blur", () => { hovered = null; paint(); });
   });
   // 빛 고리: 커서를 움직이면 오렌지 쪽이 커서 방향으로 따라 돈다 (떼면 스크롤 상태의 각도로 돌아간다)
   const ring = stage.querySelector(".ld-ring");
@@ -139,17 +134,59 @@
   if (b2b) {
     b2b.hidden = true;
     if (b2bOpen) b2bOpen.addEventListener("click", () => openB2B(true));
-    const popClose = document.getElementById("ld-pop-close");
-    if (popClose) popClose.addEventListener("click", () => {
+    const closePop = () => {
+      if (!pop || pop.hidden) return;
       popDone = true;
-      pop.hidden = true;
+      pop.classList.add("leaving");
+      setTimeout(() => { pop.hidden = true; pop.classList.remove("leaving"); }, 260);
       if (typeof window.track === "function") window.track("b2b_pop_close");
+    };
+    const popClose = document.getElementById("ld-pop-close");
+    if (popClose) popClose.addEventListener("click", closePop);
+    addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+    // 위로 밀어 올리면 닫힌다 (iOS 알림처럼)
+    let sy = null;
+    pop.addEventListener("pointerdown", (e) => { sy = e.clientY; });
+    pop.addEventListener("pointermove", (e) => {
+      if (sy === null) return;
+      const dy = Math.min(0, e.clientY - sy);
+      pop.style.setProperty("--drag", `${dy}px`);
     });
+    const endDrag = (e) => {
+      if (sy === null) return;
+      const dy = e.clientY - sy; sy = null;
+      pop.style.removeProperty("--drag");
+      if (dy < -40) closePop();
+    };
+    pop.addEventListener("pointerup", endDrag);
+    pop.addEventListener("pointercancel", endDrag);
     // 상단바·푸터의 #ld-office-b2b 링크: 먼저 열고 나서 app.js가 그쪽으로 스크롤한다
     document.addEventListener("click", (e) => {
       const a = e.target.closest && e.target.closest('a[href="#ld-office-b2b"]');
       if (a) openB2B(false);
     }, true);
+  }
+
+  // 흩어진 계정: 처음엔 흩어져 있고, 스크롤해서 내려오는 만큼 가지런해진다 (--mess 1 → 0)
+  const fbox = document.querySelector(".ld-folders");
+  if (fbox) {
+    const folders = [...fbox.querySelectorAll(".ld-folder")];
+    folders.forEach((f, i) => {
+      const r = (k) => Math.sin(i * 12.9898 + k * 78.233) * 43758.5453 % 1;
+      f.style.setProperty("--sx", `${(r(1) * 90).toFixed(0)}px`);
+      f.style.setProperty("--sy", `${(r(2) * 60).toFixed(0)}px`);
+      f.style.setProperty("--sr", `${(r(3) * 22).toFixed(0)}deg`);
+    });
+    const tidy = () => {
+      if (reduce.matches) { fbox.style.setProperty("--mess", "0"); return; }
+      const t = fbox.getBoundingClientRect().top;
+      // 폴더 윗변이 화면 아래(100%)에 있을 때 흩어짐 1, 화면 30% 높이까지 올라오면 0
+      const m = Math.min(1, Math.max(0, (t - innerHeight * 0.3) / (innerHeight * 0.6)));
+      fbox.style.setProperty("--mess", m.toFixed(3));
+    };
+    addEventListener("scroll", () => requestAnimationFrame(tidy), { passive: true });
+    addEventListener("resize", tidy, { passive: true });
+    tidy();
   }
 
   // 랜딩이 다시 보일 때(다른 화면에서 돌아올 때) 상태를 다시 잰다

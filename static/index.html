@@ -51,11 +51,54 @@
     </div>
   </section>
 
+  <!-- 1-0. 흩어진 계정 (피그마 이미지 76): 폴더처럼 흩어져 있던 계정이 스크롤해서 들어오면 정리되고, 커서를 가져가면 피해 밀려난다 -->
+  <section class="ld-sec ld-folders-sec" id="ld-folders">
+    <div class="ld-container">
+      <h2 class="ld-say">흩어진 계정,<br>한 번에 정리돼요</h2>
+      <p class="ld-sub">몇 개에 가입했는지 몰라도 괜찮아요. 메일에 남은 흔적을 모아 서비스별로 묶어 드려요.</p>
+      <ol class="ld-folders" aria-label="정리된 계정 예시">
+          <li class="ld-folder"><span>넷플릭스</span></li>
+          <li class="ld-folder"><span>쿠팡</span></li>
+          <li class="ld-folder"><span>네이버</span></li>
+          <li class="ld-folder"><span>카카오</span></li>
+          <li class="ld-folder"><span>토스</span></li>
+          <li class="ld-folder"><span>Notion</span></li>
+          <li class="ld-folder"><span>Canva</span></li>
+          <li class="ld-folder"><span>Claude</span></li>
+          <li class="ld-folder"><span>인스타그램</span></li>
+          <li class="ld-folder"><span>페이스북</span></li>
+          <li class="ld-folder"><span>11번가</span></li>
+          <li class="ld-folder"><span>배달의민족</span></li>
+          <li class="ld-folder"><span>Apple Music</span></li>
+          <li class="ld-folder"><span>iCloud</span></li>
+          <li class="ld-folder"><span>Figma</span></li>
+          <li class="ld-folder"><span>Zoom</span></li>
+          <li class="ld-folder"><span>Dropbox</span></li>
+          <li class="ld-folder"><span>Adobe</span></li>
+          <li class="ld-folder"><span>잔디</span></li>
+          <li class="ld-folder"><span>Google</span></li>
+          <li class="ld-folder"><span>Microsoft</span></li>
+          <li class="ld-folder"><span>인터파크</span></li>
+          <li class="ld-folder"><span>야놀자</span></li>
+          <li class="ld-folder"><span>29CM</span></li>
+          <li class="ld-folder"><span>위메프</span></li>
+          <li class="ld-folder"><span>당근</span></li>
+          <li class="ld-folder"><span>무신사</span></li>
+          <li class="ld-folder"><span>왓챠</span></li>
+          <li class="ld-folder"><span>티빙</span></li>
+          <li class="ld-folder"><span>멜론</span></li>
+          <li class="ld-folder"><span>스포티파이</span></li>
+          <li class="ld-folder"><span>GitHub</span></li>
+      </ol>
+    </div>
+  </section>
+
   <!-- 첫 장면을 떠날 때 왼쪽 아래에 뜨는 작은 카드: 기업 이야기(B2B)로 들어가는 문. 화면을 막지 않고, 닫으면 다시 뜨지 않는다 -->
   <aside class="ld-pop" id="ld-pop" aria-label="IDly 알림" hidden>
     <button class="ld-pop-body" type="button" id="ld-b2b-open" aria-controls="ld-office-b2b" aria-expanded="false" data-ga="b2b_open">
-      <img src="/static/assets/logo-owl.svg" alt="" width="36" height="36">
-      <span class="ld-pop-copy"><span class="ld-pop-meta"><b>IDly</b><span>지금</span></span><b class="ld-pop-title">이런 문제는 기업에도 있어요</b><span class="ld-pop-text">퇴사자 계정, 안 쓰는 업무 구독까지</span></span>
+      <span class="ld-pop-head"><img src="/static/assets/logo-owl.svg" alt="" width="20" height="20"><span class="ld-pop-app">IDLY</span><span class="ld-pop-time">지금</span></span>
+      <b class="ld-pop-title">이런 문제는 기업에도 있어요</b>
+      <span class="ld-pop-text">퇴사자 계정, 안 쓰는 업무 구독까지. 눌러서 보기</span>
     </button>
     <button class="ld-pop-close" type="button" id="ld-pop-close" aria-label="알림 닫기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </aside>
@@ -63,13 +106,15 @@
   <!-- 2-1. 사무실이라면 (B2B, IR 13·14 B2C2B, 10 Target Customer, 12 Customer Validation). 업종은 쓰지 않고, 가격은 말하지 않는다 -->
   <section class="ld-sec ld-office" id="ld-office-b2b">
     <div class="ld-container">
-      <h2 class="ld-say">사무실이라면,<br>이렇게 넓혀요</h2>
-      <p class="ld-sub">IT 담당자가 없는 작은 사무실을 위해 만들었어요. 관리자 연동이나 직원 교육 없이, 직원 한 명의 이메일에서 시작해 사무실 전체 계정과 구독까지 정리해요.</p>
-      <ol class="ld-flow">
-        <li><b>직원 한 명이 무료 리포트를 받아요</b>내 이메일 하나로 가입한 서비스와 구독을 확인해요.</li>
-        <li><b>업무 계정이 보이면 대표님께 공유해요</b>협업툴, 클라우드, 디자인 툴처럼 사무실이 함께 쓰는 계정을 따로 골라 보여 드려요.</li>
-        <li><b>사무실 전체를 한 화면에서 정리해요</b>직원들의 메일을 차례로 연결하면 사무실 전체 구독료와 정리할 계정이 모여요.</li>
-      </ol>
+      <h2 class="ld-say">사무실에서는<br>이런 걸 지원해요</h2>
+      <ul class="ld-supports">
+        <li><b>퇴사자 계정 정리</b>나간 직원이 가입했던 업무 서비스를 찾아 정리할 계정을 알려 드려요.</li>
+        <li><b>사무실 전체 구독료</b>누가 무엇을 얼마에 쓰는지, 다음 결제일까지 한 화면에 모아요.</li>
+        <li><b>중복·안 쓰는 구독</b>같은 서비스를 여러 명이 따로 결제하거나 아무도 안 쓰는 구독을 찾아요.</li>
+        <li><b>보안 알림 모아 보기</b>업무 계정의 새 기기 로그인, 비밀번호 변경 알림을 먼저 보여 드려요.</li>
+        <li><b>근거 메일</b>왜 정리해야 하는지 결제 영수증과 로그인 메일로 보여 드려요.</li>
+        <li><b>정리 대행</b>탈퇴, 해지, 비밀번호 변경은 에이전트가 대신하고 승인만 해요. 지금 개발 중이에요.</li>
+      </ul>
       <div class="ld-office-cta">
         <p>올해 12월, 사무실 3곳과 함께 파일럿을 진행해요. 우리 사무실도 해 보고 싶다면 편하게 물어봐 주세요.</p>
         <a class="ld-btn ld-btn-main" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="b2b">사무실 도입 문의하기</a>
@@ -113,36 +158,16 @@
     </div>
   </section>
 
-  <!-- 3. 자주 묻는 질문: 페르소나가 실제로 망설이는 지점 -->
-  <section class="ld-sec ld-faq">
-    <div class="ld-container ld-faq-in">
-      <h2 class="ld-say">시작하기 전에<br>많이 물어보세요</h2>
-      <div class="ld-faq-list">
-        <details open><summary>정말 알아서 해 주는 거 맞아요?</summary>
-          <p>네. 이메일을 넣으면 IDly가 메일함을 읽어 계정과 구독, 다음 결제일을 정리해 드려요. 일일이 확인하거나 포스트잇에 적어 둘 필요가 없어요. 탈퇴와 해지를 대신하는 에이전트는 개발 중이고, 그때도 대표님은 승인만 하면 돼요.</p></details>
-        <details><summary>다른 관리 툴과 뭐가 달라요?</summary>
-          <p>대부분의 관리 툴은 법인카드나 관리자 계정 연동부터 시작하고, 찾은 뒤 정리는 담당자가 직접 해요. IDly는 직원 한 명의 이메일에서 시작하고, 왜 정리해야 하는지 근거 메일과 함께 보여 드려요. 정리 실행은 에이전트가 대신해요 (개발 중).</p></details>
-        <details><summary>IT 담당자가 없어도 쓸 수 있나요?</summary>
-          <p>네. 설치, 관리자 세팅, 교육이 필요 없어요. 메일 주소와 앱 비밀번호만 넣으면 되고, 앱 비밀번호 만드는 방법은 화면에서 바로 알려 드려요.</p></details>
-        <details><summary>메일 내용을 다 읽나요? 비밀번호는요?</summary>
-          <p>보낸 곳, 제목, 날짜와 결제, 인증, 보안 메일 일부만 읽어요. 메일 비밀번호와 원문은 저장하지 않고, 이메일 아이디, 전화번호, 카드번호, 인증번호는 가린 뒤에만 AI가 읽어요.</p></details>
-        <details><summary>얼마나 걸려요?</summary>
-          <p>메일 연결은 몇 분이면 끝나요. 메일이 많으면 분석에 조금 더 걸리지만, 그동안 다른 일을 하셔도 돼요.</p></details>
-        <details><summary>직원 모두의 계정도 정리할 수 있나요?</summary>
-          <p>먼저 내 이메일 하나로 무료 리포트를 받아 보세요. 업무 계정이 보이면 사무실 전체로 넓힐 수 있어요. 사무실 도입은 카카오톡으로 편하게 문의해 주세요.</p></details>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. 지금 리포트로 확인하세요 -->
-  <section class="ld-sec ld-cta" id="ld-office">
-    <div class="ld-ring" aria-hidden="true"></div>
+  <!-- 4. 마무리: 첫 화면의 다섯 가지를 다시 짧게 보여 주고(전부 체크됨), 한 문장과 버튼 하나로 끝낸다 -->
+  <section class="ld-cta" id="ld-office">
     <div class="ld-container ld-cta-in">
-      <h2 class="ld-say">계정 정리,<br>더 미루지 마세요</h2>
-      <p class="ld-sub">지금 내 이메일 하나로 무료 리포트를 받아 보세요. 설치도, 세팅도, 가입도 없이 몇 분이면 돼요.</p>
-      <div class="ld-actions">
-        <button class="ld-btn ld-btn-main" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
-        <a class="ld-link" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의하기</a>
+      <ul class="ld-cta-chips" aria-label="첫 화면의 다섯 가지">
+        <li>너무 많은 계정</li><li>기억 안 나는 가입</li><li>새는 구독</li><li>퇴사자 계정</li><li>유출 걱정</li>
+      </ul>
+      <h2 class="ld-cta-say">답은 이미<br>메일함에 있어요.</h2>
+      <div class="ld-cta-act">
+        <button class="ld-btn ld-btn-accent" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
+        <a class="ld-link ld-link-dark" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의</a>
       </div>
     </div>
   </section>
