@@ -140,16 +140,38 @@ body.is-landing .app { max-width: none; }
 /* 2. 저희는 */
 .ld-sec { padding-block: var(--ld-space-4xl); }
 .ld-say { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.3; letter-spacing: -0.04em; max-width: 24ch; }
-.ld-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ld-space-xl); margin-top: var(--ld-space-2xl) !important; list-style: none; counter-reset: ld-step; }
-.ld-steps li { counter-increment: ld-step; padding-top: var(--ld-space-lg); border-top: 2px solid var(--ld-ink); color: var(--ld-ink-2); scroll-margin-top: var(--ld-space-lg); }
-.ld-steps li::before { content: counter(ld-step); display: block; margin-bottom: var(--ld-space-sm); font-weight: 800; color: var(--ld-accent-deep); font-variant-numeric: tabular-nums; }
-.ld-steps h3 { margin-bottom: var(--ld-space-xs) !important; font-size: var(--ld-text-title); font-weight: 800; letter-spacing: -0.03em; color: var(--ld-ink); }
 .ld-proof { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ld-space-xl); align-items: center; margin-top: var(--ld-space-3xl); padding: var(--ld-space-xl);
   border-radius: var(--ld-radius-box); background: var(--ld-paper-2); }
 .ld-proof-num { font-size: clamp(1.5rem, 2vw, 2.25rem); font-weight: 800; line-height: 1; color: var(--ld-navy); }
 .ld-proof-num b { font-size: clamp(4rem, 9vw, 7.5rem); letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
 .ld-proof-text { max-width: 44ch; font-size: var(--ld-text-lead); color: var(--ld-ink-2); }
 .ld-proof-text b { color: var(--ld-ink); font-variant-numeric: tabular-nums; }
+
+/* 비교표: 보통의 관리 툴 vs IDly. 바깥 테두리 없이 가로선만, IDly 열이 한 단계 진하다 */
+.ld-sub { margin-top: var(--ld-space-lg) !important; max-width: 52ch; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-ink-2); }
+.ld-compare { width: 100%; margin-top: var(--ld-space-2xl); border-collapse: collapse; font-size: 1.0625rem; }
+.ld-compare th, .ld-compare td { padding: var(--ld-space-md) var(--ld-space-md) var(--ld-space-md) 0; border-bottom: 1px solid var(--ld-rule); text-align: left; vertical-align: top; }
+.ld-compare thead th { border-bottom: 2px solid var(--ld-ink); font-size: var(--ld-text-sm); font-weight: 700; color: var(--ld-muted); white-space: nowrap; }
+.ld-compare thead th:last-child { color: var(--ld-navy); }
+.ld-compare tbody th { width: 22%; font-weight: 700; color: var(--ld-ink); }
+.ld-compare td { width: 39%; color: var(--ld-muted); }
+.ld-compare td:last-child { font-weight: 700; color: var(--ld-navy); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* 자주 묻는 질문: 펼쳐 보는 방식 */
+.ld-faq { background: var(--ld-paper-2); }
+.ld-faq-in { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: var(--ld-space-2xl); align-items: start; }
+.ld-faq-list { border-top: 2px solid var(--ld-ink); }
+.ld-faq-list details { border-bottom: 1px solid var(--ld-rule); }
+.ld-faq-list summary { display: flex; justify-content: space-between; align-items: center; gap: var(--ld-space-md); min-height: 64px; padding-block: var(--ld-space-md);
+  font-size: 1.125rem; font-weight: 700; color: var(--ld-ink); cursor: pointer; list-style: none; }
+.ld-faq-list summary::-webkit-details-marker { display: none; }
+.ld-faq-list summary::after { content: ""; flex: none; width: 10px; height: 10px; margin-right: 4px; border-right: 2px solid var(--ld-navy); border-bottom: 2px solid var(--ld-navy);
+  transform: rotate(45deg); transition: transform var(--ld-dur-short) var(--ld-ease-out); }
+.ld-faq-list details[open] summary::after { transform: rotate(-135deg); }
+.ld-faq-list summary:hover { color: var(--ld-navy); }
+.ld-faq-list summary:focus-visible { outline: 2px solid var(--ld-focus); outline-offset: 2px; border-radius: 6px; }
+.ld-faq-list details p { max-width: 60ch; padding-bottom: var(--ld-space-lg); color: var(--ld-ink-2); }
 
 /* 3. 지금 리포트로 확인하세요 */
 .ld-dark { background: var(--ld-navy-deep); color: var(--ld-on-navy); }
@@ -179,7 +201,8 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
   .ld-panel { max-height: none; padding: var(--ld-space-lg); }
   .ld-steps { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-lg); }
   .ld-proof { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-md); }
-  .ld-cta-in { grid-template-columns: minmax(0, 1fr); }
+  .ld-cta-in, .ld-faq-in { grid-template-columns: minmax(0, 1fr); }
+  .ld-compare tbody th { width: 28%; }
   .ld-cta img { width: 140px; }
   .ld-sec { padding-block: var(--ld-space-3xl); }
 }
@@ -189,9 +212,10 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
   .ld-ans { padding-left: var(--ld-space-sm); }
   .ld-inbox { height: 380px; }
   .ld-mails li { grid-template-columns: 5.5rem minmax(0, 1fr); }
+  .ld-compare { font-size: 0.9375rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ld-btn, .ld-top-links a, .ld-mails li, .ld-pause, .ld-pains label { transition: none; }
+  .ld-btn, .ld-top-links a, .ld-mails li, .ld-pause, .ld-pains label, .ld-faq-list summary::after { transition: none; }
   .ld-btn:active { transform: none; }
   .ld-found-list span, .ld-panel-ans { animation: none; }
 }
