@@ -608,6 +608,18 @@ def start_report(body: StartBody, request: Request):
         if not body.terms:
             raise ApiError(403, "약관 동의가 필요해요.")
     _purge()
+    # 화면 확인용: 메일 주소와 비밀번호를 둘 다 test로 넣으면 실제 메일 없이 목업 리포트를 바로 만든다.
+    # 내용은 샘플 리포트와 같고, DB에는 저장하지 않는다 (서버를 다시 켜면 사라진다)
+    if body.email.strip().lower() == "test" and body.password.strip() == "test":
+        if not body.consented:
+            raise ApiError(400, "메일 분석 동의가 필요해요.")
+        data = json.loads((HERE / "sample_report.json").read_text(encoding="utf-8"))
+        data.pop("sample", None)
+        data["mock"] = True
+        report = Report("test@idly.kr", user["id"] if user else None, data=data, guest=guest)
+        report.paid = True
+        _reports[report.id] = report
+        return {"id": report.id}
     provider = get_provider(body.provider) if body.provider else resolve_provider(body.email)
     email = body.email.strip()
     # 붙여 넣을 때 앞뒤에 딸려 온 공백은 뺀다

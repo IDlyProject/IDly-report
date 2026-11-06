@@ -2,28 +2,32 @@
  * paper: #f6f7fb · accent: #ff9b54 · display: Pretendard · body: Pretendard · hero: Corridor (the sentence is the hero, the answer card beside it) · nav: edge-aligned, wordmark and three quiet links · footer: colophon · signature: chips in a sentence that check themselves while a blue-orange aura moves to each answer
  * axes: light/grotesk-sans/warm · posture: committed (the aura carries the first screen, navy holds type, orange marks what is found) · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V5 · weakest: E, a pinned scene with live state; scripts off it unpins and every answer is listed under the sentence */
-/* Hallmark · waive 29 · two to three blurred blooms behind the first scene, slow drift, still under reduced motion · the user asked for the soft aura look from their own references */
+/* Hallmark · waive 29 · one blurred ring hugging the edges of the first scene, still under reduced motion · the user asked for the edge glow from their own reference (image 73) */
 /* 시작 화면 = IDly 소개 (impeccable + ui-ux-pro-max: aurora UI, 파랑·오렌지 보색, 8~12초 흐름, 고정 장면 하나).
    레퍼런스에서 배운 것: 밝은 회색 바탕의 흐릿한 빛, 문장 속 강조 칩과 체크 배지, 큰 글씨와 여백, 스크롤·커서만으로 바뀌는 상태.
    앱 화면(style.css)에 새지 않도록 전부 .landing 아래에 둔다. 로고와 Pretendard는 그대로, 색은 네이비 #202F61 · 오렌지 #FF9B54 */
 :root {
-  --ld-paper: #f6f7fb; --ld-paper-2: #eceef6; --ld-surface: #fdfdff;
-  --ld-ink: #1b2740; --ld-ink-2: #4a5165; --ld-muted: #646a7d; --ld-quiet: #8b91a3; --ld-rule: #dde0ea;
-  --ld-navy: #202f61; --ld-navy-2: #2a2f8f; --ld-navy-deep: #17234b; --ld-on-navy: #f6f7fc;
-  --ld-accent: #ff9b54; --ld-accent-bg: #ffe9d3; --ld-accent-deep: #7a3f12; --ld-focus: #2a2f8f;
-  /* 오라: IDly 네이비 계열(라벤더·하늘)과 오렌지 계열(피치·살구) */
-  --ld-aura-orange: #ffb47e; --ld-aura-peach: #ffd8bd; --ld-aura-lav: #c3ccf2; --ld-aura-sky: #bcd7f3; --ld-aura-indigo: #8f9de0;
-  --ld-radar-bg: #121c46; --ld-radar-ring: rgba(196, 204, 242, 0.22); --ld-radar-sweep: rgba(143, 157, 224, 0.55); --ld-radar-glow: rgba(255, 216, 189, 0.5);
-  --ld-alert-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5); --ld-alert-bg: rgba(246, 247, 252, 0.1); --ld-alert-edge: rgba(246, 247, 252, 0.28); --ld-on-navy-2: #c4c9de;
+  /* 색: 피그마 IDly 디자인 시스템 색과, 그 색들의 투명도만 쓴다 */
+  --ld-paper: #f9f9fd; --ld-paper-2: #eef0f7; --ld-surface: #ffffff; --ld-info-bg: #eef3ff;
+  --ld-ink: #1b2740; --ld-ink-2: rgba(27, 39, 64, 0.74); --ld-muted: rgba(27, 39, 64, 0.6); --ld-quiet: rgba(27, 39, 64, 0.42); --ld-faint: rgba(27, 39, 64, 0.32);
+  --ld-rule: rgba(32, 47, 97, 0.12);
+  --ld-navy: #202f61; --ld-navy-2: #2a2f8f; --ld-navy-deep: #202f61; --ld-navy-grad: linear-gradient(150deg, #2a2f8f, #202f61);
+  --ld-on-navy: #ffffff; --ld-on-navy-2: rgba(255, 255, 255, 0.74); --ld-navy-rule: rgba(255, 255, 255, 0.16);
+  --ld-accent: #ff9b54; --ld-accent-bg: #ffe9d3; --ld-accent-deep: #202f61; --ld-focus: #2a2f8f;
+  --ld-mask: #000; --ld-pop-bg: rgba(255, 255, 255, 0.92); --ld-pop-edge: rgba(32, 47, 97, 0.08);
+  /* 빛: 오렌지와 네이비 그라데이션 색에 투명도만 */
+  --ld-glow-coral: rgba(255, 155, 84, 0.62); --ld-glow-pink: rgba(255, 233, 211, 0.9); --ld-glow-sky: rgba(42, 47, 143, 0.22); --ld-glow-lav: rgba(238, 240, 247, 0.95);
+  --ld-radar-bg: #202f61; --ld-radar-ring: rgba(255, 255, 255, 0.14); --ld-radar-sweep: rgba(238, 243, 255, 0.35); --ld-radar-glow: rgba(255, 233, 211, 0.4);
+  --ld-alert-shadow: 0 12px 28px -12px rgba(27, 39, 64, 0.6); --ld-alert-bg: rgba(255, 255, 255, 0.1); --ld-alert-edge: rgba(255, 255, 255, 0.28);
   --ld-shadow: 0 1px 2px rgba(27, 39, 64, 0.04), 0 12px 32px -8px rgba(32, 47, 97, 0.16);
   --ld-tick-shadow: 0 2px 6px rgba(32, 47, 97, 0.3);
   --ld-chip-shadow: 0 1px 2px rgba(27, 39, 64, 0.06), 0 6px 16px -6px rgba(32, 47, 97, 0.18);
   --ld-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 
   --ld-space-2xs: 4px; --ld-space-xs: 8px; --ld-space-sm: 12px; --ld-space-md: 16px; --ld-space-lg: 24px; --ld-space-xl: 40px; --ld-space-2xl: 64px; --ld-space-3xl: 96px; --ld-space-4xl: 144px;
-  --ld-container: 1200px; --ld-gutter: 56px;
+  --ld-container: 1200px; --ld-gutter: 56px; --ld-nav-h: 68px;
   --ld-text-title: clamp(1.5rem, 1.1vw + 1.1rem, 2.25rem);
-  --ld-text-sentence: clamp(1.375rem, 1.9vw + 0.9rem, 2.75rem);
+  --ld-text-sentence: clamp(1.25rem, 1.1vw + 0.95rem, 2.125rem);
   --ld-text-say: clamp(1.875rem, 2.2vw + 1rem, 3.25rem);
   --ld-text-big: clamp(3.25rem, 5vw + 1rem, 6rem);
   --ld-text-lead: clamp(1.0625rem, 0.4vw + 1rem, 1.3125rem);
@@ -50,8 +54,9 @@ body.is-landing .app { max-width: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* 맨 위: 첫 장면 위에 겹쳐 둔다 */
-.ld-top { position: absolute; inset: 0 0 auto; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: var(--ld-space-md);
-  max-width: var(--ld-container); margin-inline: auto; padding: var(--ld-space-lg) var(--ld-gutter) 0; }
+.ld-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: var(--ld-space-md);
+  height: var(--ld-nav-h); padding-inline: max(var(--ld-gutter), calc((100% - var(--ld-container)) / 2 + var(--ld-gutter)));
+  background: var(--ld-paper); box-shadow: 0 1px 0 var(--ld-rule); }
 .ld-mark { display: flex; }
 .ld-top-links { display: flex; gap: var(--ld-space-lg); }
 .ld-top-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--ld-text-sm); font-weight: 600; color: var(--ld-ink-2);
@@ -76,101 +81,75 @@ body.is-landing .app { max-width: none; }
 
 /* 1. 고정 장면: 스크롤하는 동안 화면에 붙어 있고, 스크롤 위치가 지금 켜질 칩을 정한다 */
 .ld-scene { position: relative; }
-.js .landing .ld-scene { height: 460dvh; }
-.ld-stage { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; overflow: clip; isolation: isolate;
+.js .landing .ld-scene { height: 210dvh; }
+.ld-stage { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: calc(100dvh - var(--ld-nav-h)); overflow: clip; isolation: isolate;
   --mx: 0; --my: 0; }
-.js .landing .ld-stage { position: sticky; top: 0; height: 100dvh; }
+.js .landing .ld-stage { position: sticky; top: var(--ld-nav-h); height: calc(100dvh - var(--ld-nav-h)); min-height: 0; }
 
-/* 오라: 흐릿한 빛 셋. 상태(data-s)마다 자리와 색이 바뀌고, 커서 쪽으로 살짝 따라온다 */
-.ld-aura { position: absolute; inset: -10%; z-index: -1; pointer-events: none; container-type: size;
-  transform: translate3d(calc(var(--mx) * 36px), calc(var(--my) * 28px), 0); transition: transform var(--ld-dur-aura) var(--ld-ease-out); }
-.ld-aura i { position: absolute; left: 0; top: 0; width: 46vmax; aspect-ratio: 1; border-radius: 50%; filter: blur(70px); opacity: 0.85;
-  translate: calc(var(--x, 50cqw) - 23vmax) calc(var(--y, 50cqh) - 23vmax); scale: var(--k, 1); background: var(--c, var(--ld-aura-lav));
-  transition: translate var(--ld-dur-aura) var(--ld-ease-out), scale var(--ld-dur-aura) var(--ld-ease-out), background-color var(--ld-dur-aura) var(--ld-ease-out);
-  animation: ld-drift 11s ease-in-out infinite alternate; }
-.ld-aura .a2 { animation-duration: 13s; animation-delay: -4s; }
-.ld-aura .a3 { animation-duration: 9s; animation-delay: -7s; }
-@keyframes ld-drift { from { transform: translate(-4%, 3%) scale(1); } to { transform: translate(5%, -4%) scale(1.12); } }
-/* 처음: 라벤더와 하늘이 크게, 오렌지는 오른쪽 위 작게 */
-.ld-stage .a1 { --x: 78cqw; --y: 18cqh; --k: 0.83; --c: var(--ld-aura-peach); }
-.ld-stage .a2 { --x: 18cqw; --y: 82cqh; --k: 1.09; --c: var(--ld-aura-lav); }
-.ld-stage .a3 { --x: 62cqw; --y: 70cqh; --k: 0.74; --c: var(--ld-aura-sky); }
-/* 0 너무 많은데: 하늘빛이 넓게 퍼진다 */
-.ld-stage[data-s="0"] .a1 { --x: 72cqw; --y: 30cqh; --k: 0.96; --c: var(--ld-aura-sky); }
-.ld-stage[data-s="0"] .a2 { --x: 24cqw; --y: 76cqh; --k: 1.04; --c: var(--ld-aura-lav); }
-.ld-stage[data-s="0"] .a3 { --x: 88cqw; --y: 82cqh; --k: 0.61; --c: var(--ld-aura-peach); }
-/* 1 기억도 안 나고: 라벤더가 카드 쪽으로 모인다 */
-.ld-stage[data-s="1"] .a1 { --x: 80cqw; --y: 48cqh; --k: 0.87; --c: var(--ld-aura-lav); }
-.ld-stage[data-s="1"] .a2 { --x: 34cqw; --y: 12cqh; --k: 0.78; --c: var(--ld-aura-sky); }
-.ld-stage[data-s="1"] .a3 { --x: 60cqw; --y: 92cqh; --k: 0.65; --c: var(--ld-aura-peach); }
-/* 2 아직도 결제되고: 오렌지가 크게 타오른다 */
-.ld-stage[data-s="2"] .a1 { --x: 76cqw; --y: 42cqh; --k: 1.04; --c: var(--ld-aura-orange); }
-.ld-stage[data-s="2"] .a2 { --x: 20cqw; --y: 86cqh; --k: 0.83; --c: var(--ld-aura-peach); }
-.ld-stage[data-s="2"] .a3 { --x: 96cqw; --y: 6cqh; --k: 0.57; --c: var(--ld-aura-lav); }
-/* 3 아직 살아 있고: 짙은 남색 빛이 아래에서 올라온다 */
-.ld-stage[data-s="3"] .a1 { --x: 70cqw; --y: 70cqh; --k: 0.96; --c: var(--ld-aura-indigo); }
-.ld-stage[data-s="3"] .a2 { --x: 14cqw; --y: 30cqh; --k: 0.74; --c: var(--ld-aura-lav); }
-.ld-stage[data-s="3"] .a3 { --x: 90cqw; --y: 20cqh; --k: 0.57; --c: var(--ld-aura-orange); }
-/* 4 우리 계정인지 몰라요: 차가운 하늘빛과 남색이 감싼다 */
-.ld-stage[data-s="4"] .a1 { --x: 82cqw; --y: 36cqh; --k: 1.00; --c: var(--ld-aura-indigo); }
-.ld-stage[data-s="4"] .a2 { --x: 30cqw; --y: 84cqh; --k: 0.96; --c: var(--ld-aura-sky); }
-.ld-stage[data-s="4"] .a3 { --x: 54cqw; --y: 4cqh; --k: 0.61; --c: var(--ld-aura-peach); }
-/* 다 체크했으면: 오렌지와 라벤더가 반반, 답이 나왔다는 느낌 */
-.ld-stage[data-s="5"] .a1 { --x: 74cqw; --y: 30cqh; --k: 0.96; --c: var(--ld-aura-orange); }
-.ld-stage[data-s="5"] .a2 { --x: 22cqw; --y: 70cqh; --k: 1.04; --c: var(--ld-aura-lav); }
-.ld-stage[data-s="5"] .a3 { --x: 66cqw; --y: 90cqh; --k: 0.70; --c: var(--ld-aura-sky); }
+/* 빛 (피그마 이미지 73): 화면 가운데 커다란 흰 원판, 그 바깥으로만 빛이 번진다. 왼쪽은 진한 코랄이 두껍게, 오른쪽은 옅은 하늘빛이 넓게.
+   스크롤하면 원판이 조금씩 돌아 빛의 방향이 바뀌고, 커서를 움직이면 그쪽으로 기운다 */
+.ld-ring { position: absolute; left: 50%; top: 50%; z-index: -1; pointer-events: none; width: min(118dvh, 92vw); aspect-ratio: 1; border-radius: 50%;
+  background: var(--ld-paper); translate: -50% -50%; rotate: var(--rot, 0deg); filter: blur(28px);
+  box-shadow: -70px 30px 120px 30px var(--ld-glow-coral), -30px -90px 140px 0 var(--ld-glow-pink), 80px 10px 160px 40px var(--ld-glow-sky), 20px 90px 140px 0 var(--ld-glow-lav);
+  transition: rotate var(--ld-dur-aura) var(--ld-ease-out); }
+.ld-stage[data-s="0"] .ld-ring { --rot: -10deg; }
+.ld-stage[data-s="1"] .ld-ring { --rot: -4deg; }
+.ld-stage[data-s="2"] .ld-ring { --rot: 6deg; }
+.ld-stage[data-s="3"] .ld-ring { --rot: 12deg; }
+.ld-stage[data-s="4"] .ld-ring { --rot: 4deg; }
+.ld-stage[data-s="5"] .ld-ring { --rot: 0deg; }
+.ld-stage.chase .ld-ring { transition-duration: 420ms; }
 
-.ld-stage-in { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--ld-space-2xl); align-items: center;
-  width: 100%; max-width: var(--ld-container); margin-inline: auto; padding: var(--ld-space-3xl) var(--ld-gutter) var(--ld-space-2xl); }
-.ld-title { font-size: var(--ld-text-title); font-weight: 800; line-height: 1.25; letter-spacing: -0.03em; color: var(--ld-navy); }
+.ld-stage-in { display: grid; justify-items: center; text-align: center;
+  width: 100%; max-width: var(--ld-container); margin-inline: auto; padding: var(--ld-space-xl) var(--ld-gutter); }
 
-/* 문장 속 칩: 회색 문장 속에서 하얀 칩만 또렷하다. 체크되면 남색 배지가 붙고, 지금 켜진 칩은 살구빛으로 떠오른다 */
-.ld-sentence { display: grid; gap: var(--ld-space-sm); margin-top: var(--ld-space-xl) !important; font-size: var(--ld-text-sentence); font-weight: 700;
-  line-height: 1.45; letter-spacing: -0.035em; color: var(--ld-quiet); }
-.ld-line { display: block; }
-.ld-chip { position: relative; display: inline-block; padding: 0.04em 0.42em; border-radius: 0.32em; background: var(--ld-surface); color: var(--ld-ink);
-  box-shadow: var(--ld-chip-shadow); cursor: default; white-space: nowrap;
-  transition: background-color var(--ld-dur-short) var(--ld-ease-out), color var(--ld-dur-short) var(--ld-ease-out), transform var(--ld-dur-short) var(--ld-ease-out); }
-.ld-chip.on { background: var(--ld-accent-bg); color: var(--ld-accent-deep); transform: translateY(-2px); }
-.ld-tick { position: absolute; right: -0.38em; top: -0.42em; display: grid; place-items: center; width: 0.62em; height: 0.62em; border-radius: 50%;
-  background: var(--ld-navy); color: var(--ld-on-navy); box-shadow: var(--ld-tick-shadow); }
-.ld-tick svg { width: 62%; height: 62%; }
+/* 첫 장면: 회색 문장 다섯 줄과 칩. 스크롤하면 칩이 하나씩 체크되고, 마지막 줄이 짙어진다. 글자는 작게, 여백은 넉넉하게 */
+.ld-title { margin-bottom: var(--ld-space-2xl) !important; font-size: clamp(1.5rem, 1.4vw + 1rem, 2.5rem); font-weight: 800; line-height: 1.25; letter-spacing: -0.035em; color: var(--ld-navy); }
+.ld-lines { display: grid; justify-items: center; gap: var(--ld-space-md); list-style: none; }
+.ld-line { font-size: var(--ld-text-sentence); font-weight: 700; line-height: 1.5; letter-spacing: -0.03em; color: var(--ld-quiet); }
+.ld-line strong { color: var(--ld-navy); font-weight: 800; }
+.ld-line-end { margin-top: var(--ld-space-lg); color: var(--ld-ink); font-weight: 800; }
+.js .landing .ld-line-end { opacity: 0.25; transition: opacity var(--ld-dur-long) var(--ld-ease-out); }
+.js .landing .ld-stage[data-s="5"] .ld-line-end { opacity: 1; }
+.ld-chip { display: inline-flex; align-items: center; gap: 0.3em; padding: 0.04em 0.4em; border-radius: 0.3em; background: var(--ld-surface); color: var(--ld-ink);
+  box-shadow: var(--ld-chip-shadow); white-space: nowrap; transition: background-color var(--ld-dur-short) var(--ld-ease-out), color var(--ld-dur-short) var(--ld-ease-out), box-shadow var(--ld-dur-short) var(--ld-ease-out); }
+.js .landing .ld-chip:not(.done) { color: var(--ld-quiet); background: transparent; box-shadow: inset 0 0 0 1.5px var(--ld-rule); }
+.ld-chip.on, .js .landing .ld-chip.on { background: var(--ld-accent-bg); color: var(--ld-accent-deep); box-shadow: var(--ld-chip-shadow); }
+.ld-tick { display: grid; place-items: center; flex: none; width: 0.62em; height: 0.62em; border-radius: 50%; background: var(--ld-navy); color: var(--ld-on-navy); }
+.ld-tick svg { width: 64%; height: 64%; }
 .js .landing .ld-chip .ld-tick { opacity: 0; transform: scale(0.3); transition: opacity var(--ld-dur-micro) var(--ld-ease-out), transform var(--ld-dur-short) var(--ld-ease-out); }
 .js .landing .ld-chip.done .ld-tick { opacity: 1; transform: scale(1); }
-.js .landing .ld-chip:not(.done) { color: var(--ld-quiet); background: transparent; box-shadow: inset 0 0 0 1.5px var(--ld-rule); }
-.js .landing .ld-chip.on { background: var(--ld-accent-bg); color: var(--ld-accent-deep); box-shadow: var(--ld-chip-shadow); }
+.ld-hero-foot { display: flex; justify-content: center; align-items: center; gap: var(--ld-space-xl); margin-top: var(--ld-space-2xl); }
 
-.ld-resolve { margin-top: var(--ld-space-xl) !important; font-size: var(--ld-text-lead); line-height: 1.6; color: var(--ld-ink-2); }
-.ld-resolve strong { color: var(--ld-navy); font-weight: 800; }
-.ld-words .ld-actions { margin-top: var(--ld-space-lg); }
 
-/* 답 카드: 하나씩 겹쳐 두고, 켜진 것만 흐림을 걷으며 떠오른다 */
-.ld-cards { position: relative; display: grid; }
-.ld-card { display: grid; gap: var(--ld-space-md); align-content: center; padding: var(--ld-space-xl); border-radius: var(--ld-radius-card); background: var(--ld-surface);
-  box-shadow: var(--ld-shadow); color: var(--ld-ink-2); }
-.ld-card + .ld-card { margin-top: var(--ld-space-md); }
-.js .landing .ld-card { grid-area: 1 / 1; margin: 0; opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(10px); pointer-events: none;
-  transition: opacity var(--ld-dur-long) var(--ld-ease-out), transform var(--ld-dur-long) var(--ld-ease-out), filter var(--ld-dur-long) var(--ld-ease-out); }
-.js .landing .ld-card.on { opacity: 1; transform: none; filter: none; pointer-events: auto; }
-.ld-card-big { font-size: calc(var(--ld-text-big) * 0.36); font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: var(--ld-navy); }
-.ld-card-big b { font-size: var(--ld-text-big); font-weight: 800; font-variant-numeric: tabular-nums; }
-.ld-card-big small { font-size: 1em; }
-.ld-card-word { font-size: clamp(2rem, 2.4vw + 1rem, 3rem); }
-.ld-card-text { font-size: var(--ld-text-lead); line-height: 1.6; color: var(--ld-ink-2); }
-.ld-card-intro img { width: 96px; }
-.ld-card-src { font-size: var(--ld-text-xs); color: var(--ld-muted); }
-.landing .ld-card-shot { width: 100%; max-height: 300px; object-fit: cover; object-position: top; border-radius: 16px; box-shadow: 0 0 0 1px var(--ld-rule); }
-
-.ld-scroll-hint { position: absolute; left: 50%; bottom: var(--ld-space-lg); translate: -50% 0; font-size: var(--ld-text-sm); color: var(--ld-muted); white-space: nowrap;
-  transition: opacity var(--ld-dur-short) var(--ld-ease-out); }
-.ld-stage[data-s="5"] .ld-scroll-hint { opacity: 0; }
+/* 첫 장면을 떠날 때 위쪽 가운데로 내려오는 알림 (iOS 알림처럼). 누르면 기업 이야기가 열린다 */
+.ld-pop { position: fixed; z-index: 30; top: calc(var(--ld-nav-h) + var(--ld-space-sm)); left: 50%; translate: -50% 0; width: min(420px, calc(100% - 2 * var(--ld-space-md)));
+  display: flex; align-items: center; gap: var(--ld-space-xs); padding: var(--ld-space-xs); border-radius: 22px; background: var(--ld-pop-bg);
+  box-shadow: 0 0 0 1px var(--ld-pop-edge), var(--ld-shadow); backdrop-filter: blur(16px) saturate(1.4);
+  animation: ld-pop-in var(--ld-dur-long) var(--ld-ease-out); }
+@keyframes ld-pop-in { from { opacity: 0; transform: translateY(-24px) scale(0.96); } }
+.ld-pop-body { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--ld-space-sm); padding: var(--ld-space-xs); border: 0; border-radius: 16px; background: transparent;
+  font: inherit; text-align: left; color: var(--ld-ink); cursor: pointer; transition: background-color var(--ld-dur-short) var(--ld-ease-out); }
+.ld-pop-body:hover { background: var(--ld-paper-2); }
+.ld-pop-body:active { transform: scale(0.99); }
+.ld-pop-body img { flex: none; width: 36px; height: 36px; border-radius: 9px; }
+.ld-pop-copy { display: grid; min-width: 0; }
+.ld-pop-meta { display: flex; justify-content: space-between; gap: var(--ld-space-sm); font-size: var(--ld-text-xs); color: var(--ld-muted); }
+.ld-pop-meta b { color: var(--ld-ink-2); }
+.ld-pop-title { font-size: 0.9375rem; font-weight: 800; line-height: 1.35; }
+.ld-pop-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ld-text-sm); color: var(--ld-ink-2); }
+.ld-pop-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--ld-muted); cursor: pointer; }
+.ld-pop-close svg { width: 16px; height: 16px; }
+.ld-pop-close:hover { background: var(--ld-paper-2); color: var(--ld-ink); }
+.ld-pop-close:active { opacity: 0.8; }
+.ld-pop button:focus-visible { outline: 2px solid var(--ld-focus); outline-offset: 2px; }
 
 /* 1-2, 1-3: 스크롤 진행(--p, data-at)이 레이더 바늘과 알림, 대화를 움직인다 */
 .ld-split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--ld-space-2xl); align-items: center; }
 .ld-split-rev > :first-child { order: 2; }
 .ld-split-rev > :last-child { order: 1; }
 
-.ld-radar-sec { background: var(--ld-radar-bg); color: var(--ld-on-navy); }
+.ld-radar-sec { background: var(--ld-navy-grad); color: var(--ld-on-navy); }
 .ld-radar-sec .ld-say { color: var(--ld-on-navy); }
 .ld-radar-sec .ld-sub { color: var(--ld-on-navy-2); }
 .ld-radar { position: relative; justify-self: center; width: min(100%, 520px); aspect-ratio: 1; }
@@ -180,9 +159,9 @@ body.is-landing .app { max-width: none; }
 .ld-radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, var(--ld-radar-sweep), transparent 25%);
   rotate: calc(var(--p, 0) * 540deg); transition: rotate var(--ld-dur-short) linear; }
 .ld-radar-owl { position: absolute; left: 50%; top: 50%; width: 26%; translate: -50% -50%; }
-.ld-alert { position: absolute; left: var(--ax); top: var(--ay); display: grid; gap: 2px; padding: var(--ld-space-sm) var(--ld-space-md); border-radius: 14px;
+.ld-alert { position: absolute; left: var(--ax, auto); right: var(--ar, auto); top: var(--ay); max-width: 48%; white-space: normal; display: grid; gap: 2px; padding: var(--ld-space-sm) var(--ld-space-md); border-radius: 14px;
   background: var(--ld-alert-bg); box-shadow: inset 0 0 0 1px var(--ld-alert-edge), var(--ld-alert-shadow); backdrop-filter: blur(8px);
-  font-size: var(--ld-text-sm); line-height: 1.4; color: var(--ld-on-navy-2); white-space: nowrap; }
+  font-size: var(--ld-text-sm); line-height: 1.4; color: var(--ld-on-navy-2); }
 .ld-alert b { font-size: var(--ld-text-md); color: var(--ld-on-navy); }
 .js .landing .ld-alert, .js .landing .ld-bubble { opacity: 0; transform: translateY(14px) scale(0.96); filter: blur(6px);
   transition: opacity var(--ld-dur-long) var(--ld-ease-out), transform var(--ld-dur-long) var(--ld-ease-out), filter var(--ld-dur-long) var(--ld-ease-out); }
@@ -199,19 +178,20 @@ body.is-landing .app { max-width: none; }
 .ld-me { justify-self: end; background: var(--ld-navy); color: var(--ld-on-navy); border-top-right-radius: 6px; }
 .ld-confirm { background: var(--ld-accent); color: var(--ld-ink); font-weight: 700; }
 
-/* 2. 그래서 IDly는 이렇게 달라요 */
 .ld-sec { position: relative; padding-block: var(--ld-space-4xl); overflow: clip; isolation: isolate; }
 .ld-say { font-size: var(--ld-text-say); font-weight: 800; line-height: 1.25; letter-spacing: -0.04em; max-width: 22ch; color: var(--ld-navy); }
 .ld-sub { margin-top: var(--ld-space-lg) !important; max-width: 52ch; font-size: var(--ld-text-lead); line-height: 1.65; color: var(--ld-ink-2); }
-.ld-compare { width: 100%; margin-top: var(--ld-space-2xl); border-collapse: collapse; font-size: 1.0625rem; }
-.ld-compare th, .ld-compare td { padding: var(--ld-space-md) var(--ld-space-md) var(--ld-space-md) 0; border-bottom: 1px solid var(--ld-rule); text-align: left; vertical-align: top; }
-.ld-compare thead th { border-bottom: 2px solid var(--ld-ink); font-size: var(--ld-text-sm); font-weight: 700; color: var(--ld-muted); white-space: nowrap; }
-.ld-compare thead th:last-child { color: var(--ld-navy); }
-.ld-compare tbody th { width: 22%; font-weight: 700; color: var(--ld-ink); }
-.ld-compare td { width: 39%; color: var(--ld-muted); }
-.ld-compare td:last-child { font-weight: 700; color: var(--ld-navy); }
-.ld-compare tbody tr { transition: background-color var(--ld-dur-short) var(--ld-ease-out); }
-.ld-compare tbody tr:hover { background: var(--ld-surface); }
+
+/* 2-1. 사무실이라면 (B2B) */
+.ld-office { background: var(--ld-surface); }
+.ld-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ld-space-xl); margin-top: var(--ld-space-2xl) !important; list-style: none; counter-reset: ld-flow; }
+.ld-flow li { position: relative; counter-increment: ld-flow; padding-top: var(--ld-space-xl); border-top: 2px solid var(--ld-ink); color: var(--ld-ink-2); }
+.ld-flow li::before { content: counter(ld-flow); position: absolute; top: calc(-1 * var(--ld-space-md)); left: 0; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--ld-navy); color: var(--ld-on-navy); font-weight: 800; font-variant-numeric: tabular-nums; }
+.ld-flow b { display: block; margin-bottom: var(--ld-space-xs); font-size: 1.1875rem; line-height: 1.4; color: var(--ld-ink); }
+.ld-office-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ld-space-lg); margin-top: var(--ld-space-2xl); padding: var(--ld-space-xl);
+  border-radius: var(--ld-radius-card); background: var(--ld-paper-2); }
+.ld-office-cta p { flex: 1 1 320px; font-size: var(--ld-text-lead); font-weight: 600; color: var(--ld-ink); }
 
 /* 3. 자주 묻는 질문 */
 .ld-faq { background: var(--ld-paper-2); }
@@ -230,10 +210,6 @@ body.is-landing .app { max-width: none; }
 
 /* 4. 마무리: 첫 장면의 빛을 한 번 더 */
 .ld-cta { padding-block: var(--ld-space-4xl); text-align: center; }
-.ld-cta .ld-aura { inset: 0; }
-.ld-cta .a1 { --x: 20cqw; --y: 30cqh; --k: 0.78; --c: var(--ld-aura-peach); }
-.ld-cta .a2 { --x: 80cqw; --y: 70cqh; --k: 0.87; --c: var(--ld-aura-lav); }
-.ld-cta .a3 { --x: 55cqw; --y: 10cqh; --k: 0.57; --c: var(--ld-aura-sky); }
 .ld-cta-in { display: grid; justify-items: center; gap: var(--ld-space-lg); }
 .ld-cta .ld-say, .ld-cta .ld-sub { margin-inline: auto; }
 .ld-cta .ld-sub { margin-top: 0 !important; }
@@ -248,41 +224,30 @@ body.is-landing .feedback-fab { right: var(--ld-space-lg); bottom: var(--ld-spac
 
 /* 60rem 아래: 문장 위, 카드 아래. 휴대폰에는 호버가 없으니 스크롤만으로 바뀐다 */
 @media (max-width: 60rem) {
-  .ld-stage-in { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-lg); padding-top: var(--ld-space-3xl); padding-bottom: var(--ld-space-xl); }
-  .ld-sentence { margin-top: var(--ld-space-lg) !important; gap: var(--ld-space-2xs); }
-  .ld-resolve { margin-top: var(--ld-space-lg) !important; }
-  .ld-card { padding: var(--ld-space-lg); }
-  .landing .ld-card-shot { max-height: 140px; }
-  .ld-faq-in, .ld-split { grid-template-columns: minmax(0, 1fr); }
+  .ld-stage-in { grid-template-columns: minmax(0, 1fr); gap: var(--ld-space-md); padding-top: var(--ld-space-lg); padding-bottom: var(--ld-space-lg); }
+  .ld-faq-in, .ld-split, .ld-flow { grid-template-columns: minmax(0, 1fr); }
+  .ld-flow { gap: var(--ld-space-2xl); }
   .ld-split-rev > :first-child { order: 1; }
   .ld-split-rev > :last-child { order: 2; }
-  .ld-compare tbody th { width: 28%; }
   .ld-sec, .ld-cta { padding-block: var(--ld-space-3xl); }
 }
 @media (max-width: 40rem) {
-  .ld-top-links a[href="#ld-how"] { display: none; }
-  .ld-title { font-size: 1.25rem; }
-  .ld-sentence { font-size: 1.3125rem; }
-  .ld-resolve { font-size: 1rem; }
-  .ld-words .ld-actions { margin-top: var(--ld-space-md); }
-  .ld-words .ld-link { display: none; }
+  .ld-top-links a[href="#ld-how"], .ld-top-links a[href="#ld-office-b2b"] { display: none; }
+    .ld-office-cta { padding: var(--ld-space-lg); }
+  .ld-office-cta .ld-btn { width: 100%; }
+  :root { --ld-nav-h: 60px; }
   .ld-actions .ld-btn { width: 100%; }
-  .ld-card-big b { font-size: 2.75rem; }
-  .ld-card-text { font-size: 0.9375rem; }
-  .ld-scroll-hint { display: none; }
-  .ld-compare { font-size: 0.9375rem; }
-  .ld-aura i { filter: blur(48px); }
   .ld-alert { font-size: var(--ld-text-xs); padding: var(--ld-space-xs) var(--ld-space-sm); }
   .ld-alert b { font-size: var(--ld-text-sm); }
   .ld-chat { padding: var(--ld-space-lg); min-height: 0; }
 }
+@media (max-height: 46rem) and (max-width: 40rem) {
+}
 @media (max-height: 44rem) and (min-width: 60.01rem) {
-  .ld-sentence { font-size: clamp(1.25rem, 1.4vw + 0.8rem, 2rem); }
   .ld-stage-in { padding-top: var(--ld-space-2xl); }
 }
+@media (max-width: 22rem) { .ld-alert-3 { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .ld-aura i { animation: none; }
-  .ld-radar-sweep, .js .landing .ld-alert, .js .landing .ld-bubble, .ld-aura, .ld-aura i, .ld-btn, .ld-top-links a, .ld-chip, .ld-tick, .js .landing .ld-card, .ld-faq-list summary::after, .ld-compare tbody tr { transition: none; }
-  .js .landing .ld-card { filter: none; transform: none; }
   .ld-btn:active { transform: none; }
+  .ld-pop { animation: none; }
 }

@@ -1,8 +1,9 @@
 /* 앱 화면. 모바일(390) 기준, 데스크톱에서는 가운데 컬럼만 둔다. 시작 화면(랜딩)만 넓게 쓴다 (landing.css)
    색: IDly 디자인 시스템 — 네이비 #202F61, 그라데이션 #2A2F8F→#202F61, 오렌지 #FF9B54, 바탕 #F9F9FD, 라벤더 #EEF0F7, 본문 #1B2740 */
 :root {
-  --main: #202f61; --main-2: #2a2f8f; --ink: #1b2740; --sub: #5f6678; --mute: #6f7586; --hint: #b3b8c6;
-  --line: #e7e9f1; --border: #cdd1de; --info-bg: #eef3ff; --lavender: #eef0f7; --danger: #ee4e4e;
+  /* 색: 피그마 IDly 디자인 시스템 색과, 그 색들의 투명도만 */
+  --main: #202f61; --main-2: #2a2f8f; --ink: #1b2740; --sub: rgba(27, 39, 64, 0.74); --mute: rgba(27, 39, 64, 0.6); --hint: rgba(27, 39, 64, 0.32);
+  --line: rgba(32, 47, 97, 0.1); --border: rgba(32, 47, 97, 0.22); --info-bg: #eef3ff; --lavender: #eef0f7; --danger: #ee4e4e;
   --accent: #ff9b54; --accent-bg: #ffe9d3; --bg: #f9f9fd; --bg-end: #eef0f7; --focus: #2a2f8f;
 }
 * { box-sizing: border-box; }

@@ -5,12 +5,14 @@
 /* 리포트 본문. 웹 화면과 PDF가 같이 쓴다 (PDF는 이 파일을 그대로 인라인하므로 @import 없이 토큰을 여기서 정의한다).
    색은 IDly 디자인 시스템: 네이비 #202F61 + 오렌지 #FF9B54 */
 :root {
-  --rp-main: #202f61; --rp-main-2: #2a2f8f; --rp-ink: #1b2740; --rp-sub: #545b6e; --rp-mute: #6a7083; --rp-line: #e3e6ef; --rp-rule: #cfd4e3;
-  --rp-paper: #f9f9fd; --rp-paper-2: #eef0f7; --rp-surface: #fdfdff;
-  --rp-accent: #ff9b54; --rp-accent-ink: #a8501a; --rp-accent-bg: #ffe9d3; --rp-accent-deep: #7a3f12;
-  --rp-danger: #d93d3d; --rp-caution: #e0921a; --rp-info: #4b5bd6;
-  --rp-tint-danger: #fdeaea; --rp-tint-caution: #fff3dc; --rp-tint-safe: #e7f8ea; --rp-tint-info: #eef3ff;
-  --rp-on-navy: #f6f7fc; --rp-on-navy-2: #c4c9de; --rp-on-navy-3: #8f96b4; --rp-on-navy-rule: #3a4677; --rp-navy-2: #283869;
+  /* 색: 피그마 IDly 디자인 시스템 색과, 그 색들의 투명도만 쓴다 */
+  --rp-main: #202f61; --rp-main-2: #2a2f8f; --rp-ink: #1b2740; --rp-sub: rgba(27, 39, 64, 0.74); --rp-mute: rgba(27, 39, 64, 0.6);
+  --rp-line: rgba(32, 47, 97, 0.1); --rp-rule: rgba(32, 47, 97, 0.18);
+  --rp-paper: #f9f9fd; --rp-paper-2: #eef0f7; --rp-surface: #ffffff;
+  --rp-accent: #ff9b54; --rp-accent-ink: #202f61; --rp-accent-bg: #ffe9d3; --rp-accent-deep: #1b2740;
+  --rp-danger: #ee4e4e; --rp-caution: #ff9b54; --rp-info: #2a2f8f;
+  --rp-tint-danger: #fec3c3; --rp-tint-caution: #ffe9d3; --rp-tint-safe: rgba(83, 248, 68, 0.18); --rp-tint-info: #eef3ff;
+  --rp-on-navy: #ffffff; --rp-on-navy-2: rgba(255, 255, 255, 0.74); --rp-on-navy-3: rgba(255, 255, 255, 0.5); --rp-on-navy-rule: rgba(255, 255, 255, 0.16); --rp-navy-2: rgba(255, 255, 255, 0.12);
   --rp-focus: #2a2f8f;
   --rp-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
@@ -24,7 +26,7 @@
 .rp h2 { margin: 0; }
 
 /* 요약: 네이비 한 판. 그라데이션·광택 없이 숫자 크기로만 위계를 만든다 */
-.rp-hero { position: relative; padding: 24px 20px 20px; border-radius: 20px; background: var(--rp-main); color: var(--rp-on-navy); text-align: left; }
+.rp-hero { position: relative; padding: 24px 20px 20px; border-radius: 20px; background: linear-gradient(150deg, var(--rp-main-2), var(--rp-main)); color: var(--rp-on-navy); text-align: left; }
 .rp-watermark { position: fixed; inset: 0; z-index: 5; pointer-events: none; background-repeat: repeat; }
 .rp-sample-note { margin: 0 0 12px; padding: 12px 16px; border-radius: 12px; background: var(--rp-accent-bg); color: var(--rp-accent-deep);
   font-size: 13px; line-height: 1.5; }

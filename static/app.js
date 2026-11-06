@@ -373,6 +373,25 @@ function goBack(event) {
   history.back();
 }
 
+// 뒤로 가기: 앱 안에서 옮겨 온 기록이 있으면 진짜 뒤로(브라우저 뒤로 가기와 같게), 없으면(주소로 바로 열었을 때) 버튼의 href로.
+// 기록마다 순번(idx)을 history.state에 적어 두고, 0보다 크면 이전 화면이 이 앱 안에 있다는 뜻이다
+let navMax = 0;
+function stampHistory() {
+  if (history.state && typeof history.state.idx === "number") return;
+  navMax += 1;
+  history.replaceState({ idx: navMax }, "");
+}
+function canGoBack() {
+  return !!(history.state && history.state.idx > 0);
+}
+document.addEventListener("click", (event) => {
+  const back = event.target.closest && event.target.closest("a.back");
+  if (!back || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey) return;
+  if (!canGoBack()) return; // 앱 안 기록이 없으면 href대로
+  event.preventDefault();
+  history.back();
+});
+
 async function openSample() {
   const { id } = await api("/api/reports/sample", { method: "POST" });
   location.replace(`#r=${id}`);
@@ -1366,7 +1385,12 @@ async function init() {
   $("#pdf").addEventListener("click", onPdf);
   $("#sample-link").addEventListener("click", () => (sampleFromPay = true));
   $("#sample-back").addEventListener("click", goBack);
-  window.addEventListener("hashchange", route);
+  if (!history.state || typeof history.state.idx !== "number") history.replaceState({ idx: 0 }, "");
+  else navMax = history.state.idx;
+  window.addEventListener("hashchange", () => {
+    stampHistory();
+    route();
+  });
   route();
 }
 

@@ -41,7 +41,7 @@
       const span = scene.offsetHeight - innerHeight;
       if (span <= 0) return;
       const p = Math.min(1, Math.max(0, -rect.top / span));
-      const next = Math.min(n, Math.floor(p * (n + 1.2)) - (p < 0.04 ? 1 : 0));
+      const next = Math.min(n, Math.floor(p * (n + 1.2)) - (p < 0.05 ? 1 : 0));
       if (next !== scrolled) {
         const forward = next > scrolled;
         scrolled = next;
@@ -69,19 +69,24 @@
       paint();
     });
   });
-  stage.querySelector(".ld-sentence").addEventListener("mouseleave", () => {
+  stage.querySelector(".ld-lines").addEventListener("mouseleave", () => {
     hovered = null;
     paint();
   });
+  // 빛 고리: 커서를 움직이면 오렌지 쪽이 커서 방향으로 따라 돈다 (떼면 스크롤 상태의 각도로 돌아간다)
+  const ring = stage.querySelector(".ld-ring");
   stage.addEventListener("pointermove", (e) => {
-    if (!fine.matches || reduce.matches) return;
+    if (!ring || !fine.matches || reduce.matches) return;
     const r = stage.getBoundingClientRect();
-    stage.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-    stage.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    // 커서가 있는 쪽으로 띠가 살짝 기운다 (왼쪽 코랄, 오른쪽 하늘빛 배치는 유지)
+    const deg = Math.max(-18, Math.min(18, (dx / (r.width / 2)) * 18 + (dy / (r.height / 2)) * 6));
+    stage.classList.add("chase");
+    ring.style.setProperty("--rot", `${deg.toFixed(1)}deg`);
   });
   stage.addEventListener("pointerleave", () => {
-    stage.style.setProperty("--mx", "0");
-    stage.style.setProperty("--my", "0");
+    stage.classList.remove("chase");
+    if (ring) ring.style.removeProperty("--rot");
   });
 
   // 1-2, 1-3: 화면을 지나는 만큼(--p) 레이더가 돌고, 알림과 대화가 한 칸씩 나타난다
@@ -103,8 +108,52 @@
     onProgress();
   }
 
+  // 상단바: 첫 장면이 끝나 다음 섹션이 올라오면 위에서 내려온다
+  const topbar = document.querySelector(".ld-top");
+  const pop = document.getElementById("ld-pop");
+  let popDone = false; // 닫았거나 이미 열어 봤으면 다시 띄우지 않는다
+  function onTopbar() {
+    const left = scene.getBoundingClientRect().bottom < innerHeight * 0.6;
+    if (pop && !popDone) pop.hidden = !left;
+  }
+  addEventListener("scroll", () => requestAnimationFrame(onTopbar), { passive: true });
+  onTopbar();
+
+  // 기업 이야기는 한 단계 안쪽: 처음엔 닫혀 있고, 버튼이나 상단바 '사무실 도입'으로 연다 (스크립트가 없으면 늘 열려 있다)
+  const b2b = document.getElementById("ld-office-b2b");
+  const b2bOpen = document.getElementById("ld-b2b-open");
+  function openB2B(scroll) {
+    if (!b2b) return;
+    const wasHidden = b2b.hidden;
+    b2b.hidden = false;
+    if (b2bOpen) b2bOpen.setAttribute("aria-expanded", "true");
+    if (wasHidden) {
+      b2b.classList.add("opening");
+      setTimeout(() => b2b.classList.remove("opening"), 600);
+    }
+    if (scroll) b2b.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "start" });
+    if (typeof window.track === "function") window.track("b2b_open");
+    popDone = true;
+    if (pop) pop.hidden = true;
+  }
+  if (b2b) {
+    b2b.hidden = true;
+    if (b2bOpen) b2bOpen.addEventListener("click", () => openB2B(true));
+    const popClose = document.getElementById("ld-pop-close");
+    if (popClose) popClose.addEventListener("click", () => {
+      popDone = true;
+      pop.hidden = true;
+      if (typeof window.track === "function") window.track("b2b_pop_close");
+    });
+    // 상단바·푸터의 #ld-office-b2b 링크: 먼저 열고 나서 app.js가 그쪽으로 스크롤한다
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest && e.target.closest('a[href="#ld-office-b2b"]');
+      if (a) openB2B(false);
+    }, true);
+  }
+
   // 랜딩이 다시 보일 때(다른 화면에서 돌아올 때) 상태를 다시 잰다
-  new MutationObserver(() => { onScroll(); if (progs.length) onProgress(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  new MutationObserver(() => { onScroll(); if (progs.length) onProgress(); onTopbar(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   paint();
   onScroll();
 })();
