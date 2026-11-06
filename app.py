@@ -39,6 +39,9 @@ from report_view import render_fragment, render_html, render_pdf, summarize, sum
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
+# [결제 OFF] 지금은 전체 리포트를 무료로 연다. 결제 코드는 지우지 않고 "[결제 OFF]" 표시와 함께 주석으로 남겨 둔다.
+# 되돌리려면 `grep -rn "결제 OFF"`로 찾아 주석을 풀고, 바로 아래에 둔 무료용 줄(paid: True, full=True)을 지운다.
+# DB의 paid 값은 건드리지 않는다: 보관 기간(결제 안 한 리포트 7일)과 결제 기록은 그대로다.
 # 기간 한정 할인. 가격 변경이 아니다: 정가(PRICE)·Paddle 가격은 그대로 두고, 기간 동안만 결제창에 Paddle 할인을 붙인다.
 # PROMO_ENDS는 그 시각 '전까지' (11월 1일까지 → 11월 2일 0시 KST). Paddle 할인에도 같은 만료일을 걸어 둔다
 PROMO_PRICE = int(os.getenv("PROMO_PRICE", "2900") or 0)
@@ -533,8 +536,9 @@ def _paid(report_id: str, request: Request) -> Report:
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    if not report.paid:
-        raise ApiError(402, "결제 후 볼 수 있어요.")
+    # [결제 OFF]
+    # if not report.paid:
+    #     raise ApiError(402, "결제 후 볼 수 있어요.")
     return report
 
 
@@ -563,7 +567,8 @@ def my_reports(request: Request):
         s = summarize(report.data) if report.data is not None else None
         items.append({
             "id": report.id, "mailbox": report.email, "created": report.created.isoformat(timespec="minutes"),
-            "status": report.status, "paid": report.paid,
+            # [결제 OFF] "paid": report.paid,
+            "status": report.status, "paid": True,
             "summary": s and {"accounts": s["accounts"], "subscriptions": s["subscriptions"], "security": s["security"],
                               "money": _money_line(s)},
         })
@@ -706,36 +711,39 @@ def report_status(report_id: str, request: Request):
         "fetched": job.get("fetched"),
         "error": job.get("error") or ("서버가 다시 시작되면서 진행 중이던 분석이 멈췄어요." if report.interrupted else None),
         "debug": job.get("debug") if DEBUG else None,
-        "paid": report.paid,
+        # [결제 OFF] "paid": report.paid,
+        "paid": True,
         "sample": report.sample,
         **prices(),
         "summary": summarize(data) if data is not None else None,
     }
 
 
-@app.post("/api/reports/{report_id}/checkout")
-def checkout(report_id: str, request: Request):
-    user = _user(request)
-    report = _get(report_id, request)
-    if report.data is None:
-        raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    # 찾은 계정이 없으면 팔 것이 없다
-    if not summarize(report.data)["accounts"]:
-        raise ApiError(409, "찾은 계정이 없어서 결제할 내용이 없어요.")
-    if report.paid:
-        return {"paid": True}
-    if PAYMENT_MODE == "mock":
-        report.paid = True
-        report.save()
-        return {"paid": True}
-    try:
-        options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
-                                           promo=promo() is not None)
-    except billing.BillingError as e:
-        raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
-    return {"paid": False, "paddle": options}
+# [결제 OFF] 결제창 열기
+# @app.post("/api/reports/{report_id}/checkout")
+# def checkout(report_id: str, request: Request):
+#     user = _user(request)
+#     report = _get(report_id, request)
+#     if report.data is None:
+#         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
+#     # 찾은 계정이 없으면 팔 것이 없다
+#     if not summarize(report.data)["accounts"]:
+#         raise ApiError(409, "찾은 계정이 없어서 결제할 내용이 없어요.")
+#     if report.paid:
+#         return {"paid": True}
+#     if PAYMENT_MODE == "mock":
+#         report.paid = True
+#         report.save()
+#         return {"paid": True}
+#     try:
+#         options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
+#                                            promo=promo() is not None)
+#     except billing.BillingError as e:
+#         raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
+#     return {"paid": False, "paddle": options}
 
 
+# [결제 OFF] 웹훅은 살려 둔다: 예전 결제의 환불 알림을 받아 결제 기록에 남겨야 한다
 @app.post("/api/webhooks/paddle")
 async def paddle_webhook(request: Request):
     raw = await request.body()
@@ -763,17 +771,18 @@ async def paddle_webhook(request: Request):
     return {"ok": True}
 
 
-@app.post("/api/reports/{report_id}/dev-confirm")
-def dev_confirm(report_id: str, request: Request):
-    """개발용: 로컬에서는 결제사 웹훅이 들어올 수 없으니 결제 완료를 흉내 낸다 (IDLY_DEBUG=1일 때만)."""
-    if not DEBUG:
-        raise ApiError(404, "없는 기능이에요.")
-    report = _get(report_id, request)
-    db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", prices()["price"], "KRW", "dev_confirm")
-    for other in _reports.values():
-        if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
-            other.paid = True
-    return {"paid": True}
+# [결제 OFF] 개발용 결제 완료 처리
+# @app.post("/api/reports/{report_id}/dev-confirm")
+# def dev_confirm(report_id: str, request: Request):
+#     """개발용: 로컬에서는 결제사 웹훅이 들어올 수 없으니 결제 완료를 흉내 낸다 (IDLY_DEBUG=1일 때만)."""
+#     if not DEBUG:
+#         raise ApiError(404, "없는 기능이에요.")
+#     report = _get(report_id, request)
+#     db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", prices()["price"], "KRW", "dev_confirm")
+#     for other in _reports.values():
+#         if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
+#             other.paid = True
+#     return {"paid": True}
 
 
 @app.post("/api/guest/claim")
@@ -797,7 +806,8 @@ def report_view(report_id: str, request: Request):
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    return {"paid": report.paid, "html": render_fragment(report.data, report.created, full=report.paid)}
+    # [결제 OFF] return {"paid": report.paid, "html": render_fragment(report.data, report.created, full=report.paid)}
+    return {"paid": True, "html": render_fragment(report.data, report.created, full=True)}
 
 
 @app.get("/api/reports/{report_id}/pdf")
@@ -857,7 +867,7 @@ ASSET_VERSION = str(int(max(f.stat().st_mtime for f in (HERE / "static").glob("*
 @app.get("/")
 def index():
     html = (HERE / "static" / "index.html").read_text(encoding="utf-8")
-    for name in ("style.css", "report.css", "analytics.js", "app.js"):
+    for name in ("style.css", "report.css", "landing.css", "analytics.js", "app.js"):
         html = html.replace(f"/static/{name}", f"/static/{name}?v={ASSET_VERSION}")
     return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 

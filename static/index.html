@@ -5,27 +5,186 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/static/assets/logo-owl.svg" type="image/svg+xml">
-<title>IDly 계정 리포트</title>
+<title>IDly 계정 리포트 · 메일로 찾는 내 계정과 구독</title>
+<meta name="description" content="메일만 연결하면 가입한 서비스, 매달 나가는 구독료, 확인이 필요한 보안 알림을 찾아 리포트로 정리해 드려요.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/static/report.css">
 <link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/landing.css">
 </head>
 <body>
 <div class="app">
 
-<!-- 시작·로그인 (Figma: 2 Login) -->
-<main id="intro" class="screen" hidden>
-  <header class="logo-head"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="70.8683" height="50.8916"><a class="head-link" href="#help" data-ga="help_open">도움말</a></header>
-  <div class="center">
-    <img src="/static/assets/logo-owl.svg" alt="IDly" width="118.798" height="143.47">
-    <div class="center-text">
-      <h1>메일 속 계정과 구독을<br>찾아 드려요</h1>
-      <p>메일만 연결하면 가입한 서비스, 나가는 구독료,<br>확인할 보안 알림을 한 번에 정리해 드려요.</p>
+<!-- 시작 = 랜딩 (IR '13 Free Report Landing': 무료 리포트를 첫 입구로). 결제 이야기는 여기서 하지 않는다 -->
+<main id="intro" class="screen landing" hidden>
+  <header class="ld-nav">
+    <div class="ld-wrap ld-nav-in">
+      <img src="/static/assets/logo-wordmark.svg" alt="idly" width="56" height="40">
+      <nav class="ld-nav-links">
+        <a href="#ld-how">이용 방법</a>
+        <a href="#ld-report">리포트</a>
+        <a href="#ld-office">사무실</a>
+        <a href="#help" data-ga="help_open">도움말</a>
+      </nav>
+      <button class="ld-btn ld-btn-sm" type="button" data-start data-ga-label="nav">시작하기</button>
     </div>
-  </div>
-  <div class="cta">
-    <button class="btn btn-main" type="button" id="open-login">시작하기</button>
-  </div>
+  </header>
+
+  <!-- 1. 첫 화면 (IR 01 표지) -->
+  <section class="ld-hero">
+    <div class="ld-wrap ld-hero-in">
+      <div class="ld-hero-copy">
+        <p class="ld-eyebrow">메일로 찾는 계정·구독 리포트</p>
+        <h1>흩어진 계정과 구독,<br>메일 하나로 <em>한눈에</em></h1>
+        <p class="ld-lead">메일만 연결하면 IDly가 가입한 서비스, 매달 나가는 구독료,<br class="ld-br"> 확인이 필요한 보안 알림을 찾아 리포트로 정리해 드려요.</p>
+        <div class="ld-ctas">
+          <button class="ld-btn ld-btn-accent" type="button" id="open-login" data-start data-ga-label="hero">내 메일함 분석하기</button>
+          <a class="ld-btn ld-btn-ghost" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="landing">샘플 리포트 보기</a>
+        </div>
+        <p class="ld-micro">메일 비밀번호와 원문은 저장하지 않아요 · 가입 없이도 쓸 수 있어요</p>
+      </div>
+      <!-- 제품 미리보기: 실제 리포트와 같은 모양 (숫자는 예시) -->
+      <div class="ld-phone" aria-hidden="true">
+        <div class="ld-phone-in">
+          <div class="ld-mock-hero">
+            <span class="ld-mock-date">2026년 11월 6일 기준 · AI 분석</span>
+            <b>매달 <em>47,280원</em></b>
+            <span>구독 4개로 나가고 있어요</span>
+            <div class="ld-mock-funnel"><span><b>11,246</b>읽은 메일</span><i>›</i><span><b>183</b>검토</span><i>›</i><span><b>52</b>찾은 계정</span></div>
+          </div>
+          <div class="ld-mock-grid">
+            <div class="ld-mock-find accent"><span>지금까지 구독에 낸 돈</span><b>약 1,284,000원</b></div>
+            <div class="ld-mock-find"><span>가장 오래된 계정</span><b>14년 전</b></div>
+          </div>
+          <div class="ld-mock-list">
+            <div><i class="dot-info"></i><p><b>유튜브 프리미엄</b><span>월간 결제 · 다음 결제 11. 12.</span></p><strong>14,900원</strong></div>
+            <div><i class="dot-danger"></i><p><b>인스타그램 · 보안</b><span>새 기기에서 로그인했어요</span></p></div>
+            <div><i class="dot-caution"></i><p><b>11번가</b><span>2년 넘게 활동 없음 · 탈퇴 권장</span></p></div>
+          </div>
+        </div>
+        <img class="ld-phone-owl" src="/static/assets/owl-home.png" alt="" width="256" height="137">
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 문제 (IR 02 Problem 개인) -->
+  <section class="ld-sec">
+    <div class="ld-wrap">
+      <p class="ld-kicker">Problem</p>
+      <h2 class="ld-h2">자기도 몰랐던 계정, 있지 않으셨나요?</h2>
+      <p class="ld-sub">계정이 쌓이면, 비용과 위험도 함께 쌓입니다.</p>
+      <div class="ld-cards3">
+        <div class="ld-card"><span class="ld-ic ic-info"><img src="/static/assets/ic-user.svg" alt="" width="22" height="22"></span><b>오래전 가입하고<br>잊어버린 서비스</b><p>한 번 쓰고 잊은 쇼핑몰, 이벤트 때문에 가입한 앱까지 아직 내 정보를 갖고 있어요.</p></div>
+        <div class="ld-card"><span class="ld-ic ic-accent"><img src="/static/assets/ic-event.svg" alt="" width="22" height="22"></span><b>해지한 줄 알았는데<br>계속 결제되는 구독</b><p>무료 체험이 끝나 유료로 넘어갔거나, 해지가 안 된 구독이 매달 빠져나가요.</p></div>
+        <div class="ld-card"><span class="ld-ic ic-danger"><img src="/static/assets/ic-leak.svg" alt="" width="22" height="22"></span><b>유출 사고 뉴스 속,<br>내 계정일 수도</b><p>어디에 가입했는지 모르면 비밀번호를 바꿔야 할 곳도 알 수 없어요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 실제 사례 (IR 03 Problem 실사례) -->
+  <section class="ld-sec ld-case">
+    <div class="ld-wrap ld-case-in">
+      <div>
+        <p class="ld-kicker">실제 사례</p>
+        <h2 class="ld-h2">팀원 한 명의 메일함 3개에서<br><em>본인도 몰랐던 계정 325개</em>가 나왔어요</h2>
+      </div>
+      <div class="ld-case-nums">
+        <div><b>325<small>개</small></b><span>메일함 3개에서 찾은 계정</span></div>
+        <div><b>143,900<small>원</small></b><span>지금도 매달 나가고 있던 구독 7개</span></div>
+        <ul class="ld-chips" aria-label="찾은 구독">
+          <li>Claude</li><li>CapCut</li><li>Apple Music</li><li>iCloud</li><li>Figma</li><li>GitHub Copilot</li><li>TestGlider</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 이용 방법 (IR 05 Solution) -->
+  <section class="ld-sec" id="ld-how">
+    <div class="ld-wrap">
+      <p class="ld-kicker">How it works</p>
+      <h2 class="ld-h2">메일 연결만으로 <em>찾고, 보여주고, 대신 끝냅니다</em></h2>
+      <ol class="ld-steps">
+        <li><span>01</span><b>메일 연결</b><p>메일 주소와 앱 비밀번호만 넣으면 돼요. 서비스별로 만드는 방법을 바로 안내해요.</p></li>
+        <li><span>02</span><b>AI가 읽고 묶기</b><p>가입·결제·보안 메일을 골라 서비스별로 묶어요. 애매한 곳은 AI가 한 번 더 판단해요.</p></li>
+        <li><span>03</span><b>오늘 결정할 일</b><p>구독 → 보안 위험 → 안 쓰는 계정 순으로, 가장 중요한 것부터 보여줘요.</p></li>
+        <li class="soon"><span>04</span><b>정리까지 대신 <i>준비 중</i></b><p>탈퇴·해지는 에이전트가 내 브라우저에서 대신하고, 나는 승인만 해요.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 5. 리포트에 담기는 것 (IR 06 Solution 홈) -->
+  <section class="ld-sec ld-tint" id="ld-report">
+    <div class="ld-wrap">
+      <p class="ld-kicker">Report</p>
+      <h2 class="ld-h2">보고서가 아니라, <em>오늘 결정할 일</em>을 보여드려요</h2>
+      <div class="ld-feats">
+        <div><span class="ld-ic ic-accent"><img src="/static/assets/ic-event.svg" alt="" width="20" height="20"></span><b>구독과 다음 결제일</b><p>서비스별 금액·주기·다음 결제일, 지금까지 낸 돈까지</p></div>
+        <div><span class="ld-ic ic-danger"><img src="/static/assets/ic-danger.svg" alt="" width="20" height="20"></span><b>본인 확인이 필요한 보안 알림</b><p>새 기기 로그인, 비밀번호 변경처럼 직접 확인할 것</p></div>
+        <div><span class="ld-ic ic-caution"><img src="/static/assets/ic-caution.svg" alt="" width="20" height="20"></span><b>안 쓰는 계정</b><p>마지막 활동 날짜와 휴면 안내, 탈퇴를 권하는 곳</p></div>
+        <div><span class="ld-ic ic-info"><img src="/static/assets/g-icon.png" alt="" width="18" height="18"></span><b>Google로 로그인한 서비스</b><p>내 계정 정보를 공유한 앱과 연결 끊는 곳</p></div>
+        <div><span class="ld-ic ic-info"><img src="/static/assets/ic-select.svg" alt="" width="20" height="20"></span><b>판단 근거</b><p>왜 구독으로 봤는지, 결제 메일 몇 번을 확인했는지</p></div>
+        <div><span class="ld-ic ic-info"><img src="/static/assets/ic-devices.svg" alt="" width="20" height="20"></span><b>가입 연도로 본 내 계정</b><p>언제부터 어떤 계정이 쌓였는지 한눈에</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 안심 -->
+  <section class="ld-sec">
+    <div class="ld-wrap ld-trust">
+      <div class="ld-trust-head">
+        <img src="/static/assets/owl-warn.png" alt="" width="120" height="100">
+        <p class="ld-kicker">Security</p>
+        <h2 class="ld-h2">밤새 지켜보는 부엉이처럼,<br>내 메일은 안전하게</h2>
+      </div>
+      <ul class="ld-trust-list">
+        <li><b>앱 비밀번호로만 연결</b><p>평소 로그인 비밀번호가 아니라, 언제든 지울 수 있는 앱 비밀번호를 써요.</p></li>
+        <li><b>비밀번호·원문 저장 안 함</b><p>비밀번호는 분석하는 동안만 쓰고, 메일 원문은 남기지 않아요.</p></li>
+        <li><b>가린 요약만 AI로</b><p>이메일 아이디·전화번호·카드번호·인증번호를 가린 뒤에만 AI가 읽어요.</p></li>
+        <li><b>찾은 계정 목록만 리포트로</b><p>남는 건 서비스 이름과 날짜 같은 분석 결과뿐이에요.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. 사무실로 (IR 10 Target Customer · 14 Business Model: B2C2B) -->
+  <section class="ld-office" id="ld-office">
+    <div class="ld-wrap ld-office-in">
+      <div>
+        <p class="ld-kicker">For Office</p>
+        <h2 class="ld-h2">IT 담당자 없는 사무실도<br>이메일만 넣으면 정리돼요</h2>
+        <p class="ld-sub">직원마다 흩어진 업무 계정과 구독, 퇴사자가 남긴 계정까지. 관리자 세팅이나 교육 없이 직원 한 명의 이메일로 시작해요.</p>
+        <ul class="ld-office-list">
+          <li>사무실 전체 구독료와 다음 결제일을 한 화면에</li>
+          <li>퇴사자 계정과 안 쓰는 결제를 먼저 알려드려요</li>
+          <li>정리할 계정과 그 이유를 근거 메일로</li>
+        </ul>
+        <a class="ld-btn ld-btn-accent" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의하기</a>
+      </div>
+      <img class="ld-office-owl" src="/static/assets/owl-home.png" alt="" width="512" height="273">
+    </div>
+  </section>
+
+  <!-- 8. 마지막 시작 버튼 -->
+  <section class="ld-sec ld-final">
+    <div class="ld-wrap">
+      <img src="/static/assets/owl-stand.png" alt="" width="120" height="107">
+      <h2 class="ld-h2">내 메일함엔 계정이 몇 개 있을까요?</h2>
+      <p class="ld-sub">메일 연결 한 번이면, 몇 분 뒤에 알려드려요.</p>
+      <button class="ld-btn" type="button" data-start data-ga-label="footer">지금 분석해 보기</button>
+    </div>
+  </section>
+
+  <footer class="ld-foot">
+    <div class="ld-wrap ld-foot-in">
+      <img src="/static/assets/logo-wordmark.svg" alt="idly" width="46" height="33">
+      <nav>
+        <a href="#help">도움말</a>
+        <a href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관</a>
+        <a href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침</a>
+        <a href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="contact_click" data-ga-label="kakao_landing">카카오톡 문의</a>
+      </nav>
+      <p id="landing-business"></p>
+    </div>
+  </footer>
 </main>
 
 <!-- 약관 동의 (Figma: 4 Consent) -->
@@ -140,10 +299,12 @@
         <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요.<br>메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
         <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요.<br>다시 분석할 때 새로 만들면 돼요.</p></details>
+      <!-- [결제 OFF] 결제·환불 FAQ
       <details><summary data-ga="faq_toggle" data-ga-label="payment">결제는 어떻게 하나요?</summary>
         <p>전체 리포트는 메일함마다 <span id="help-price"></span>을 한 번 결제해요.<br>결제한 메일함은 다시 분석해도 추가 결제 없이 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="refund">환불되나요?</summary>
         <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요.<br>분석이 잘못됐다면 문의해 주세요.<br><a href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책</a></p></details>
+      -->
     </div>
 
     <h2 class="help-h2">문의</h2>
@@ -154,7 +315,7 @@
 
     <h2 class="help-h2">약관·정책</h2>
     <div class="menu">
-      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책<span aria-hidden="true">›</span></a>
+      <!-- [결제 OFF] <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책<span aria-hidden="true">›</span></a> -->
       <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관<span aria-hidden="true">›</span></a>
       <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침<span aria-hidden="true">›</span></a>
     </div>
@@ -242,7 +403,7 @@
 <main id="scanning" class="screen bg-gradient" hidden>
   <div class="center">
     <div class="scan-ring">
-      <div class="scan-core"><img src="/static/assets/ic-shield.svg" alt="" width="48" height="48"></div>
+      <div class="scan-core"><img src="/static/assets/owl-stand.png" alt="" width="104" height="92"></div>
       <i class="orb orb-1"></i><i class="orb orb-2"></i><i class="orb orb-3"></i>
     </div>
     <div class="center-text">
@@ -331,7 +492,7 @@
       <li>방문 기록·쿠키·사이트 데이터를 지울 때</li>
       <li>다른 기기나 다른 브라우저에서 열 때</li>
       <li>시크릿·사생활 보호 창을 닫을 때</li>
-      <li>결제한 리포트도 똑같아요</li>
+      <!-- [결제 OFF] <li>결제한 리포트도 똑같아요</li> -->
     </ul>
     <p class="dialog-warn" id="guest-blocked" role="alert" hidden>지금 이 브라우저는 저장을 막아 두었어요.<br>이 창을 닫으면 만든 리포트가 바로 사라져요.</p>
     <p class="dialog-sub">나중에 로그인하면 이 브라우저의 리포트를 계정으로 옮겨 드려요.</p>
@@ -359,6 +520,7 @@
 <!-- 리포트 없음 -->
 <main id="missing" class="screen" hidden>
   <div class="center">
+    <img src="/static/assets/owl-warn.png" alt="" width="120" height="100">
     <div class="center-text">
       <h1>리포트를 찾지 못했어요</h1>
       <p>지웠거나 보관 기간이 지났을 수 있어요.<br>홈에서 내 리포트를 확인해 주세요.</p>

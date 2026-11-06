@@ -1,4 +1,6 @@
 // 화면: intro → connect → scanning → preview(요약·결제) → report. 도움말은 #help.
+// [결제 OFF] 지금은 서버가 늘 paid: true를 주므로 preview(결제 화면)를 거치지 않고 바로 전체 리포트로 간다.
+//            결제 화면 코드(onPay, Paddle 등)는 되돌리기 쉽게 그대로 두었다.
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
@@ -123,6 +125,8 @@ function show(id) {
   document
     .querySelectorAll(".screen")
     .forEach((el) => (el.hidden = el.id !== id));
+  // 시작 화면(랜딩)만 앱 컬럼을 벗어나 넓게 쓴다 (landing.css)
+  document.body.classList.toggle("is-landing", id === "intro");
   window.scrollTo(0, 0);
   trackScreen(id);
 }
@@ -711,11 +715,27 @@ async function renderHome() {
   $("#home-headline").hidden = !total;
   if (total) {
     const [label, sub] = total.money;
-    $("#home-label").textContent = label;
+    setAccent($("#home-label"), label);
     $("#home-sub").textContent = sub;
   }
-  if (!reports.length) list.append(el("p", "rp-empty", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
+  if (!reports.length) {
+    const empty = el("div", "home-empty");
+    const owl = Object.assign(document.createElement("img"), { src: "/static/assets/owl-stand.png", alt: "", width: 88, height: 78 });
+    empty.append(owl, el("p", "", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
+    list.append(empty);
+  }
   reports.forEach((r) => list.append(reportRow(r)));
+}
+
+// '매달 47,280원' → 금액만 강조색 (서버 report_view._accent와 같은 규칙)
+function setAccent(node, text) {
+  node.replaceChildren();
+  let last = 0;
+  for (const m of text.matchAll(/[\d,]+(?:원|개)/g)) {
+    node.append(text.slice(last, m.index), el("em", "", m[0]));
+    last = m.index + m[0].length;
+  }
+  node.append(text.slice(last));
 }
 
 function renderBusiness() {
@@ -723,10 +743,11 @@ function renderBusiness() {
   $("#business").textContent = [
     b.name && `운영 ${b.name}`,
     b.email && `문의 ${b.email}`,
-    b.seller && `결제·판매 ${b.seller}`,
+    // [결제 OFF] b.seller && `결제·판매 ${b.seller}`,
   ]
     .filter(Boolean)
     .join(" · ");
+  $("#landing-business").textContent = $("#business").textContent;
 }
 
 async function onLogout() {
@@ -797,6 +818,9 @@ function renderScanning(r) {
         ? `${n(r.total)}통 중 ${n(r.fetched)}통 읽음 (${pct}%)`
         : "메일 서버에 연결했어요";
   showError("#scan-error", failed ? r.error : "");
+  // 실패하면 경고 부엉이로 바꾸고 돌던 고리를 멈춘다
+  $(".scan-core img").src = `/static/assets/${failed ? "owl-warn" : "owl-stand"}.png`;
+  $(".scan-ring").classList.toggle("stopped", failed);
   $("#scan-retry").hidden = !failed;
 }
 
@@ -818,6 +842,7 @@ async function renderResult(r) {
     $("#pdf").hidden = backToPay;
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
+    for (const b of $("#report-body").querySelectorAll("[data-share]")) b.onclick = () => shareOffice(b);
     show("report");
     if (r.sample) track("sample_view", { from: backToPay ? "pay" : "direct" });
     if (justPaid === r.id) {
@@ -874,6 +899,23 @@ async function renderResult(r) {
   $("#dev-confirm").hidden = !(config.debug && config.payment_mode !== "mock");
   show("preview");
   if (!empty) track("view_item", reportItem(r.price));
+}
+
+// 리포트 끝 '대표님께 IDly 공유하기': 리포트 주소가 아니라 소개 페이지(첫 화면)만 나눈다 (리포트 id는 열람 권한이라 남에게 주지 않는다)
+async function shareOffice(button) {
+  const url = `${location.origin}/`;
+  const text = "메일만 연결하면 흩어진 계정과 구독을 찾아 주는 IDly예요. 우리 사무실 계정도 정리해 보면 좋겠어요.";
+  track("office_share_click", { method: navigator.share ? "native" : "copy" });
+  try {
+    if (navigator.share) return await navigator.share({ title: "IDly", text, url });
+    await navigator.clipboard.writeText(`${text}
+${url}`);
+    const before = button.textContent;
+    button.textContent = "링크를 복사했어요";
+    setTimeout(() => (button.textContent = before), 2000);
+  } catch (err) {
+    if (err && err.name !== "AbortError") console.error("[IDly] 공유하지 못했어요", err);
+  }
 }
 
 // 결제 버튼: 할인 중이면 버튼에서도 정가에 줄을 긋고 '지금만' 가격임을 보여 준다
@@ -1185,9 +1227,10 @@ async function init() {
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
-  $("#help-price").textContent = config.promo
-    ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
-    : won(config.price);
+  // [결제 OFF] 결제 FAQ의 가격
+  // $("#help-price").textContent = config.promo
+  //   ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
+  //   : won(config.price);
   renderBusiness();
   const form = $("#connect-form");
   form.email.addEventListener("input", () => {
@@ -1212,7 +1255,22 @@ async function init() {
       () => ($("#terms-all").checked = termsBoxes().every((x) => x.checked)),
     ),
   );
-  $("#open-login").addEventListener("click", () => openLoginSheet());
+  // 랜딩의 시작 버튼들 (위 메뉴·첫 화면·맨 아래)
+  document.querySelectorAll("[data-start]").forEach((b) =>
+    b.addEventListener("click", () => {
+      track("landing_start_click", { label: b.dataset.gaLabel || "" });
+      openLoginSheet();
+    }),
+  );
+  // 랜딩 안 이동(#ld-…)은 주소의 #을 바꾸지 않고 스크롤만 한다 (#은 화면 전환에 쓴다)
+  document.querySelectorAll('.landing a[href^="#ld-"]').forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute("href").slice(1));
+      if (target) target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }),
+  );
+  document.querySelectorAll("[data-sample-link]").forEach((a) => (a.hidden = !config.sample));
   $("#open-guest").addEventListener("click", () => openGuestNotice(false));
   $("#guest-ok").addEventListener("click", onGuestConfirmed);
   $("#guest-cancel").addEventListener("click", () => {
