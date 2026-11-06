@@ -359,6 +359,7 @@ h1, h2, p { margin: 0; }
 
 /* 리포트는 넓은 화면에서 앱 컬럼(430px)을 벗어나 두 칸으로 읽는다 (report.css의 .rp-side / .rp-main) */
 body.is-wide .app { max-width: none; }
+body.is-wide:not(.is-landing) { background: var(--bg); }
 #report { background: var(--bg); }
 #report .bar-head, #report .content, #report .cta { width: 100%; max-width: 1200px; margin-inline: auto; }
 /* 홈도 넓은 화면에서는 왼쪽 요약, 오른쪽 리포트 목록 */
@@ -377,6 +378,12 @@ body.is-wide .app { max-width: none; }
   #report .content { padding: 16px 40px 48px; }
   #report .cta { padding: 16px 40px 24px; }
   #report .foot-note { text-align: right; }
+  #report { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr; align-content: start; justify-content: center;
+    grid-template-areas: "head cta" "body body"; max-width: 1280px; margin-inline: auto; width: 100%; }
+  #report .bar-head { grid-area: head; max-width: none; }
+  #report .cta { grid-area: cta; position: sticky; top: 0; z-index: 21; align-self: start; max-width: none; height: 56px; padding: 0 40px 0 0; align-items: center; background: var(--bg); }
+  #report .cta .btn { height: 40px; min-width: 0; padding: 0 20px; font-size: 14px; box-shadow: none; }
+  #report .content { grid-area: body; max-width: none; }
   body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
   #home .logo-head { padding: 16px 40px 8px; }
   #home .home-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; padding: 16px 40px 48px; }

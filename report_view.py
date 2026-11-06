@@ -423,7 +423,7 @@ _WATERMARK_SVG = (
     '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="180">'
     '<text x="130" y="90" text-anchor="middle" dominant-baseline="middle" transform="rotate(-30 130 90)" '
     'font-family="Pretendard, Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" '
-    'fill="#202f61" fill-opacity="0.1">샘플 (목업) 페이지</text></svg>'
+    'fill="#202f61" fill-opacity="0.06">샘플 (목업) 페이지</text></svg>'
 )
 _WATERMARK = (
     '<div class="rp-watermark" aria-hidden="true" style="background-image:url(data:image/svg+xml;base64,'

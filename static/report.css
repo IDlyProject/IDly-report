@@ -139,26 +139,58 @@
 .rp-office-ask:active { background: var(--rp-paper-2); }
 .rp-office-share:focus-visible, .rp-office-ask:focus-visible, .rp-locked:focus-visible { outline: 2px solid var(--rp-focus); outline-offset: 2px; }
 
-/* 넓은 화면 (피그마 홈 H1처럼): 요약은 가로로 넓게, 그 아래 숫자·찾아낸 것, 가운데 세 칸, 맨 아래 두 칸.
-   .rp-doc에만 건다 (홈 화면도 .rp를 쓰므로 .rp 전체에 걸면 홈이 깨진다) */
+/* 넓은 화면 (피그마 홈 H1): 요약 카드 → 숫자 한 줄(카드 넷) → 흰 카드 세 칸(구독 · 확인할 일 · 안 쓰는 계정) → 흰 카드 두 칸 → 사무실·방법.
+   카드마다 제목은 안에, 목록은 카드 높이 안에서 스크롤. .rp-doc에만 건다 (홈도 .rp를 쓴다) */
 .rp-block, .rp-top, .rp-band, .rp-cols, .rp-wide, .rp-after { min-width: 0; }
 @media screen and (min-width: 60rem) {
-  .rp-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 48px; align-items: end; padding: 36px 40px; border-radius: 28px; }
-  .rp-hero-top { grid-column: 1 / -1; }
-  .rp-label { font-size: 40px; }
+  .rp-doc { display: grid; gap: 20px; }
+  .rp-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px; align-items: end; padding: 32px 40px; border-radius: 24px; }
+  .rp-hero-top { grid-column: 1 / -1; margin-bottom: 8px; }
+  .rp-label { margin-top: 0 !important; font-size: 40px; }
   .rp-desc { font-size: 16px; }
   .rp-funnel { margin-top: 0; }
   .rp-funnel b { font-size: 26px; }
-  .rp-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; align-items: start; margin-top: 24px; }
-  .rp-band > .rp-stats { margin-top: 0; }
-  .rp-band > .rp-h2:first-of-type { display: none; }
-  .rp-band .rp-finds { grid-column: 2; grid-row: 1 / span 2; }
-  .rp-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start; margin-top: 16px; }
-  .rp-wide { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 0 48px; align-items: start; }
-  .rp-wide > .rp-block:first-child { grid-row: 1 / span 3; }
-  .rp-after { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
-  .rp-after .rp-office { margin-top: 40px; }
-  .rp-h2 { font-size: 20px; }
+  .rp-funnel span { font-size: 13px; }
+
+  /* 숫자 한 줄: 구독·보안·안 쓰는 계정 + 찾아낸 것을 같은 높이의 흰 카드로 */
+  .rp-band { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 4fr); gap: 16px; align-items: stretch; }
+  .rp-band > .rp-stats { display: contents; }
+  .rp-band .rp-stat { display: grid; grid-template-columns: auto 1fr; align-content: center; padding: 16px 20px; border: 0 !important; border-radius: 20px; background: var(--rp-surface); box-shadow: 0 1px 2px rgba(27, 39, 64, 0.04); }
+  .rp-band .rp-stat b { font-size: 30px; }
+  .rp-band .rp-stat-label { font-size: 13px; }
+  .rp-band > .rp-h2 { display: none; }
+  .rp-band .rp-finds { grid-column: 1 / -1; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; }
+  .rp-band .rp-find, .rp-band .rp-find.f-accent { grid-column: auto !important; padding: 20px; border: 0; border-radius: 20px; background: var(--rp-surface); box-shadow: 0 1px 2px rgba(27, 39, 64, 0.04); }
+  .rp-band .rp-find.f-accent { background: var(--rp-accent-bg); }
+  .rp-band .rp-find b { font-size: 24px; }
+  .rp-band .rp-find p { font-size: 13px; }
+  .rp-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  /* 흰 카드 */
+  .rp-block { padding: 24px 24px 8px; border-radius: 20px; background: var(--rp-surface); box-shadow: 0 1px 2px rgba(27, 39, 64, 0.04); }
+  .rp-block > .rp-h2:first-child { margin-top: 0 !important; }
+  .rp-block .rp-card { border-top: 0; }
+  .rp-block .rp-row:last-child { border-bottom: 0; }
+  .rp-block .rp-note { font-size: 13px; }
+  .rp-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+  .rp-cols .rp-card { max-height: 520px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .rp-wide { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 20px; align-items: start; }
+  .rp-wide > .rp-block:first-child { grid-row: 1 / span 2; }
+  .rp-wide > .rp-block:first-child .rp-card { max-height: 560px; overflow-y: auto; scrollbar-width: thin; }
+  .rp-wide .rp-timeline { background: var(--rp-paper); }
+  .rp-after { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .rp-after .rp-office { margin-top: 0; background: var(--rp-surface); }
+  .rp-after .rp-method { margin-top: 0; border-top: 0; padding-top: 8px; }
+  .rp-h2 { font-size: 19px; }
+  .rp-title { font-size: 15px; }
+  .rp-text, .rp-advice, .rp-why { font-size: 13px; }
+}
+/* 60~80rem: 세 칸은 좁으니 두 칸, 셋째 카드는 아래 줄 전체 */
+@media screen and (min-width: 60rem) and (max-width: 80rem) {
+  .rp-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rp-cols > .rp-block:nth-child(3) { grid-column: 1 / -1; }
+  .rp-wide { grid-template-columns: minmax(0, 1fr); }
+  .rp-wide > .rp-block:first-child { grid-row: auto; }
 }
 @media (max-width: 22rem) {
   .rp-stat { grid-template-columns: 1fr; padding-inline: 8px; }
