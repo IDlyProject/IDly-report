@@ -15,11 +15,10 @@
 <body>
 <div class="app">
 
-<!-- 시작 = IDly 소개. 세일즈 흐름: "이런 거 불편하셨죠?" → "저희는 이렇게 해요" → "지금 리포트로 확인하세요".
-     첫 화면은 불편 체크리스트: 체크하면 옆 창에 IDly의 답이 실제 화면과 함께 바뀌어 나온다 (둘러보는 방식).
-     메인 페르소나: IT 담당자 없이 작은 사무실을 운영하는 대표 (AI 가상 인터뷰 '이정화'): 퇴사자 계정과 안 쓰는 구독 결제가 새는 게 속상하고,
-     세팅·공부·수동 확인이 필요하면 결국 포스트잇에 적고 잊는다. 여러 곳에 뿌리는 페이지라 업종(세무사)은 쓰지 않는다.
-     내용은 IR 덱(2026 사업계획서). 스크립트가 없으면 답이 각 항목 아래에 펼쳐진다. 결제·가격 이야기는 하지 않는다 -->
+<!-- 시작 = IDly 소개. 세일즈 흐름: 이런 거 불편하셨죠? → IDly는 → 지금 리포트로 확인하세요.
+     첫 장면: 문장 속 칩(불편)이 스크롤이나 커서만으로 하나씩 체크되고, 뒤의 빛(오라)과 옆의 답 카드가 바로 바뀐다. 클릭하거나 읽을 필요가 없다.
+     메인 페르소나: IT 담당자 없이 작은 사무실을 운영하는 대표 (AI 가상 인터뷰 '이정화'). 여러 곳에 뿌리는 페이지라 업종(세무사)은 쓰지 않는다.
+     내용은 IR 덱(2026 사업계획서). 스크립트가 없으면 답 카드가 문장 아래에 차례로 펼쳐진다. 결제·가격 이야기는 하지 않는다 -->
 <main id="intro" class="screen landing" hidden>
   <header class="ld-top">
     <a class="ld-mark" href="#intro" aria-label="IDly 처음으로"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="56" height="40"></a>
@@ -30,138 +29,80 @@
     </nav>
   </header>
 
-  <!-- 1. 이런 거 불편하셨죠? -->
-  <section class="ld-check">
-    <div class="ld-check-q">
-      <h1>이런 거,<br>불편하지 않으셨어요?</h1>
-      <p class="ld-hint">해당되는 걸 눌러 보세요. IDly가 어떻게 해결하는지 옆에 보여 드려요.</p>
-      <ul class="ld-pains" id="ld-pains">
-        <li>
-          <input type="checkbox" id="pain-leave" data-pain="leave">
-          <label for="pain-leave">직원이 그만둘 때마다 업무 계정 비밀번호를 일일이 바꿨어요</label>
-          <div class="ld-ans" id="ans-leave">
-            <h2>IDly는 퇴사자 계정을 먼저 찾아 알려 드려요</h2>
-            <p>누가 어떤 서비스에 가입해 있었는지 메일로 찾아내고, 정리할 계정을 근거와 함께 보여 드려요. 탈퇴와 해지는 에이전트가 대신하고, 대표님은 승인만 하면 돼요.</p>
-            <div class="ld-agent" aria-label="개발 중인 에이전트 화면 예시">
-              <p class="ld-agent-title">맡긴 작업 3</p>
-              <ol>
-                <li><b>퇴사자 협업툴 계정 정리</b><span>승인 필요</span></li>
-                <li><b>안 쓰는 화상회의 구독 해지</b><span>진행 중</span></li>
-                <li><b>중복 클라우드 요금제 정리</b><span>끝났어요</span></li>
-              </ol>
-              <p class="ld-agent-note">에이전트는 개발 중이에요</p>
-            </div>
+  <!-- 1. 이런 거 불편하셨죠? (스크롤하는 동안 화면에 붙어 있는 한 장면) -->
+  <section class="ld-scene" id="ld-scene">
+    <div class="ld-stage">
+      <div class="ld-aura" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+
+      <div class="ld-stage-in">
+        <div class="ld-words">
+          <h1 class="ld-title">계정 관리,<br>이래서 어려웠죠</h1>
+          <p class="ld-sentence">
+            <span class="ld-line">가입한 서비스는 <mark class="ld-chip" data-i="0" tabindex="0">너무 많은데<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></span>
+            <span class="ld-line">어디에 뭐가 있는지 <mark class="ld-chip" data-i="1" tabindex="0">기억도 안 나고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></span>
+            <span class="ld-line">해지한 줄 알았던 구독은 <mark class="ld-chip" data-i="2" tabindex="0">아직도 결제되고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark> 있어요.</span>
+            <span class="ld-line">퇴사한 직원 계정은 <mark class="ld-chip" data-i="3" tabindex="0">아직 살아 있고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></span>
+            <span class="ld-line">유출 뉴스가 떠도 <mark class="ld-chip" data-i="4" tabindex="0">우리 계정인지 몰라요.<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></span>
+          </p>
+          <p class="ld-resolve">흩어진 계정과 구독, <strong>이메일 하나로</strong> 한 번에 확인하세요.</p>
+          <div class="ld-actions">
+            <button class="ld-btn ld-btn-main" type="button" id="open-login" data-start data-ga-label="hero">무료 리포트로 확인하기</button>
+            <a class="ld-link" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="landing">샘플 리포트 보기</a>
           </div>
-        </li>
-        <li>
-          <input type="checkbox" id="pain-leak" data-pain="leak">
-          <label for="pain-leak">정리했다던 계정에서 안 쓰는 결제가 몇 달째 빠져나갔어요</label>
-          <div class="ld-ans" id="ans-leak">
-            <h2>IDly는 새고 있는 결제를 금액까지 찾아요</h2>
-            <p>결제 영수증과 자동 갱신 메일을 읽어 지금 매달 나가는 돈과 다음 결제일을 알려 드려요. 한 사람의 메일함 3개에서만 매달 143,900원이 새고 있었어요.</p>
-            <img class="ld-phone" src="/static/assets/shot-report-top-mob.jpg" alt="샘플 리포트 첫 화면. 매달 81,990원, 찾은 계정 14개" width="780" height="1688" loading="lazy">
-          </div>
-        </li>
-        <li>
-          <input type="checkbox" id="pain-view" data-pain="view">
-          <label for="pain-view">어떤 업무 서비스에 얼마를 내는지 한눈에 모르겠어요</label>
-          <div class="ld-ans" id="ans-view">
-            <h2>IDly는 구독료와 다음 결제일을 한 화면에</h2>
-            <p>서비스별 금액과 다음 결제일, 왜 구독으로 봤는지 근거 메일까지 정리해 드려요. 보고서를 읽을 필요 없이 오늘 정리할 것부터 보여 드려요.</p>
-            <img class="ld-phone" src="/static/assets/shot-report-mob.jpg" alt="샘플 리포트 구독 목록. 서비스마다 금액, 다음 결제일, 판단 근거" width="780" height="1688" loading="lazy">
-          </div>
-        </li>
-        <li>
-          <input type="checkbox" id="pain-setup" data-pain="setup">
-          <label for="pain-setup">관리 툴은 세팅이 복잡해서 결국 포스트잇에 적어 둬요</label>
-          <div class="ld-ans" id="ans-setup">
-            <h2>IDly는 이메일만 넣으면 시작이에요</h2>
-            <p>설치, 관리자 세팅, 교육 없이 메일 주소와 앱 비밀번호만 넣으면 돼요. 앱 비밀번호 만드는 방법도 화면에서 바로 알려 드려요. 그다음은 IDly가 알아서 해요.</p>
-            <img class="ld-phone" src="/static/assets/shot-connect-mob.jpg" alt="IDly 메일 연결 화면. 메일 주소를 넣으면 앱 비밀번호 만드는 방법을 바로 안내해요" width="780" height="1688" loading="lazy">
-          </div>
-        </li>
-        <li>
-          <input type="checkbox" id="pain-breach" data-pain="breach">
-          <label for="pain-breach">유출 사고 뉴스를 보면 우리 계정일까 불안해요</label>
-          <div class="ld-ans" id="ans-breach">
-            <h2>IDly는 어디에 가입돼 있는지부터 찾아요</h2>
-            <p>가입 환영 메일과 새 기기 로그인 알림으로 계정을 찾고, 직접 확인해야 할 보안 알림을 먼저 보여 드려요. 메일은 안전하게 다뤄요.</p>
-            <ul class="ld-rules">
-              <li><b>앱 비밀번호로만 연결</b>언제든 지울 수 있는 앱 비밀번호를 써요.</li>
-              <li><b>비밀번호와 원문은 저장 안 함</b>분석하는 동안만 쓰고, 메일 원문은 남기지 않아요.</li>
-              <li><b>가린 요약만 AI로</b>아이디, 전화번호, 카드번호, 인증번호를 가린 뒤에만 읽어요.</li>
-            </ul>
-          </div>
-        </li>
-      </ul>
-      <div class="ld-verdict">
-        <p id="ld-verdict" aria-live="polite">하나라도 해당되면, 지금 메일함에 답이 있어요.</p>
-        <div class="ld-actions">
-          <button class="ld-btn ld-btn-accent" type="button" id="open-login" data-start data-ga-label="hero">무료 리포트로 확인하기</button>
-          <a class="ld-link" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="landing">샘플 리포트 보기</a>
+        </div>
+
+        <!-- 답 카드: 지금 켜진 칩에 대한 IDly의 답 -->
+        <div class="ld-cards" aria-live="polite">
+          <article class="ld-card ld-card-intro" data-card="intro">
+            <img src="/static/assets/owl-stand.png" alt="" width="120" height="107">
+            <p class="ld-card-text">내려 보세요. 하나씩, IDly가 어떻게 해결하는지 보여 드릴게요.</p>
+          </article>
+          <article class="ld-card" data-card="0">
+            <p class="ld-card-big"><b>325</b>개</p>
+            <p class="ld-card-text">한 사람의 메일함 3개에서 나온, 본인도 몰랐던 계정. IDly는 메일만 읽고 전부 찾아요.</p>
+          </article>
+          <article class="ld-card" data-card="1">
+            <img class="ld-card-shot" src="/static/assets/shot-report-top-mob.jpg" alt="샘플 리포트 첫 화면. 매달 나가는 구독료와 찾은 계정 수" width="780" height="1688" loading="lazy">
+            <p class="ld-card-text">어디에 뭐가 있는지, 서비스별로 한 화면에 정리해 드려요.</p>
+          </article>
+          <article class="ld-card" data-card="2">
+            <p class="ld-card-big"><small>매달</small> <b>143,900</b>원</p>
+            <p class="ld-card-text">그 메일함에서 새고 있던 구독료. 다음 결제일까지 먼저 알려 드려요.</p>
+          </article>
+          <article class="ld-card" data-card="3">
+            <p class="ld-card-big"><b>47</b>%</p>
+            <p class="ld-card-text">퇴사한 직원이 이전 회사 계정을 계속 쓰는 비율이에요. IDly는 퇴사자 계정을 먼저 알리고, 정리는 에이전트가 대신해요 (개발 중).</p>
+            <p class="ld-card-src">PasswordManager.com, 미국 직장인 1,000명</p>
+          </article>
+          <article class="ld-card" data-card="4">
+            <p class="ld-card-big ld-card-word">보안 알림 먼저</p>
+            <p class="ld-card-text">새 기기 로그인 같은 알림부터 보여 드려요. 메일 비밀번호와 원문은 저장하지 않아요.</p>
+          </article>
         </div>
       </div>
-    </div>
 
-    <!-- 옆 창: 체크한 불편에 대한 IDly의 답. 아무것도 고르지 않았으면 IDly가 메일함을 읽는 모습 -->
-    <div class="ld-panel" id="ld-panel" aria-live="polite">
-      <div class="ld-panel-idle" id="ld-idle">
-        <h2>IDly는 지금 사무실 메일함을 대신 읽는 중이에요</h2>
-        <figure class="ld-inbox" aria-label="IDly가 예시 사무실 받은편지함을 읽으며 계정과 구독 메일을 골라내는 모습">
-          <div class="ld-inbox-head">
-            <span>사무실 받은편지함 <small>예시</small></span>
-            <button class="ld-pause" type="button" id="ld-pause" aria-pressed="false">멈추기</button>
-          </div>
-          <ol class="ld-mails" id="ld-mails">
-            <li data-found="Microsoft 365"><b>Microsoft</b><span>Microsoft 365 Business 결제 영수증</span><time>오전 9:12</time></li>
-            <li><b>거래처</b><span>11월 자료 보내 드립니다</span><time>오전 8:40</time></li>
-            <li data-found="Adobe Acrobat"><b>Adobe</b><span>Acrobat Pro 구독이 자동 갱신되었습니다</span><time>어제</time></li>
-            <li><b>광고</b><span>연말 사무용품 할인 안내</span><time>어제</time></li>
-            <li data-found="Zoom"><b>Zoom</b><span>Zoom Pro 결제가 완료되었습니다</span><time>11월 3일</time></li>
-            <li data-found="잔디"><b>잔디</b><span>새 기기에서 로그인했어요</span><time>11월 2일</time></li>
-            <li><b>교육 안내</b><span>연말 실무 세미나 신청 안내</span><time>11월 1일</time></li>
-            <li data-found="Dropbox"><b>Dropbox</b><span>결제 수단을 확인해 주세요</span><time>10월 30일</time></li>
-            <li data-found="Google Workspace"><b>Google</b><span>Google Workspace 인보이스</span><time>10월 28일</time></li>
-            <li><b>거래처</b><span>계약서 회신 부탁드립니다</span><time>10월 27일</time></li>
-            <li data-found="Canva"><b>Canva</b><span>Canva Pro 영수증</span><time>10월 25일</time></li>
-            <li data-found="네이버 웍스"><b>네이버 웍스</b><span>이용 요금 청구 안내</span><time>10월 22일</time></li>
-            <li><b>광고</b><span>회원님만을 위한 쿠폰</span><time>10월 20일</time></li>
-            <li data-found="Notion"><b>Notion</b><span>Your receipt from Notion Labs</span><time>10월 16일</time></li>
-            <li data-found="카카오워크"><b>카카오워크</b><span>오래 접속하지 않은 멤버가 있어요</span><time>10월 9일</time></li>
-          </ol>
-          <figcaption class="ld-found">
-            <span class="ld-found-count">찾은 계정·구독 <b id="ld-found-n">0</b></span>
-            <span class="ld-found-list" id="ld-found-list" aria-live="polite"></span>
-          </figcaption>
-        </figure>
-      </div>
-      <div class="ld-panel-ans" id="ld-panel-ans" hidden></div>
+      <p class="ld-scroll-hint" aria-hidden="true">스크롤하거나 강조된 말에 커서를 올려 보세요</p>
     </div>
   </section>
 
-  <!-- 2. 저희는: 이메일 하나로 찾고, 보여주고, 대신 끝냅니다 (IR 05~07, 08 포지셔닝, 09 Why IDly).
-       경쟁 도구(조직 연동형)와의 차이를 표로. 경쟁사 이름은 쓰지 않는다 -->
+  <!-- 2. 그래서 IDly는 이렇게 달라요 (IR 08 포지셔닝, 09 Why IDly). 경쟁사 이름은 쓰지 않는다 -->
   <section class="ld-sec ld-we" id="ld-how">
     <div class="ld-container">
-      <h2 class="ld-say">그래서 IDly는 이렇게 달라요</h2>
+      <h2 class="ld-say">그래서 IDly는<br>이렇게 달라요</h2>
       <p class="ld-sub">관리 툴은 많지만, 대부분 관리자 연동부터 시작하고 정리는 결국 사람이 해요. IDly는 직원 한 명의 이메일에서 시작해, 정리까지 대신합니다.</p>
       <table class="ld-compare">
         <thead><tr><th scope="col"><span class="visually-hidden">항목</span></th><th scope="col">보통의 관리 툴</th><th scope="col">IDly</th></tr></thead>
         <tbody>
           <tr><th scope="row">시작하려면</th><td>법인카드, 관리자 계정 연동부터</td><td>직원 한 명의 이메일만</td></tr>
           <tr><th scope="row">누가 챙기나요</th><td>IT나 총무 담당자</td><td>담당자 없이, 대표님 혼자서도</td></tr>
-          <tr><th scope="row">찾고 나면</th><td>정리할 목록을 받아 직접 처리</td><td>정리까지 에이전트가 대신, 승인만 (개발 중)</td></tr>
+          <tr id="ld-report"><th scope="row">찾고 나면</th><td>정리할 목록을 받아 직접 처리</td><td>정리까지 에이전트가 대신, 승인만 (개발 중)</td></tr>
           <tr><th scope="row">판단 근거</th><td>사용 기록과 결제 내역</td><td>영수증, 로그인 알림 같은 근거 메일</td></tr>
         </tbody>
       </table>
-      <div class="ld-proof" id="ld-report">
-        <p class="ld-proof-num"><b>325</b>개</p>
-        <p class="ld-proof-text">한 사람의 메일함 3개에서만 본인도 몰랐던 계정이 나왔고, 매달 <b>143,900원</b>이 새고 있었어요. 직원 모두의 메일함이라면, 사무실 전체로는 얼마일까요?</p>
-      </div>
     </div>
   </section>
 
-  <!-- 3. 자주 묻는 질문: 페르소나가 실제로 망설이는 지점 (AI 가상 인터뷰의 '걸려 한 점') -->
+  <!-- 3. 자주 묻는 질문: 페르소나가 실제로 망설이는 지점 -->
   <section class="ld-sec ld-faq">
     <div class="ld-container ld-faq-in">
       <h2 class="ld-say">시작하기 전에<br>많이 물어보세요</h2>
@@ -180,25 +121,22 @@
     </div>
   </section>
 
-  <!-- 4. 지금 리포트로 확인하세요 (IR 13·14: 개인 리포트 무료 → 사무실로) -->
-  <section class="ld-sec ld-cta ld-dark" id="ld-office">
+  <!-- 4. 지금 리포트로 확인하세요 -->
+  <section class="ld-sec ld-cta" id="ld-office">
+    <div class="ld-aura ld-aura-soft" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
     <div class="ld-container ld-cta-in">
-      <div>
-        <h2 class="ld-say">계정 정리,<br>더 미루지 마세요</h2>
-        <p class="ld-after">지금 내 이메일 하나로 무료 리포트를 받아 보세요. 몇 분이면 돼요.</p>
-        <div class="ld-actions">
-          <button class="ld-btn ld-btn-accent" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
-          <a class="ld-link ld-link-dark" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의하기</a>
-        </div>
-        <p class="ld-note-dark">설치도, 세팅도, 가입도 없이. 메일 비밀번호와 원문은 저장하지 않아요.</p>
+      <h2 class="ld-say">계정 정리,<br>더 미루지 마세요</h2>
+      <p class="ld-sub">지금 내 이메일 하나로 무료 리포트를 받아 보세요. 설치도, 세팅도, 가입도 없이 몇 분이면 돼요.</p>
+      <div class="ld-actions">
+        <button class="ld-btn ld-btn-main" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
+        <a class="ld-link" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의하기</a>
       </div>
-      <img src="/static/assets/owl-stand.png" alt="" width="200" height="178" loading="lazy">
     </div>
   </section>
 
   <footer class="ld-foot">
     <nav class="ld-foot-links" aria-label="사이트">
-      <a href="#ld-how">IDly는</a>
+      <a href="#ld-how">IDly는 달라요</a>
       <a href="#ld-report">리포트</a>
       <a href="#ld-office">시작하기</a>
       <a href="#help" data-ga="help_open">도움말</a>

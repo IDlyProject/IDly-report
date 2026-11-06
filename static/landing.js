@@ -1,162 +1,91 @@
-// 랜딩(IDly의 메일함) 전용 동작. app.js와 따로 둔다.
-// 1) 첫 화면 예시 받은편지함: IDly가 한 줄씩 읽고, 계정 메일이면 표시하고 '찾은 계정'에 쌓는다
-// 2) 'IDly가 보낸 메일': 넓은 화면에서는 왼쪽 목록에서 고르면 오른쪽에서 열린다 (좁은 화면·스크립트 없음: 전부 차례로 펼침)
+// 랜딩 첫 장면 전용 동작. app.js와 따로 둔다.
+// 스크롤만 해도 문장 속 칩이 하나씩 체크되고, 뒤의 빛(오라)과 옆의 답 카드가 바뀐다.
+// 넓은 화면에서는 칩에 커서를 올리기만 해도 그 칩의 답으로 바로 바뀐다 (클릭할 필요가 없다).
+// 스크립트가 없으면 장면은 고정되지 않고 답 카드가 문장 아래에 차례로 펼쳐진다 (.js가 붙을 때만 고정·전환).
 (() => {
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-
-  // --- 1. 받은편지함 읽기 ------------------------------------------------------------
-  const list = document.getElementById("ld-mails");
-  const rows = list ? [...list.children] : [];
-  const countEl = document.getElementById("ld-found-n");
-  const foundEl = document.getElementById("ld-found-list");
-  const pauseBtn = document.getElementById("ld-pause");
-  const figure = list && list.closest(".ld-inbox");
-  let at = -1;
-  let timer = null;
-  let userPaused = false;
-  let hovering = false;
-  let onScreen = true;
-
-  function reset() {
-    rows.forEach((r) => r.classList.remove("reading", "found", "read"));
-    foundEl.replaceChildren();
-    countEl.textContent = "0";
-    at = -1;
-    list.scrollTop = 0;
-  }
-
-  function mark(row) {
-    row.classList.add("found");
-    const chip = document.createElement("span");
-    chip.textContent = row.dataset.found;
-    foundEl.append(chip);
-    countEl.textContent = String(foundEl.children.length);
-  }
-
-  function step() {
-    if (at >= 0) {
-      rows[at].classList.remove("reading");
-      rows[at].classList.add("read");
-    }
-    at += 1;
-    if (at >= rows.length) {
-      // 끝까지 읽으면 잠깐 두었다가 처음부터
-      clearInterval(timer);
-      timer = setTimeout(() => {
-        reset();
-        timer = null;
-        sync();
-      }, 2600);
-      return;
-    }
-    const row = rows[at];
-    row.classList.add("reading");
-    if (row.dataset.found) mark(row);
-    // 읽는 줄이 창 가운데쯤 오도록 목록을 올린다
-    const target = row.offsetTop - list.clientHeight * 0.4;
-    list.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
-  }
-
-  function running() {
-    return !userPaused && !hovering && onScreen && document.body.classList.contains("is-landing") && !document.hidden;
-  }
-
-  function sync() {
-    if (!list) return;
-    const go = running();
-    if (go && timer === null) timer = setInterval(step, 760);
-    if (!go && timer !== null && at < rows.length) {
-      clearInterval(timer);
-      timer = null;
-    }
-  }
-
-  function showStatic() {
-    // 움직임을 줄이는 설정: 다 읽은 상태로 멈춰 둔다
-    clearInterval(timer);
-    timer = null;
-    reset();
-    rows.forEach((r) => {
-      r.classList.add("read");
-      if (r.dataset.found) mark(r);
-    });
-    pauseBtn.hidden = true;
-  }
-
-  if (list) {
-    if (reduce.matches) showStatic();
-    else {
-      pauseBtn.addEventListener("click", () => {
-        userPaused = !userPaused;
-        pauseBtn.setAttribute("aria-pressed", String(userPaused));
-        pauseBtn.textContent = userPaused ? "계속 읽기" : "멈추기";
-        sync();
-      });
-      figure.addEventListener("mouseenter", () => ((hovering = true), sync()));
-      figure.addEventListener("mouseleave", () => ((hovering = false), sync()));
-      figure.addEventListener("focusin", () => ((hovering = true), sync()));
-      figure.addEventListener("focusout", () => ((hovering = false), sync()));
-      document.addEventListener("visibilitychange", sync);
-      new IntersectionObserver(([e]) => ((onScreen = e.isIntersecting), sync())).observe(figure);
-      new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ["class"] });
-      sync();
-    }
-    reduce.addEventListener("change", () => (reduce.matches ? showStatic() : location.reload()));
-  }
-
-  // --- 2. 이런 거 불편하셨죠? 체크하면 옆 창에 IDly의 답 -------------------------------
-  const landing = document.querySelector(".landing");
-  const pains = landing ? [...landing.querySelectorAll("[data-pain]")] : [];
-  if (!pains.length) return;
-  // 스크립트가 있을 때만 답을 항목 아래에서 숨기고 옆 창으로 옮긴다 (없으면 항목 아래에 펼쳐진 그대로)
+  const stage = document.querySelector(".ld-stage");
+  const scene = document.getElementById("ld-scene");
+  if (!stage || !scene) return;
   document.documentElement.classList.add("js");
-  const idle = document.getElementById("ld-idle");
-  const ansBox = document.getElementById("ld-panel-ans");
-  const verdict = document.getElementById("ld-verdict");
-  const verdictBase = verdict.textContent;
-  let shown = null;
 
-  function showAnswer(input) {
-    shown = input;
-    if (!input) {
-      ansBox.hidden = true;
-      ansBox.replaceChildren();
-      idle.hidden = false;
-      return;
-    }
-    const ans = document.getElementById(`ans-${input.dataset.pain}`);
-    ansBox.replaceChildren(...[...ans.children].map((c) => c.cloneNode(true)));
-    idle.hidden = true;
-    ansBox.hidden = false;
+  const chips = [...stage.querySelectorAll(".ld-chip")];
+  const cards = [...stage.querySelectorAll(".ld-card:not(.ld-card-intro)")];
+  const intro = stage.querySelector(".ld-card-intro");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const fine = matchMedia("(hover: hover) and (pointer: fine)");
+  const n = chips.length;
+  let scrolled = -1; // 스크롤이 정한 상태 (-1: 아직 아무것도, n: 전부 체크)
+  let hovered = null; // 커서가 올라간 칩
+
+  function paint() {
+    const active = hovered ?? scrolled;
+    stage.dataset.s = active < 0 ? "" : String(Math.min(active, n));
+    chips.forEach((c, i) => {
+      c.classList.toggle("done", i <= Math.max(scrolled, hovered ?? -1));
+      c.classList.toggle("on", i === active);
+    });
+    // 카드: 켜진 칩의 답. 다 체크했으면 마지막 답을 그대로 둔다
+    const card = active < 0 ? -1 : Math.min(active, n - 1);
+    cards.forEach((c, i) => c.classList.toggle("on", i === card));
+    if (intro) intro.classList.toggle("on", card < 0);
   }
 
-  function syncPains(changed) {
-    const on = pains.filter((p) => p.checked);
-    pains.forEach((p) => p.closest("li").classList.toggle("on", p.checked));
-    const n = on.length;
-    verdict.textContent =
-      n === 0
-        ? verdictBase
-        : n === pains.length
-          ? "전부 해당되시네요. 지금 메일함에서 바로 확인해 보세요."
-          : `${n}개 해당되시네요. 지금 메일함에서 바로 확인해 보세요.`;
-    // 방금 체크한 것을 보여 주고, 체크를 풀면 남은 것 중 마지막, 없으면 다시 읽는 중 화면
-    if (changed && changed.checked) showAnswer(changed);
-    else if (!changed || shown === changed) showAnswer(on[on.length - 1] || null);
+  // 스크롤: 장면을 지나는 비율로 상태를 정한다 (위에서 조금 내려오면 첫 칩부터)
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const rect = scene.getBoundingClientRect();
+      const span = scene.offsetHeight - innerHeight;
+      if (span <= 0) return;
+      const p = Math.min(1, Math.max(0, -rect.top / span));
+      const next = Math.min(n, Math.floor(p * (n + 1.2)) - (p < 0.04 ? 1 : 0));
+      if (next !== scrolled) {
+        const forward = next > scrolled;
+        scrolled = next;
+        paint();
+        if (forward && next >= 0 && next < n && typeof window.track === "function") window.track("pain_seen", { index: next });
+      }
+    });
   }
+  addEventListener("scroll", onScroll, { passive: true });
+  addEventListener("resize", onScroll, { passive: true });
 
-  pains.forEach((p) => {
-    p.addEventListener("change", () => {
-      syncPains(p);
-      if (p.checked && typeof window.track === "function") window.track("pain_check", { pain: p.dataset.pain, count: pains.filter((x) => x.checked).length });
+  // 커서: 칩에 올리면 그 답으로, 장면 어디서든 빛이 커서 쪽으로 살짝 기운다
+  chips.forEach((c, i) => {
+    c.addEventListener("mouseenter", () => {
+      if (!fine.matches) return;
+      hovered = i;
+      paint();
     });
-    // 넓은 화면: 마우스를 올리면 미리 보기 (체크한 게 없을 때만)
-    p.closest("li").addEventListener("mouseenter", () => {
-      if (!pains.some((x) => x.checked) && matchMedia("(min-width: 60rem)").matches) showAnswer(p);
+    c.addEventListener("focus", () => {
+      hovered = i;
+      paint();
+    });
+    c.addEventListener("blur", () => {
+      hovered = null;
+      paint();
     });
   });
-  document.getElementById("ld-pains").addEventListener("mouseleave", () => {
-    if (!pains.some((x) => x.checked)) showAnswer(null);
+  stage.querySelector(".ld-sentence").addEventListener("mouseleave", () => {
+    hovered = null;
+    paint();
   });
-  syncPains(null);
+  stage.addEventListener("pointermove", (e) => {
+    if (!fine.matches || reduce.matches) return;
+    const r = stage.getBoundingClientRect();
+    stage.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+    stage.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+  });
+  stage.addEventListener("pointerleave", () => {
+    stage.style.setProperty("--mx", "0");
+    stage.style.setProperty("--my", "0");
+  });
+
+  // 랜딩이 다시 보일 때(다른 화면에서 돌아올 때) 상태를 다시 잰다
+  new MutationObserver(onScroll).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  paint();
+  onScroll();
 })();
