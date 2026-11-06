@@ -152,6 +152,24 @@ def _money_line(s: Dict[str, Any]) -> Tuple[str, str]:
     return f"계정 {s['accounts']:,}개를 찾았어요", "나가는 구독과 보안 위험은 없었어요"
 
 
+def _accent(label: str) -> str:
+    """'매달 47,280원' 같은 문구에서 금액·숫자 부분만 강조색으로 칠한다."""
+    return re.sub(r"([\d,]+(?:원|개))", r'<em>\1</em>', _e(label))
+
+
+def _funnel(report: Dict[str, Any], s: Dict[str, Any]) -> str:
+    """메일 몇 통을 읽고, 몇 곳을 검토해, 몇 개로 추렸는지: 분석이 한 일을 숫자로 보여 준다."""
+    steps = [(s["messages"], "통", "읽은 메일")]
+    if report.get("candidates"):
+        steps.append((report["candidates"], "곳", "검토한 발신처"))
+    steps.append((s["accounts"], "개", "찾은 계정"))
+    if not s["messages"]:
+        return ""
+    cells = '<i aria-hidden="true">›</i>'.join(
+        f'<span><b>{n:,}<small>{unit}</small></b>{label}</span>' for n, unit, label in steps)
+    return f'<div class="rp-funnel">{cells}</div>'
+
+
 def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     chip = f'<span class="rp-chip">{_img("ic-ai.svg")}AI 분석</span>' if report.get("ai_used") else ""
     sample = '<span class="rp-chip">샘플</span>' if report.get("sample") else ""
@@ -162,9 +180,9 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     return f"""{notice}
 <section class="rp-hero">
   <div class="rp-hero-top"><span class="rp-date">{created.year}년 {created.month}월 {created.day}일 기준</span><span class="rp-chips">{sample}{chip}</span></div>
-  <div class="rp-ring"><div><b>{s['accounts']}</b><span>찾은 계정</span></div></div>
-  <p class="rp-label">{label}</p>
-  <p class="rp-desc">{desc}</p>
+  <div class="rp-hero-main"><p class="rp-label">{_e(label)}</p>
+  <p class="rp-desc">{_e(desc)}</p></div>
+  {_funnel(report, s)}
 </section>"""
 
 
@@ -179,6 +197,117 @@ def _stats(s: Dict[str, Any]) -> str:
         for icon, tint, n, label in items
     )
     return f'<div class="rp-stats">{cells}</div>'
+
+
+# --- IDly가 찾아낸 것 ------------------------------------------------------------------
+# 숫자 몇 개보다 '이런 것까지 알아?' 싶은 사실 몇 줄이 분석을 믿게 한다. 결제 전(full=False)에는 서비스 이름만 뺀다
+
+WORK_CATEGORIES = {"생산성", "업무·생산성", "개발", "클라우드", "디자인"}
+
+
+def _spent(a: Dict[str, Any]) -> int:
+    sub = a.get("subscription") or {}
+    return (sub.get("payments") or 0) * (sub.get("amount") or 0)
+
+
+def _discoveries(report: Dict[str, Any], created: datetime, full: bool) -> str:
+    accounts = report["accounts"]
+    cards: List[Tuple[str, str, str, str]] = []  # (꼬리표, 큰 글자, 설명, 색)
+
+    paid = sorted((a for a in accounts if _spent(a)), key=_spent, reverse=True)
+    if paid:
+        total = sum(_spent(a) for a in paid)
+        top = paid[0]
+        times = top["subscription"]["payments"]
+        who = (f"{_e(top['service'])}에만 {times}번 결제했어요" if full
+               else f"가장 오래 낸 구독은 {times}번 결제했어요")
+        cards.append(("지금까지 구독에 낸 돈", f"약 {total:,}원", who, "accent"))
+
+    upcoming = []
+    for a in _active_subs(accounts):
+        nxt = a["subscription"].get("nextBilling")
+        try:
+            d = date.fromisoformat(nxt[:10]) if nxt else None
+        except ValueError:
+            d = None
+        if d and d >= created.date():
+            upcoming.append(((d - created.date()).days, a))
+    if upcoming:
+        days, a = min(upcoming, key=lambda x: x[0])
+        sub = a["subscription"]
+        charge = sub.get("amount") or sub.get("monthly")
+        who = f"{_e(a['service'])}에서" if full else "구독 하나가"
+        cards.append(("가장 가까운 결제", "오늘" if days == 0 else f"D-{days}",
+                      f"{who} {_md(sub['nextBilling'])}에 {_won(charge)} 나가요", "info"))
+
+    dated = [a for a in accounts if (a.get("signupDate") or "")[:4].isdigit()]
+    if dated:
+        old = min(dated, key=lambda a: a["signupDate"])
+        years = created.year - int(old["signupDate"][:4])
+        if years >= 3:
+            text = (f"{old['signupDate'][:4]}년에 가입한 {_e(old['service'])}" if full
+                    else f"{old['signupDate'][:4]}년에 가입한 계정이 아직 있어요")
+            cards.append(("가장 오래된 계정", f"{years}년 전", text, "info"))
+
+    work = [a for a in accounts if a.get("category") in WORK_CATEGORIES]
+    if work:
+        names = ", ".join(_e(a["service"]) for a in work[:3]) + (f" 외 {len(work) - 3}개" if len(work) > 3 else "")
+        cards.append(("업무에 쓰는 계정", f"{len(work)}개",
+                      names if full else "업무 도구가 이 메일함에 섞여 있어요", "info"))
+
+    if not cards:
+        return ""
+    cells = "".join(
+        f'<div class="rp-find f-{tone}"><span class="rp-find-tag">{tag}</span><b>{big}</b><p>{text}</p></div>'
+        for tag, big, text, tone in cards[:4]
+    )
+    return f'<h2 class="rp-h2">IDly가 찾아낸 것</h2><div class="rp-finds">{cells}</div>'
+
+
+def _timeline(accounts: List[Dict[str, Any]], created: datetime) -> str:
+    """가입 연도별 계정 수. 메일만으로 알 수 있는 '디지털 발자국'."""
+    years = [int(a["signupDate"][:4]) for a in accounts if (a.get("signupDate") or "")[:4].isdigit()]
+    if len(years) < 3:
+        return ""
+    last = created.year
+    first = max(min(years), last - 14)  # 15년까지만 그리고, 그 전은 첫 칸에 모은다
+    counts = {y: 0 for y in range(first, last + 1)}
+    for y in years:
+        counts[max(first, min(y, last))] += 1
+    peak = max(counts.values())
+    bars = []
+    for y, n in counts.items():
+        height = max(6, round(n / peak * 100)) if n else 2
+        on = ' class="on"' if n == peak else ""
+        label = ("~" if y == first and min(years) < first else "") + f"'{str(y)[2:]}"
+        bars.append(f'<div class="rp-bar"><span class="rp-bar-n">{n or ""}</span>'
+                    f'<i style="height:{height}%"{on}></i><span class="rp-bar-y">{label}</span></div>')
+    busiest = max(counts, key=counts.get)
+    return (f'<h2 class="rp-h2">가입 연도로 본 내 계정</h2>'
+            f'<p class="rp-note">{min(years)}년부터 계정 {len(years)}개가 쌓였어요. {busiest}년에 가장 많이 가입했어요.</p>'
+            f'<div class="rp-card rp-timeline">{"".join(bars)}</div>')
+
+
+def _office(accounts: List[Dict[str, Any]]) -> str:
+    """개인 리포트에서 업무 계정이 보이면 사무실 단위 정리로 잇는다 (B2C2B). PDF에는 넣지 않는다."""
+    work = [a for a in accounts if a.get("category") in WORK_CATEGORIES]
+    lead = (f"이 메일함에서만 업무용 계정이 {len(work)}개 나왔어요.<br>직원 모두의 메일함이라면 훨씬 많을 거예요."
+            if work else "직원마다 흩어진 업무 계정과 구독도<br>이메일만으로 똑같이 찾을 수 있어요.")
+    return ('<section class="rp-office"><img src="/static/assets/owl-stand.png" alt="" width="64" height="64">'
+            f'<div class="rp-office-body"><p class="rp-office-title">사무실 계정도 이렇게 정리해 보세요</p>'
+            f'<p class="rp-office-text">{lead}</p>'
+            '<div class="rp-office-actions">'
+            '<a class="rp-office-ask" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" '
+            'data-ga="office_inquiry_click">사무실 도입 문의</a></div></div></section>')
+
+
+def _evidence(sub: Dict[str, Any]) -> str:
+    """왜 구독으로 봤는지: 결제 메일 몇 번, 마지막 결제 메일 날짜."""
+    reason = sub.get("statusReason")
+    if not reason:
+        return ""
+    last = f" · 최근 메일 {_md(sub['lastEventDate'])}" if sub.get("lastEventDate") else ""
+    return f'<p class="rp-why">근거 · {_e(reason)}{last}</p>'
 
 
 def _subscriptions(accounts: List[Dict[str, Any]]) -> str:
@@ -201,7 +330,7 @@ def _subscriptions(accounts: List[Dict[str, Any]]) -> str:
         rows.append(
             f'<div class="rp-row"><span class="rp-bubble t-info">{_img("ic-event.svg")}</span>'
             f'<div class="rp-row-body"><p class="rp-title">{_e(a["service"])}</p>'
-            f'<p class="rp-text">{text}</p></div>'
+            f'<p class="rp-text">{text}</p>{_evidence(sub)}</div>'
             f'<p class="rp-amount">{price}<span>{per}</span></p></div>'
         )
     return f'<h2 class="rp-h2">구독 <small>{len(subs)}</small></h2><div class="rp-card">{"".join(rows)}</div>'
@@ -284,7 +413,7 @@ def _method(report: Dict[str, Any], s: Dict[str, Any]) -> str:
         f"<p>메일 {s['messages']:,}통의 보낸 곳·제목·날짜를 {ai} 서비스별로 묶었어요.<br>"
         "결제 메일은 서비스마다 최근 몇 통만 본문을 읽어 금액과 다음 결제일을 확인했어요.</p>"
         "<p>메일만 보고 추정한 결과라 실제와 다를 수 있어요.<br>다른 메일 주소로 가입했거나 결제 메일을 받지 않는 서비스는 빠져 있어요.<br>"
-        "달러 결제는 1달러 1,400원으로 환산했어요.<br>IDly는 메일 원문과 메일 비밀번호를 저장하지 않아요.</p>"
+        "달러 결제는 1달러 1,400원으로 환산했어요.<br>지금까지 구독에 낸 돈은 결제 메일 수에 지금 금액을 곱한 추정치예요.<br>IDly는 메일 원문과 메일 비밀번호를 저장하지 않아요.</p>"
         "</div>"
     )
 
@@ -294,7 +423,7 @@ _WATERMARK_SVG = (
     '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="180">'
     '<text x="130" y="90" text-anchor="middle" dominant-baseline="middle" transform="rotate(-30 130 90)" '
     'font-family="Pretendard, Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" '
-    'fill="#3766f4" fill-opacity="0.13">샘플 (목업) 페이지</text></svg>'
+    'fill="#202f61" fill-opacity="0.06">샘플 (목업) 페이지</text></svg>'
 )
 _WATERMARK = (
     '<div class="rp-watermark" aria-hidden="true" style="background-image:url(data:image/svg+xml;base64,'
@@ -353,18 +482,28 @@ def _locked(accounts: List[Dict[str, Any]]) -> str:
                               "1년 넘게 활동이 없거나 휴면 안내가 온 계정이에요."))
 
 
-def render_fragment(report: Dict[str, Any], created: datetime, full: bool) -> str:
+def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: bool = True) -> str:
     accounts = report["accounts"]
     s = summarize(report)
-    parts = [_hero(report, s, created), _stats(s)]
+    # 넓은 화면(피그마 홈 H1처럼): 위에 요약 한 줄, 그 아래 숫자와 찾아낸 것, 가운데 세 칸(구독 · 확인할 일 · 안 쓰는 계정),
+    # 맨 아래 두 칸(전체 목록 등). 좁은 화면과 PDF는 같은 순서로 위에서 아래로 한 줄 (report.css)
+    block = lambda html: f'<section class="rp-block">{html}</section>' if html else ""
+    top = _hero(report, s, created)
+    band = [_stats(s), _discoveries(report, created, full)]
     if full:
-        parts += [_subscriptions(accounts), _todo(accounts), _connected_apps(report), _unused(accounts),
-                  _all_accounts(accounts), _method(report, s)]
+        cols = [_subscriptions(accounts), _todo(accounts), _unused(accounts)]
+        wide = [_all_accounts(accounts), _connected_apps(report), _timeline(accounts, created)]
+        after = (_office(accounts) if web and accounts else "") + _method(report, s)
     else:
-        parts.append(_locked(accounts))
-    if report.get("sample"):
-        parts.append(_WATERMARK)
-    return f'<div class="rp">{"".join(parts)}</div>'
+        cols = [_locked(accounts)]
+        wide = [_timeline(accounts, created)]
+        after = ""
+    tail = _WATERMARK if report.get("sample") else ""
+    return (f'<div class="rp rp-doc"><div class="rp-top">{top}</div>'
+            f'<div class="rp-band">{"".join(band)}</div>'
+            f'<div class="rp-cols">{"".join(block(c) for c in cols)}</div>'
+            f'<div class="rp-wide">{"".join(block(w) for w in wide)}</div>'
+            f'<div class="rp-after">{after}</div>{tail}</div>')
 
 
 # --- PDF -----------------------------------------------------------------------
@@ -386,7 +525,7 @@ def render_html(report: Dict[str, Any], email: str, created: datetime) -> str:
 <style>{css}{PDF_CSS}</style></head>
 <body>
 <div class="pdf-head">{_img("logo-wordmark.svg")}<p>IDly 계정 리포트<br>{_e(email)}</p></div>
-{render_fragment(report, created, full=True)}
+{render_fragment(report, created, full=True, web=False)}
 </body></html>"""
 
 

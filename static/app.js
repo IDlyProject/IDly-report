@@ -1,4 +1,6 @@
 // 화면: intro → connect → scanning → preview(요약·결제) → report. 도움말은 #help.
+// [결제 OFF] 지금은 서버가 늘 paid: true를 주므로 preview(결제 화면)를 거치지 않고 바로 전체 리포트로 간다.
+//            결제 화면 코드(onPay, Paddle 등)는 되돌리기 쉽게 그대로 두었다.
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
@@ -123,6 +125,11 @@ function show(id) {
   document
     .querySelectorAll(".screen")
     .forEach((el) => (el.hidden = el.id !== id));
+  // 시작 화면(랜딩)과 리포트는 앱 컬럼을 벗어나 넓게 쓴다 (landing.css, style.css)
+  document.body.classList.toggle("is-landing", id === "intro");
+  document.body.classList.toggle("is-wide", id === "intro" || id === "report" || id === "home");
+  // 랜딩에서 로그인했거나 로그인 없이 쓰는 중이면 '내 리포트'로 가는 길을 보여 준다
+  if (id === "intro") document.querySelectorAll("[data-my]").forEach((a) => (a.hidden = !signedIn()));
   window.scrollTo(0, 0);
   trackScreen(id);
 }
@@ -366,6 +373,25 @@ function goBack(event) {
   history.back();
 }
 
+// 뒤로 가기: 앱 안에서 옮겨 온 기록이 있으면 진짜 뒤로(브라우저 뒤로 가기와 같게), 없으면(주소로 바로 열었을 때) 버튼의 href로.
+// 기록마다 순번(idx)을 history.state에 적어 두고, 0보다 크면 이전 화면이 이 앱 안에 있다는 뜻이다
+let navMax = 0;
+function stampHistory() {
+  if (history.state && typeof history.state.idx === "number") return;
+  navMax += 1;
+  history.replaceState({ idx: navMax }, "");
+}
+function canGoBack() {
+  return !!(history.state && history.state.idx > 0);
+}
+document.addEventListener("click", (event) => {
+  const back = event.target.closest && event.target.closest("a.back");
+  if (!back || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey) return;
+  if (!canGoBack()) return; // 앱 안 기록이 없으면 href대로
+  event.preventDefault();
+  history.back();
+});
+
 async function openSample() {
   const { id } = await api("/api/reports/sample", { method: "POST" });
   location.replace(`#r=${id}`);
@@ -396,6 +422,9 @@ function openLoginSheet(error) {
   $("#login-desc").textContent = guest
     ? "로그인하면 이 브라우저에 저장한 리포트를 계정으로 옮겨 언제든 다시 볼 수 있어요."
     : "만든 리포트를 계정에 모아 두고 언제든 다시 볼 수 있어요.";
+  $("#login-title").textContent = "로그인하고 시작하기";
+  $("#login-skip").hidden = true;
+  saveAfter = null;
   showError("#login-error", error || "");
   if ($("#login-sheet").hidden) track("login_open");
   openLayer($("#login-sheet"), $('[data-login="kakao"]'));
@@ -413,6 +442,25 @@ function openGuestNotice(fromHelp) {
   $("#guest-ok").textContent = fromHelp ? "확인" : "확인하고 로그인 없이 시작";
   $("#guest-cancel").hidden = !!fromHelp;
   openLayer($("#guest-modal"), $("#guest-ok"));
+}
+
+// 로그인 없이 체험 시작: 안내 팝업 없이 게스트 토큰만 만든다 (저장 안내는 저장하려 할 때 보여 준다)
+function startTrial() {
+  guest = { token: newGuestToken(), terms: null };
+  saveGuest();
+  track("login", { method: "trial" });
+}
+
+// 리포트를 저장하려 할 때(저장 버튼·PDF): 로그인하면 계정에 남는다고 묻는다. 로그인 안 하면 PDF만 받는다
+let saveAfter = null;
+function askSave(reason, then) {
+  openLoginSheet();
+  saveAfter = then || null;
+  $("#login-title").textContent = "이 리포트, 저장할까요?";
+  $("#login-desc").textContent =
+    "지금은 이 브라우저에만 임시로 있어요.\n로그인하면 계정에 저장해서 언제든 다시 볼 수 있어요.";
+  $("#login-skip").hidden = !then;
+  track("save_prompt", { reason });
 }
 
 function onGuestConfirmed() {
@@ -438,7 +486,9 @@ async function afterLogin() {
       console.error("[IDly] 게스트 리포트를 계정으로 옮기지 못했어요", err);
     }
   }
-  location.hash = me.user && me.user.terms ? "home" : "terms";
+  // 리포트를 저장하려다 로그인했으면 그 리포트로 돌아간다 (약관이 남았으면 route가 먼저 묻는다)
+  const back = currentId();
+  location.hash = me.user && me.user.terms ? (back ? `r=${back}` : "home") : "terms";
   route();
 }
 
@@ -570,7 +620,7 @@ async function onTerms(event) {
     guest.terms = new Date().toISOString();
     saveGuest();
     track("sign_up", { method: "guest" });
-    return go("home");
+    return go("connect");
   }
   try {
     await api("/api/terms", {
@@ -711,11 +761,21 @@ async function renderHome() {
   $("#home-headline").hidden = !total;
   if (total) {
     const [label, sub] = total.money;
-    $("#home-label").textContent = label;
+    setAccent($("#home-label"), label);
     $("#home-sub").textContent = sub;
   }
-  if (!reports.length) list.append(el("p", "rp-empty", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
+  if (!reports.length) {
+    const empty = el("div", "home-empty");
+    const owl = Object.assign(document.createElement("img"), { src: "/static/assets/owl-stand.png", alt: "", width: 88, height: 78 });
+    empty.append(owl, el("p", "", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
+    list.append(empty);
+  }
   reports.forEach((r) => list.append(reportRow(r)));
+}
+
+// 홈 요약 문구 (한 문장은 한 색: 숫자만 따로 칠하지 않는다)
+function setAccent(node, text) {
+  node.textContent = text;
 }
 
 function renderBusiness() {
@@ -723,10 +783,11 @@ function renderBusiness() {
   $("#business").textContent = [
     b.name && `운영 ${b.name}`,
     b.email && `문의 ${b.email}`,
-    b.seller && `결제·판매 ${b.seller}`,
+    // [결제 OFF] b.seller && `결제·판매 ${b.seller}`,
   ]
     .filter(Boolean)
     .join(" · ");
+  $("#landing-business").textContent = $("#business").textContent;
 }
 
 async function onLogout() {
@@ -797,6 +858,9 @@ function renderScanning(r) {
         ? `${n(r.total)}통 중 ${n(r.fetched)}통 읽음 (${pct}%)`
         : "메일 서버에 연결했어요";
   showError("#scan-error", failed ? r.error : "");
+  // 실패하면 경고 부엉이로 바꾸고 돌던 고리를 멈춘다
+  $(".scan-core img").src = `/static/assets/${failed ? "owl-warn" : "owl-stand"}.png`;
+  $(".scan-ring").classList.toggle("stopped", failed);
   $("#scan-retry").hidden = !failed;
 }
 
@@ -818,6 +882,11 @@ async function renderResult(r) {
     $("#pdf").hidden = backToPay;
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
+    // 체험(로그인 없이)으로 만든 리포트: 저장 줄을 보여 주고, PDF를 받으려 하면 먼저 로그인을 묻는다 (onPdf)
+    const trial = !me.user && !r.sample;
+    $("#save-bar").hidden = !trial;
+    $("#pdf").dataset.trial = trial ? "1" : "";
+    for (const b of $("#report-body").querySelectorAll("[data-share]")) b.onclick = () => shareOffice(b);
     show("report");
     if (r.sample) track("sample_view", { from: backToPay ? "pay" : "direct" });
     if (justPaid === r.id) {
@@ -874,6 +943,23 @@ async function renderResult(r) {
   $("#dev-confirm").hidden = !(config.debug && config.payment_mode !== "mock");
   show("preview");
   if (!empty) track("view_item", reportItem(r.price));
+}
+
+// 리포트 끝 'IDly 링크 보내기': 리포트 주소가 아니라 소개 페이지(첫 화면)만 나눈다 (리포트 id는 열람 권한이라 남에게 주지 않는다)
+async function shareOffice(button) {
+  const url = `${location.origin}/`;
+  const text = "메일만 연결하면 가입한 서비스와 구독을 찾아 주는 IDly예요.";
+  track("office_share_click", { method: navigator.share ? "native" : "copy" });
+  try {
+    if (navigator.share) return await navigator.share({ title: "IDly", text, url });
+    await navigator.clipboard.writeText(`${text}
+${url}`);
+    const before = button.textContent;
+    button.textContent = "링크를 복사했어요";
+    setTimeout(() => (button.textContent = before), 2000);
+  } catch (err) {
+    if (err && err.name !== "AbortError") console.error("[IDly] 공유하지 못했어요", err);
+  }
 }
 
 // 결제 버튼: 할인 중이면 버튼에서도 정가에 줄을 긋고 '지금만' 가격임을 보여 준다
@@ -1113,6 +1199,14 @@ async function onPdf(event) {
   event.preventDefault();
   const link = event.currentTarget;
   if (link.dataset.busy) return;
+  if (link.dataset.trial && !me.user) {
+    // 로그인 없이 PDF만 받기를 고르면 그때 내려받는다
+    return askSave("pdf", () => {
+      link.dataset.trial = "";
+      link.click();
+      link.dataset.trial = "1";
+    });
+  }
   link.dataset.busy = "1";
   link.textContent = "PDF 만드는 중…";
   try {
@@ -1156,6 +1250,8 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
   if (hash === "help") return renderHelp();
+  // 루트(/)와 #intro는 언제나 랜딩. 로그인했거나 체험 중이면 랜딩 위쪽 '내 리포트'로 홈(#home)에 간다
+  if (hash === "" || hash === "intro") return renderIntro();
   // 샘플이 아닌 리포트·연결·홈은 로그인(또는 로그인 없이 사용하기)이 필요하다 (샘플 리포트 주소는 그냥 열린다)
   if (!me.user && !guest) return id ? load(id) : renderIntro();
   // 로그인 없이: 약관 동의만 받고, 선택 정보(내부 통계)는 계정이 없어 묻지 않는다
@@ -1185,9 +1281,10 @@ async function init() {
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
-  $("#help-price").textContent = config.promo
-    ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
-    : won(config.price);
+  // [결제 OFF] 결제 FAQ의 가격
+  // $("#help-price").textContent = config.promo
+  //   ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
+  //   : won(config.price);
   renderBusiness();
   const form = $("#connect-form");
   form.email.addEventListener("input", () => {
@@ -1212,8 +1309,33 @@ async function init() {
       () => ($("#terms-all").checked = termsBoxes().every((x) => x.checked)),
     ),
   );
-  $("#open-login").addEventListener("click", () => openLoginSheet());
+  // 랜딩의 시작 버튼들 (위 메뉴·첫 화면·맨 아래)
+  document.querySelectorAll("[data-start]").forEach((b) =>
+    b.addEventListener("click", () => {
+      track("landing_start_click", { label: b.dataset.gaLabel || "" });
+      // 체험처럼 바로 시작: 로그인은 묻지 않고 이 브라우저용 임시 사용자로 메일 연결까지 간다.
+      // 저장(로그인)은 리포트를 다 본 뒤 저장하려 할 때 묻는다 (askSave). 약관 동의는 route가 먼저 받는다
+      if (!signedIn()) startTrial();
+      go("connect");
+    }),
+  );
+  // 랜딩 안 이동(#ld-…)은 주소의 #을 바꾸지 않고 스크롤만 한다 (#은 화면 전환에 쓴다)
+  document.querySelectorAll('.landing a[href^="#ld-"]').forEach((a) =>
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = document.getElementById(a.getAttribute("href").slice(1));
+      if (target) target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }),
+  );
+  document.querySelectorAll("[data-sample-link]").forEach((a) => (a.hidden = !config.sample));
   $("#open-guest").addEventListener("click", () => openGuestNotice(false));
+  $("#save-login").addEventListener("click", () => askSave("save_bar"));
+  $("#login-skip").addEventListener("click", () => {
+    const then = saveAfter;
+    closeLoginSheet();
+    track("save_skip");
+    if (then) then();
+  });
   $("#guest-ok").addEventListener("click", onGuestConfirmed);
   $("#guest-cancel").addEventListener("click", () => {
     closeLayer($("#guest-modal"));
@@ -1263,7 +1385,12 @@ async function init() {
   $("#pdf").addEventListener("click", onPdf);
   $("#sample-link").addEventListener("click", () => (sampleFromPay = true));
   $("#sample-back").addEventListener("click", goBack);
-  window.addEventListener("hashchange", route);
+  if (!history.state || typeof history.state.idx !== "number") history.replaceState({ idx: 0 }, "");
+  else navMax = history.state.idx;
+  window.addEventListener("hashchange", () => {
+    stampHistory();
+    route();
+  });
   route();
 }
 
