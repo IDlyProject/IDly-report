@@ -291,14 +291,19 @@ def _timeline(accounts: List[Dict[str, Any]], created: datetime) -> str:
 def _office(accounts: List[Dict[str, Any]]) -> str:
     """개인 리포트에서 업무 계정이 보이면 사무실 단위 정리로 잇는다 (B2C2B). PDF에는 넣지 않는다."""
     work = [a for a in accounts if a.get("category") in WORK_CATEGORIES]
-    lead = (f"이 메일함에서만 업무용 계정이 {len(work)}개 나왔어요.<br>직원 모두의 메일함이라면 훨씬 많을 거예요."
-            if work else "직원마다 흩어진 업무 계정과 구독도<br>이메일만으로 똑같이 찾을 수 있어요.")
-    return ('<section class="rp-office"><img src="/static/assets/owl-stand.png" alt="" width="64" height="64">'
-            f'<div class="rp-office-body"><p class="rp-office-title">사무실 계정도 이렇게 정리해 보세요</p>'
-            f'<p class="rp-office-text">{lead}</p>'
-            '<div class="rp-office-actions">'
-            '<a class="rp-office-ask" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" '
-            'data-ga="office_inquiry_click">사무실 도입 문의</a></div></div></section>')
+    lead = (f"이 메일함에서만 업무용 계정이 {len(work)}개 나왔어요. 눌러서 문의하기"
+            if work else "직원마다 흩어진 업무 계정과 구독도 찾을 수 있어요. 눌러서 문의하기")
+    # 화면에 언제 띄울지는 app.js가 정한다 (스크롤로 요약을 지나면 내려오고, 닫으면 다시 뜨지 않는다)
+    return ('<aside class="rp-pop" aria-label="IDly 알림" hidden>'
+            '<a class="rp-pop-body" href="#office" '
+            'data-ga="office_inquiry_click" data-ga-label="report_pop">'
+            '<span class="rp-pop-head"><img src="/static/assets/logo-owl.svg" alt="" width="20" height="20">'
+            '<span class="rp-pop-app">IDLY</span><span class="rp-pop-time">지금</span></span>'
+            '<b class="rp-pop-title">회사 계정도 이렇게 정리해 보세요</b>'
+            f'<span class="rp-pop-text">{lead}</span></a>'
+            '<button class="rp-pop-close" type="button" aria-label="알림 닫기"><svg viewBox="0 0 16 16" aria-hidden="true">'
+            '<path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'
+            '</aside>')
 
 
 def _evidence(sub: Dict[str, Any]) -> str:

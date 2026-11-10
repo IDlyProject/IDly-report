@@ -15,85 +15,72 @@
 <body>
 <div class="app">
 
-<!-- 시작 = IDly 소개. 세일즈 흐름: 이런 거 불편하셨죠? → IDly는 → 지금 리포트로 확인하세요.
-     첫 장면: 문장 속 칩(불편)이 스크롤이나 커서만으로 하나씩 체크되고, 뒤의 빛(오라)과 옆의 답 카드가 바로 바뀐다. 클릭하거나 읽을 필요가 없다.
-     메인 페르소나: IT 담당자 없이 작은 사무실을 운영하는 대표 (AI 가상 인터뷰 '이정화'). 여러 곳에 뿌리는 페이지라 업종(세무사)은 쓰지 않는다.
-     내용은 IR 덱(2026 사업계획서). 스크립트가 없으면 답 카드가 문장 아래에 차례로 펼쳐진다. 결제·가격 이야기는 하지 않는다 -->
+<!-- 시작 = IDly 소개. 구성은 피그마 IDly_Product 'image 1'을 따르고, 내용은 IDly의 기존 문구만 쓴다.
+     메인 페르소나: IT 담당자 없이 작은 사무실을 운영하는 대표. 결제·가격 이야기는 하지 않는다 -->
 <main id="intro" class="screen landing" hidden>
-  <header class="ld-top">
-    <a class="ld-mark" href="#intro" aria-label="IDly 처음으로"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="56" height="40"></a>
-    <nav class="ld-top-links" aria-label="바로가기">
-      <a href="#home" data-my hidden>내 리포트</a>
-            <a href="#ld-office-b2b">사무실 도입</a>
-      <a href="#sample" data-sample-link data-ga="sample_click" data-ga-label="nav">샘플 리포트</a>
-    </nav>
+  <header class="ld-top" id="ld-top">
+    <div class="ld-container ld-top-in">
+      <a class="ld-mark" href="#intro" aria-label="IDly 처음으로"><img src="/static/assets/logo-wordmark.svg" alt="idly" width="56" height="40"></a>
+      <nav class="ld-top-links" aria-label="바로가기">
+        <a href="#home" data-my hidden>내 리포트</a>
+        <a href="#sample" data-sample-link data-ga="sample_click" data-ga-label="nav">샘플 리포트</a>
+        <a href="#ld-office-b2b">기업 서비스</a>
+        <a href="#help" data-ga="help_open">도움말</a>
+      </nav>
+      <button class="ld-top-start" type="button" data-start data-ga-label="nav">시작하기</button>
+    </div>
   </header>
 
-  <!-- 1. 이런 거 불편하셨죠? (스크롤하는 동안 화면에 붙어 있는 한 장면) -->
-  <section class="ld-scene" id="ld-scene">
-    <div class="ld-stage">
-      <div class="ld-ring" aria-hidden="true"></div>
-
-      <div class="ld-stage-in">
-        <h1 class="ld-title">계정 관리,<br>이래서 어려웠어요</h1>
-        <ol class="ld-lines">
-          <li class="ld-line">가입한 서비스는 <mark class="ld-chip" data-i="0">너무 많은데<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-          <li class="ld-line">어디에 뭐가 있는지 <mark class="ld-chip" data-i="1">기억도 안 나고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-          <li class="ld-line">해지한 줄 알았던 구독은 <mark class="ld-chip" data-i="2">아직도 결제되고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark> 있어요.</li>
-          <li class="ld-line">퇴사한 직원 계정은 <mark class="ld-chip" data-i="3">아직 살아 있고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-          <li class="ld-line">유출 뉴스가 떠도 <mark class="ld-chip" data-i="4">우리 계정인지 몰라요.<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-          <li class="ld-line ld-line-end">흩어진 계정과 구독, <strong>이메일 하나로</strong> 정리하세요.</li>
-        </ol>
-        <div class="ld-hero-foot">
-          <button class="ld-btn ld-btn-main" type="button" id="open-login" data-start data-ga-label="hero">무료 리포트로 확인하기</button>
-        </div>
+  <!-- 1. 첫 화면: 왼쪽 문구 + 오른쪽 끝까지 이어지는 옅은 판 위 시작 카드 -->
+  <section class="ld-hero">
+    <div class="ld-container ld-hero-in">
+      <div>
+        <h1>흩어진 계정과 구독,<br>이메일 하나로 정리하세요</h1>
+        <p class="ld-hero-sub">설치도, 세팅도, 가입도 없이 몇 분이면 돼요.</p>
+        <a class="ld-btn ld-btn-ghost ld-hero-more" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="hero">샘플 리포트 보기</a>
+      </div>
+      <div class="ld-hero-side">
+      <img class="ld-hero-art" src="/static/assets/owl-door.svg" alt="" width="604" height="300">
+      <div class="ld-start">
+        <p class="ld-start-kicker">이메일 하나면 충분해요</p>
+        <p class="ld-start-title">무료 리포트를 받아 보세요</p>
+        <img class="ld-start-icon" src="/static/assets/ic-shield.svg" alt="" width="56" height="56">
+        <button class="ld-btn ld-btn-main" type="button" id="open-login" data-start data-ga-label="hero">무료 리포트로 확인하기<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
       </div>
     </div>
   </section>
 
-  <!-- 1-0. 흩어진 계정 (피그마 이미지 76): 폴더처럼 흩어져 있던 계정이 스크롤해서 들어오면 정리되고, 커서를 가져가면 피해 밀려난다 -->
-  <section class="ld-sec ld-folders-sec" id="ld-folders">
+  <!-- 바로가기 타일 (image 2) -->
+  <div class="ld-container ld-tiles-wrap">
+      <nav class="ld-tiles" aria-label="바로가기 타일">
+          <button class="ld-tile ld-tile-hi" type="button" data-start data-ga-label="tile"><img src="/static/assets/ic-at.svg" alt="" width="32" height="32">메일 연결하기</button>
+          <a class="ld-tile" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="tile"><img src="/static/assets/ic-ai.svg" alt="" width="32" height="32">샘플 리포트</a>
+          <a class="ld-tile" href="#help" data-ga="help_open"><img src="/static/assets/ic-safe.svg" alt="" width="32" height="32">도움말</a>
+          <a class="ld-tile" href="#" data-contact-mail data-ga="contact_click" data-ga-label="mail_tile"><img src="/static/assets/ic-mail.svg" alt="" width="32" height="32">메일로 문의하기</a>
+          <a class="ld-tile" href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms"><img src="/static/assets/check.svg" alt="" width="32" height="32">이용약관</a>
+          <a class="ld-tile" href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy"><img src="/static/assets/ic-key.svg" alt="" width="32" height="32">개인정보처리방침</a>
+      </nav>
+  </div>
+
+  <!-- 2. 불편과 답을 한 장면에: 스크롤하면 왼쪽 불편이 하나씩 체크되고, 오른쪽에서 그 불편의 답이 켜진다. 이 장면을 지나면 기업 알림이 내려온다 -->
+  <!-- 이 구역만 그라데이션 위 가운데 정렬 (키노트·엔딩크레딧 느낌). 스크롤하면 칩이 체크되고, 지나면 기업 알림이 내려온다 -->
+  <section class="ld-sec ld-pains" id="ld-pains">
     <div class="ld-container">
-      <h2 class="ld-say">흩어진 계정,<br>한 번에 정리돼요</h2>
-      <p class="ld-sub">몇 개에 가입했는지 몰라도 괜찮아요. 메일에 남은 흔적을 모아 서비스별로 묶어 드려요.</p>
-      <ol class="ld-folders" aria-label="정리된 계정 예시">
-          <li class="ld-folder"><span>넷플릭스</span></li>
-          <li class="ld-folder"><span>쿠팡</span></li>
-          <li class="ld-folder"><span>네이버</span></li>
-          <li class="ld-folder"><span>카카오</span></li>
-          <li class="ld-folder"><span>토스</span></li>
-          <li class="ld-folder"><span>Notion</span></li>
-          <li class="ld-folder"><span>Canva</span></li>
-          <li class="ld-folder"><span>Claude</span></li>
-          <li class="ld-folder"><span>인스타그램</span></li>
-          <li class="ld-folder"><span>페이스북</span></li>
-          <li class="ld-folder"><span>11번가</span></li>
-          <li class="ld-folder"><span>배달의민족</span></li>
-          <li class="ld-folder"><span>Apple Music</span></li>
-          <li class="ld-folder"><span>iCloud</span></li>
-          <li class="ld-folder"><span>Figma</span></li>
-          <li class="ld-folder"><span>Zoom</span></li>
-          <li class="ld-folder"><span>Dropbox</span></li>
-          <li class="ld-folder"><span>Adobe</span></li>
-          <li class="ld-folder"><span>잔디</span></li>
-          <li class="ld-folder"><span>Google</span></li>
-          <li class="ld-folder"><span>Microsoft</span></li>
-          <li class="ld-folder"><span>인터파크</span></li>
-          <li class="ld-folder"><span>야놀자</span></li>
-          <li class="ld-folder"><span>29CM</span></li>
-          <li class="ld-folder"><span>위메프</span></li>
-          <li class="ld-folder"><span>당근</span></li>
-          <li class="ld-folder"><span>무신사</span></li>
-          <li class="ld-folder"><span>왓챠</span></li>
-          <li class="ld-folder"><span>티빙</span></li>
-          <li class="ld-folder"><span>멜론</span></li>
-          <li class="ld-folder"><span>스포티파이</span></li>
-          <li class="ld-folder"><span>GitHub</span></li>
+      <span class="ld-jump" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <h2 class="ld-say">계정 관리,<br>이래서 어려웠어요</h2>
+      <ol class="ld-lines">
+        <li class="ld-line">가입한 서비스는 <mark class="ld-chip" data-i="0">너무 많은데<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">어디에 뭐가 있는지 <mark class="ld-chip" data-i="1">기억도 안 나고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">해지한 줄 알았던 구독은 <mark class="ld-chip" data-i="2">아직도 결제되고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark> 있어요.</li>
+        <li class="ld-line">퇴사한 직원 계정은 <mark class="ld-chip" data-i="3">아직 살아 있고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">유출 뉴스가 떠도 <mark class="ld-chip" data-i="4">우리 계정인지 몰라요.<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line ld-line-end">메일에 남은 흔적으로 <strong>한 번에 정리해</strong> 드려요.</li>
       </ol>
     </div>
   </section>
 
-  <!-- 첫 장면을 떠날 때 왼쪽 아래에 뜨는 작은 카드: 기업 이야기(B2B)로 들어가는 문. 화면을 막지 않고, 닫으면 다시 뜨지 않는다 -->
+  <!-- 첫 장면을 떠날 때 위에서 내려오는 알림: 기업 이야기로 들어가는 문. 닫으면 다시 뜨지 않는다 -->
   <aside class="ld-pop" id="ld-pop" aria-label="IDly 알림" hidden>
     <button class="ld-pop-body" type="button" id="ld-b2b-open" aria-controls="ld-office-b2b" aria-expanded="false" data-ga="b2b_open">
       <span class="ld-pop-head"><img src="/static/assets/logo-owl.svg" alt="" width="20" height="20"><span class="ld-pop-app">IDLY</span><span class="ld-pop-time">지금</span></span>
@@ -103,85 +90,147 @@
     <button class="ld-pop-close" type="button" id="ld-pop-close" aria-label="알림 닫기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </aside>
 
-  <!-- 2-1. 사무실이라면 (B2B, IR 13·14 B2C2B, 10 Target Customer, 12 Customer Validation). 업종은 쓰지 않고, 가격은 말하지 않는다 -->
-  <section class="ld-sec ld-office" id="ld-office-b2b">
+  <!-- 3. 해 드리는 일 (image 2 하단 카드 구성) -->
+  <section class="ld-sec" id="ld-does">
     <div class="ld-container">
-      <h2 class="ld-say">사무실에서는<br>이런 걸 지원해요</h2>
+      <h2 class="ld-say"><span class="ld-hi">IDly</span>가 해 드리는 일</h2>
+      <div class="ld-cards">
+        <article class="ld-card"><h3>흩어진 계정, 한 번에 정리돼요</h3><p>몇 개에 가입했는지 몰라도 괜찮아요. 메일에 남은 흔적을 모아 서비스별로 묶어 드려요.</p><div class="ld-card-art"><img src="/static/assets/ic-user.svg" alt="" width="56" height="56"></div></article>
+        <article class="ld-card"><h3>탈퇴와 해지는 에이전트에게 맡겨요</h3><p>에이전트가 내 브라우저에서 메뉴를 찾아 진행해요. 로그인은 내가, 마지막 확정도 내가 해요.</p><div class="ld-card-art"><img src="/static/assets/ic-key.svg" alt="" width="56" height="56"></div></article>
+        <article class="ld-card"><h3>낯선 로그인, 놓치지 않게</h3><p>새 기기 로그인이나 의심스러운 시도 안내를 메일에서 모아 먼저 알려 드려요.</p><div class="ld-card-art"><img src="/static/assets/ic-shield.svg" alt="" width="56" height="56"></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 궁금한 점 + 기업 구역으로 들어가는 문 (image 2의 왼쪽 목록 + 오른쪽 곡면 구성) -->
+  <section class="ld-sec" id="ld-help">
+    <div class="ld-container ld-faq-in">
+      <div>
+        <h2 class="ld-say">궁금한 점을<br>먼저 확인하세요</h2>
+        <div class="ld-qa">
+          <details><summary data-ga="faq_toggle" data-ga-label="landing_app_password">앱 비밀번호가 뭐예요?</summary>
+            <p>메일 서비스에서 외부 앱용으로 따로 만드는 비밀번호예요. 평소 로그인 비밀번호 대신 써요.</p></details>
+          <details><summary data-ga="faq_toggle" data-ga-label="landing_storage">메일 비밀번호나 메일 내용을 저장하나요?</summary>
+            <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요. 메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
+          <details><summary data-ga="faq_toggle" data-ga-label="landing_delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
+            <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요. 다시 분석할 때 새로 만들면 돼요.</p></details>
+        </div>
+      </div>
+      <div class="ld-together">
+        <h3>이런 문제는 <span class="ld-hi">기업</span>에도 있어요</h3>
+        <p>퇴사자 계정, 안 쓰는 업무 구독까지.</p>
+        <div class="ld-together-links">
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-user.svg" alt="" width="26" height="26"></span>퇴사자 계정 정리</a>
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-event.svg" alt="" width="26" height="26"></span>회사 전체 구독료</a>
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-danger.svg" alt="" width="26" height="26"></span>보안 알림 모아 보기</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 기업 서비스 (B2B). 가격은 말하지 않는다. 카드 + 옆 배너 구성은 image 3 -->
+  <section class="ld-sec ld-band" id="ld-office-b2b">
+    <div class="ld-container">
+      <h2 class="ld-say"><span class="ld-hi">기업</span>에서는 이런 걸 지원해요</h2>
+      <div class="ld-office">
       <ul class="ld-supports">
         <li><b>퇴사자 계정 정리</b>나간 직원이 가입했던 업무 서비스를 찾아 정리할 계정을 알려 드려요.</li>
-        <li><b>사무실 전체 구독료</b>누가 무엇을 얼마에 쓰는지, 다음 결제일까지 한 화면에 모아요.</li>
+        <li><b>회사 전체 구독료</b>누가 무엇을 얼마에 쓰는지, 다음 결제일까지 한 화면에 모아요.</li>
         <li><b>중복·안 쓰는 구독</b>같은 서비스를 여러 명이 따로 결제하거나 아무도 안 쓰는 구독을 찾아요.</li>
         <li><b>보안 알림 모아 보기</b>업무 계정의 새 기기 로그인, 비밀번호 변경 알림을 먼저 보여 드려요.</li>
         <li><b>근거 메일</b>왜 정리해야 하는지 결제 영수증과 로그인 메일로 보여 드려요.</li>
         <li><b>정리 대행</b>탈퇴, 해지, 비밀번호 변경은 에이전트가 대신하고 승인만 해요. 지금 개발 중이에요.</li>
       </ul>
-      <div class="ld-office-cta">
-        <p>올해 12월, 사무실 3곳과 함께 파일럿을 진행해요. 우리 사무실도 해 보고 싶다면 편하게 물어봐 주세요.</p>
-        <a class="ld-btn ld-btn-main" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="b2b">사무실 도입 문의하기</a>
+        <aside class="ld-office-side">
+          <p>올해 12월, 회사 3곳과 함께 파일럿을 진행해요. 우리 회사도 해 보고 싶다면 편하게 물어봐 주세요.</p>
+          <a class="ld-btn ld-btn-main" href="#office" data-ga="office_inquiry_click" data-ga-label="b2b">기업 서비스 문의하기</a>
+          <img src="/static/assets/owl-stand.png" alt="" width="120" height="107">
+        </aside>
       </div>
     </div>
   </section>
 
-  <!-- 1-2. 낯선 로그인, 놓치지 않게 (피그마 '3. 보안 (다크)'): 스크롤하는 만큼 레이더 바늘이 돌고 알림이 하나씩 뜬다 -->
-  <section class="ld-sec ld-radar-sec" data-progress data-steps="3">
-    <div class="ld-container ld-split">
-      <div>
-        <h2 class="ld-say">낯선 로그인,<br>놓치지 않게</h2>
-        <p class="ld-sub">새 기기 로그인이나 의심스러운 시도 안내를 메일에서 모아 먼저 알려 드려요. 어디에 가입했는지 몰라도 괜찮아요.</p>
-      </div>
-      <figure class="ld-radar" aria-label="IDly가 메일에서 찾은 보안 알림 예시">
-        <span class="ld-radar-rings" aria-hidden="true"></span>
-        <span class="ld-radar-sweep" aria-hidden="true"></span>
-        <img class="ld-radar-owl" src="/static/assets/owl-stand.png" alt="" width="120" height="107" loading="lazy">
-        <p class="ld-alert" data-step="1" style="--ax: 0%; --ay: 6%"><b>네이버</b>9월 27일 새 기기 로그인</p>
-        <p class="ld-alert" data-step="2" style="--ax: 4%; --ay: 74%"><b>토스</b>의심스러운 로그인 시도 2번</p>
-        <p class="ld-alert ld-alert-3" data-step="3" style="--ar: 0%; --ay: 14%"><b>인스타그램</b>비밀번호가 바뀌었어요</p>
-        <figcaption class="visually-hidden">보낸 곳과 내용은 예시예요.</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <!-- 1-3. 탈퇴와 해지는 에이전트에게 (피그마 '탈퇴와 해지는 에이전트에게 맡겨요'): 스크롤하는 만큼 대화가 이어진다. 개발 중 -->
-  <section class="ld-sec ld-chat-sec" data-progress data-steps="4">
-    <div class="ld-container ld-split ld-split-rev">
-      <div>
-        <h2 class="ld-say">탈퇴와 해지는<br>에이전트에게 맡겨요</h2>
-        <p class="ld-sub">에이전트가 내 브라우저에서 메뉴를 찾아 진행해요. 로그인은 내가, 마지막 확정도 내가 해요. 지금 개발 중이에요.</p>
-      </div>
-      <div class="ld-chat" aria-label="에이전트와 나누는 대화 예시">
-        <p class="ld-chat-head">쇼핑몰 탈퇴 <span>개발 중인 화면</span></p>
-        <p class="ld-bubble ld-bot" data-step="1">탈퇴 메뉴를 찾았어요. 탈퇴 사유는 뭐라고 할까요?</p>
-        <p class="ld-bubble ld-me" data-step="2">이용 빈도 낮음</p>
-        <p class="ld-bubble ld-bot" data-step="3">이제 ‘회원탈퇴’만 누르면 끝나요. 지우면 되돌릴 수 없어요. 누를까요?</p>
-        <p class="ld-bubble ld-me ld-confirm" data-step="4">네, 눌러 주세요</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. 지금 리포트로 확인하세요 -->
-  <section class="ld-sec ld-cta" id="ld-office">
-    <div class="ld-ring" aria-hidden="true"></div>
-    <div class="ld-container ld-cta-in">
-      <h2 class="ld-say">계정 정리,<br>더 미루지 마세요</h2>
-      <p class="ld-sub">지금 내 이메일 하나로 무료 리포트를 받아 보세요. 설치도, 세팅도, 가입도 없이 몇 분이면 돼요.</p>
-      <div class="ld-actions">
-        <button class="ld-btn ld-btn-main" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
-        <a class="ld-link" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="office_inquiry_click" data-ga-label="landing">사무실 도입 문의하기</a>
+  <!-- 6. 지금 리포트로 확인하세요 -->
+  <section class="ld-sec ld-closing" id="ld-office">
+    <div class="ld-container">
+      <div class="ld-banner">
+        <div class="ld-banner-text">
+          <h2 class="ld-say">계정 정리, 더 미루지 마세요</h2>
+          <p>지금 내 이메일 하나로 무료 리포트를 받아 보세요.</p>
+        </div>
+        <div class="ld-actions">
+          <button class="ld-btn ld-btn-white" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
+          <a class="ld-link" href="#office" data-ga="office_inquiry_click" data-ga-label="landing">기업 서비스 문의하기</a>
+        </div>
       </div>
     </div>
   </section>
 
   <footer class="ld-foot">
-    <nav class="ld-foot-links" aria-label="사이트">
-            <a href="#sample" data-sample-link data-ga="sample_click" data-ga-label="footer">샘플 리포트</a>
-      <a href="#ld-office">시작하기</a>
-      <a href="#help" data-ga="help_open">도움말</a>
-      <a href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관</a>
-      <a href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침</a>
-      <a href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="contact_click" data-ga-label="kakao_landing">카카오톡 문의</a>
-    </nav>
-    <p id="landing-business"></p>
+    <div class="ld-container">
+      <div class="ld-foot-notice">
+        <b>문의</b>
+        <a href="#" data-contact-mail data-ga="contact_click" data-ga-label="mail_landing" id="landing-email"></a>
+        <a class="ld-foot-more" href="#help" data-ga="help_open">도움말 전체보기<span class="ld-foot-chev" aria-hidden="true"></span></a>
+      </div>
+      <div class="ld-foot-rows">
+        <p class="ld-foot-row"><b>서비스</b><span class="ld-foot-list">
+          <a href="#sample" data-sample-link data-ga="sample_click" data-ga-label="footer">샘플 리포트</a>
+          <button type="button" data-start data-ga-label="footer_link">무료 리포트 받기</button>
+          <a href="#help" data-ga="help_open">도움말</a>
+        </span></p>
+        <p class="ld-foot-row"><b>기업</b><span class="ld-foot-list">
+          <a href="#ld-office-b2b">기업 서비스 소개</a>
+          <a href="#office" data-ga="office_inquiry_click" data-ga-label="footer">기업 서비스 문의</a>
+        </span></p>
+      </div>
+      <nav class="ld-foot-bottom ld-foot-list" aria-label="약관과 회사 정보">
+        <a href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관</a>
+        <a href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy"><b>개인정보처리방침</b></a>
+        <span id="landing-copy"></span>
+      </nav>
+    </div>
   </footer>
+</main>
+
+<!-- 기업 서비스 문의: 보내면 서버가 조직 메일(CONTACT_EMAIL)로 전달한다 -->
+<main id="office" class="screen" hidden>
+  <header class="bar-head">
+    <a class="back" href="#" aria-label="뒤로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
+  </header>
+  <form id="office-form" class="content form-col" novalidate>
+    <div class="title">
+      <h1>기업 서비스 문의</h1>
+      <p>남겨 주시면 IDly 팀이 확인하고 연락드려요.</p>
+    </div>
+    <label class="field"><span class="field-label">회사명</span>
+      <span class="input"><input name="company" autocomplete="organization" maxlength="100" required></span></label>
+    <label class="field"><span class="field-label">담당자명</span>
+      <span class="input"><input name="name" autocomplete="name" maxlength="50" required></span></label>
+    <label class="field"><span class="field-label">연락처 (전화 또는 이메일)</span>
+      <span class="input"><input name="contact" maxlength="100" required></span></label>
+    <label class="field"><span class="field-label">직원 수</span>
+      <span class="input"><select name="employees" required>
+        <option value="">선택해 주세요</option>
+        <option>1~10명</option><option>11~50명</option><option>51~200명</option><option>201명 이상</option>
+      </select></span></label>
+    <label class="field"><span class="field-label">문의 내용 (선택)</span>
+      <span class="input input-area"><textarea name="message" maxlength="1000"></textarea></span></label>
+    <input class="office-trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="field-hint">제출한 내용은 기업 서비스 검토 목적으로만 사용돼요.</p>
+    <p class="error" id="office-error" role="alert" hidden></p>
+  </form>
+  <div class="center" id="office-done" hidden>
+    <img src="/static/assets/owl-stand.png" alt="" width="104" height="92">
+    <div class="center-text">
+      <h1>문의를 보냈어요</h1>
+      <p>남겨 주신 연락처로 연락드릴게요.</p>
+    </div>
+  </div>
+  <div class="cta">
+    <button class="btn btn-main" id="office-send" type="submit" form="office-form" data-ga="office_inquiry_submit">문의 보내기</button>
+    <a class="btn btn-main" id="office-home" href="#" hidden>처음으로</a>
+  </div>
 </main>
 
 <!-- 약관 동의 (Figma: 4 Consent) -->
@@ -311,7 +360,6 @@
     <h2 class="help-h2">문의</h2>
     <div class="menu">
       <a class="menu-row" id="contact-link" href="#" data-ga="contact_click" data-ga-label="mail">메일로 문의하기<span class="menu-sub" id="contact-mail"></span></a>
-      <a class="menu-row" href="https://pf.kakao.com/_xgvxnFX/chat" target="_blank" rel="noopener noreferrer" data-ga="contact_click" data-ga-label="kakao">카카오톡 채널로 문의하기<span class="chev" aria-hidden="true"></span></a>
     </div>
 
     <h2 class="help-h2">약관·정책</h2>
@@ -404,7 +452,7 @@
 <main id="scanning" class="screen bg-gradient" hidden>
   <div class="center">
     <div class="scan-ring">
-      <div class="scan-core"><img src="/static/assets/owl-stand.png" alt="" width="104" height="92"></div>
+      <div class="scan-core"><img src="/static/assets/ic-shield.svg" alt="" width="48" height="48"></div>
       <i class="orb orb-1"></i><i class="orb orb-2"></i><i class="orb orb-3"></i>
     </div>
     <div class="center-text">
@@ -516,11 +564,15 @@
       <p><b>이 리포트는 아직 저장 전이에요.</b> 로그인하면 계정에 남아 언제든 다시 볼 수 있어요.</p>
       <button class="save-bar-btn" type="button" id="save-login" data-ga="save_click">로그인하고 저장하기</button>
     </div>
+    <div class="save-bar" id="empty-note" hidden>
+      <p><b>이 메일함에서는 계정을 찾지 못했어요.</b> 서비스에 가입할 때 쓴 다른 메일로 다시 해 보세요.</p>
+    </div>
     <div id="report-body"></div>
     <p class="foot-note"><a href="#connect" id="new-report" data-ga="new_report_click" data-ga-label="report">다른 메일로 새 리포트 만들기</a></p>
   </div>
   <div class="cta">
     <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>
+    <a class="btn btn-main" id="empty-retry" href="#connect" data-ga="empty_retry_click" hidden>다른 메일로 다시 해 보기</a>
     <a class="btn btn-main" id="sample-back" href="#" data-ga="sample_back_click" hidden>내 리포트 확인하러 가기</a>
   </div>
 </main>
@@ -559,8 +611,8 @@
 
 </div>
 <script src="/static/analytics.js"></script>
-<script src="/static/landing.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/feedback.js"></script>
+<script src="/static/landing.js"></script>
 </body>
 </html>
