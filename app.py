@@ -11,11 +11,13 @@ import json
 import os
 import re
 import secrets
+import smtplib
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from html import escape
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -64,7 +66,7 @@ HERE = Path(__file__).parent
 
 # 운영·문의 정보 (약관·푸터에 들어간다). 사업자 없이 운영하고, 판매·결제는 Paddle이 판매자(MoR)로 처리한다
 BUSINESS = {
-    "name": os.getenv("OPERATOR_NAME", "IDly 팀"),
+    "name": os.getenv("OPERATOR_NAME", "계정아파트"),
     "email": os.getenv("CONTACT_EMAIL", "idly1apt@gmail.com"),
     "privacy_officer": os.getenv("PRIVACY_OFFICER", ""),
     "seller": "Paddle.com Market Limited (Merchant of Record)",
@@ -78,6 +80,11 @@ FEEDBACK_WINDOW = 60 * 60
 FEEDBACK_IMAGE_LIMIT = 5 * 1024 * 1024
 _feedback_buckets: Dict[str, tuple[int, float]] = {}
 _feedback_lock = threading.Lock()
+OFFICE_LIMIT = 5
+OFFICE_WINDOW = 60 * 60
+OFFICE_EMPLOYEES = ("1~10명", "11~50명", "51~200명", "201명 이상")
+_office_buckets: Dict[str, tuple[int, float]] = {}
+_office_lock = threading.Lock()
 
 
 class ApiError(Exception):
@@ -198,6 +205,86 @@ def _purge() -> None:
 
 def _user(request: Request) -> Optional[Dict[str, Any]]:
     return db.session_user(request.cookies.get(SESSION_COOKIE, ""))
+
+
+class OfficeInquiry(BaseModel):
+    company: str
+    name: str
+    contact: str
+    employees: str
+    message: str = ""
+    website: str = ""  # 사람에게는 보이지 않는 칸. 채워져 있으면 봇이다
+
+
+def _office_failed() -> "ApiError":
+    return ApiError(503, f"문의를 보내지 못했어요. 잠시 후 다시 시도하거나 {BUSINESS['email']}로 메일을 보내 주세요.")
+
+
+def _send_office_mail(company: str, name: str, contact: str, employees: str, message: str) -> None:
+    """Gmail은 로그인한 계정으로만 보낼 수 있어서, 보내는 사람은 SMTP 계정이고 받는 곳이 조직 메일이다."""
+    user = os.getenv("SMTP_USER", "").strip()
+    password = os.getenv("SMTP_PASSWORD", "").strip()
+    if not user or not password:
+        print("[office] SMTP_USER / SMTP_PASSWORD 미설정")
+        raise _office_failed()
+    mail = EmailMessage()
+    mail["Subject"] = f"[IDly 기업 서비스 문의] {company}"
+    mail["From"] = user
+    mail["To"] = BUSINESS["email"]
+    # 연락처가 메일 주소면 답장 한 번으로 담당자에게 간다
+    if re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", contact):
+        mail["Reply-To"] = contact
+    mail.set_content(f"회사명: {company}\n담당자명: {name}\n연락처: {contact}\n직원 수: {employees}\n\n문의 내용:\n{message or '(없음)'}\n")
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
+    port = int(os.getenv("SMTP_PORT", "465"))
+    try:
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, timeout=15) as smtp:
+                smtp.login(user, password)
+                smtp.send_message(mail)
+        else:
+            with smtplib.SMTP(host, port, timeout=15) as smtp:
+                smtp.starttls()
+                smtp.login(user, password)
+                smtp.send_message(mail)
+    except (smtplib.SMTPException, OSError) as e:
+        print(f"[office] 메일 발송 실패: {type(e).__name__}")
+        raise _office_failed()
+
+
+@app.post("/api/office-inquiry", status_code=204)
+def office_inquiry(body: OfficeInquiry, request: Request):
+    """기업 서비스 문의를 조직 메일(CONTACT_EMAIL)로 보낸다. 서버에는 저장하지 않는다."""
+    if body.website:
+        return Response(status_code=204)
+    # 메일 제목에 들어가는 값이라 줄바꿈을 없앤다
+    company, name, contact = (" ".join(v.split()) for v in (body.company, body.name, body.contact))
+    message = body.message.strip()
+    if not 1 <= len(company) <= 100:
+        raise ApiError(400, "회사명을 입력해 주세요.")
+    if not 1 <= len(name) <= 50:
+        raise ApiError(400, "담당자명을 입력해 주세요.")
+    if not 5 <= len(contact) <= 100:
+        raise ApiError(400, "연락받을 전화번호나 이메일을 입력해 주세요.")
+    if body.employees not in OFFICE_EMPLOYEES:
+        raise ApiError(400, "직원 수를 골라 주세요.")
+    if len(message) > 1000:
+        raise ApiError(400, "문의 내용은 1,000자 이내로 입력해 주세요.")
+    ip = request.client.host if request.client else "unknown"
+    now = time.monotonic()
+    with _office_lock:
+        count, reset_at = _office_buckets.get(ip, (0, now + OFFICE_WINDOW))
+        if now >= reset_at:
+            count, reset_at = 0, now + OFFICE_WINDOW
+        if count >= OFFICE_LIMIT:
+            raise ApiError(429, "문의는 한 시간에 5번까지 보낼 수 있어요.")
+        _office_buckets[ip] = (count + 1, reset_at)
+        if len(_office_buckets) >= 5000:
+            for key, bucket in list(_office_buckets.items()):
+                if bucket[1] <= now:
+                    del _office_buckets[key]
+    _send_office_mail(company, name, contact, body.employees, message)
+    return Response(status_code=204)
 
 
 def _feedback_screen(path: str) -> str:

@@ -1,10 +1,9 @@
-/* 앱 화면. 모바일(390) 기준, 데스크톱에서는 가운데 컬럼만 둔다. 시작 화면(랜딩)만 넓게 쓴다 (landing.css)
-   색: IDly 디자인 시스템 — 네이비 #202F61, 그라데이션 #2A2F8F→#202F61, 오렌지 #FF9B54, 바탕 #F9F9FD, 라벤더 #EEF0F7, 본문 #1B2740 */
+/* 앱 화면. 모바일(390) 기준. 넓은 화면에서는 바탕·머리줄만 화면을 채우고 내용은 가운데 컬럼에 둔다. 시작 화면(랜딩)만 넓게 쓴다 (landing.css)
+   색: IDly_Product 디자인시스템 — 메인 #08257E, 포인트 #3766F4, 노랑 #FFD200, 바탕 이미지 bg-report.png */
 :root {
-  /* 색: 피그마 IDly 디자인 시스템 색과, 그 색들의 투명도만 */
-  --main: #202f61; --main-2: #2a2f8f; --ink: #1b2740; --sub: rgba(27, 39, 64, 0.74); --mute: rgba(27, 39, 64, 0.6); --hint: rgba(27, 39, 64, 0.32);
-  --line: rgba(32, 47, 97, 0.1); --border: rgba(32, 47, 97, 0.22); --info-bg: #eef3ff; --lavender: #eef0f7; --danger: #ee4e4e;
-  --accent: #ff9b54; --accent-bg: #ffe9d3; --bg: #f9f9fd; --bg-end: #eef0f7; --focus: #2a2f8f;
+  --main: #08257e; --main-2: #3766f4; --ink: #212125; --sub: #70737a; --mute: #72757c; --hint: #b7b9bf;
+  --line: #e5e7eb; --border: #caccd3; --info-bg: #f0f6ff; --lavender: #e8eeff; --danger: #ee4e4e;
+  --accent: #ffd200; --accent-bg: #fff4d6; --bg: #f0f6ff; --bg-end: #d5deed; --focus: #3766f4;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -15,11 +14,11 @@ body { margin: 0; background: #fff; color: var(--ink);
 a { color: inherit; }
 h1, h2, p { margin: 0; }
 
-.app { max-width: 430px; margin: 0 auto; min-height: 100dvh; }
+.app { max-width: var(--app-col); margin: 0 auto; min-height: 100dvh; }
 
 /* 화면 뼈대: 내용 + 아래 고정 버튼 */
 .screen { display: flex; flex-direction: column; min-height: 100dvh; background: #fff; }
-.bg-gradient { background: linear-gradient(180deg, var(--bg) 0%, var(--bg-end) 100%); }
+.bg-gradient { background: var(--bg-end) url(/static/assets/bg-report.png) center top / 100% 100% no-repeat; }
 .content { flex: 1; padding: 0 16px 24px; }
 .center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px 20px; }
 .center-text { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; text-align: center; }
@@ -28,7 +27,7 @@ h1, h2, p { margin: 0; }
 .center-text b { color: var(--ink); font-weight: 600; }
 
 .cta { position: sticky; bottom: 0; display: grid; gap: 12px; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); background: #fff; }
-.bg-gradient .cta { background: linear-gradient(rgba(238, 240, 247, 0), var(--bg-end) 24px); }
+.bg-gradient .cta { background: linear-gradient(rgba(213, 222, 237, 0), var(--bg-end) 24px); }
 .cta-link { font-size: 14px; font-weight: 600; color: var(--main); text-align: center; text-decoration: none; padding: 4px; }
 .cta-note { font-size: 12px; color: var(--mute); text-align: center; }
 
@@ -36,8 +35,8 @@ h1, h2, p { margin: 0; }
 .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 54px;
   border-radius: 16px; border: 0; font: inherit; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
   text-decoration: none; cursor: pointer; }
-.btn-main { background: var(--main); color: #fff; box-shadow: 0 6px 14px rgba(32, 47, 97, 0.18); }
-.btn-main:hover { background: #1a2753; }
+.btn-main { background: var(--main); color: #fff; }
+.btn-main:hover { background: #061d63; }
 .btn-outline { background: #fff; color: var(--ink); border: 0.762px solid var(--border);
   box-shadow: 0 4px 7px rgba(16, 24, 46, 0.06); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
@@ -114,21 +113,19 @@ h1, h2, p { margin: 0; }
 .content > .error { margin-top: 16px; }
 
 /* 분석 중 (Figma: 보안 상태를 분석하고 있어요) */
-.scan-ring { position: relative; width: 148px; height: 148px; border-radius: 50%;
-  background: conic-gradient(from 0deg, rgba(42, 47, 143, 0) 0deg, rgba(42, 47, 143, 0.35) 300deg, var(--accent) 360deg);
-  box-shadow: 0 12px 24px rgba(32, 47, 97, 0.12); animation: scan-spin 2.4s linear infinite; }
-.scan-core { position: absolute; inset: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;
-  border-radius: 50%; background: #fff; animation: scan-spin 2.4s linear infinite reverse; }
-.scan-core img { width: 100px; height: auto; margin-top: 14px; }
-@keyframes scan-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .scan-ring, .scan-core { animation: none; } }
+.scan-ring { position: relative; width: 140px; height: 140px; border-radius: 70px;
+  background: url(/static/assets/scan-ring.png) center / cover; box-shadow: 0 12px 16px rgba(8, 37, 126, 0.1); }
+.scan-core { position: absolute; inset: 20px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50px; background: #fff; box-shadow: 0 4px 6px rgba(8, 37, 126, 0.06); }
 .orb { position: absolute; border-radius: 50%; }
-.orb { display: none; }
+.orb-1 { left: 60px; top: -6px; width: 14px; height: 14px; background: #5d7eeb; box-shadow: 0 2px 6px rgba(93, 126, 235, 0.4); }
+.orb-2 { left: 126px; top: 90px; width: 10px; height: 10px; background: #5d7eeb; opacity: 0.6; }
+.orb-3 { left: 2px; top: 108px; width: 8px; height: 8px; background: #7d98ee; opacity: 0.5; }
 #scanning .center { gap: 32px; }
 #scanning .center-text { gap: 0; }
 .h-scan { font-size: 22px !important; line-height: 1.2 !important; }
-.track { width: 100%; max-width: 310px; height: 6px; margin: 24px 0 12px; border-radius: 3px; background: #dfe3f0; overflow: hidden; }
-#scan-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--main-2), var(--accent));
+.track { width: 100%; max-width: 310px; height: 6px; margin: 24px 0 12px; border-radius: 3px; background: #e8eeff; overflow: hidden; }
+#scan-bar { height: 100%; border-radius: 3px; background: url(/static/assets/scan-bar.png) center / 100% 100%;
   transform: scaleX(0); transform-origin: left; transition: transform .4s; }
 .caption { font-size: 11px; line-height: 1.6; color: var(--mute); }
 #scan-detail { font-size: 13px; color: var(--sub); margin-bottom: 2px; }
@@ -174,13 +171,13 @@ h1, h2, p { margin: 0; }
 /* 홈 */
 .home-hero { text-align: left; padding: 24px; }
 .home-hero .rp-date { font-size: 12px; }
-.home-hello { font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.78); }
+.home-hello { font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
 .home-hero .rp-label { margin-top: 6px !important; font-size: 24px; line-height: 1.3; }
 .home-hero .rp-desc { margin-top: 6px !important; font-weight: 400; color: rgba(255, 255, 255, 0.85); }
 .home-row { text-decoration: none; color: inherit; }
 .state { flex: none; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 .state-paid { background: #e8f5e9; color: #2e7d32; }
-.state-unpaid { background: var(--accent-bg); color: #9a5523; }
+.state-unpaid { background: var(--info-bg); color: var(--main); }
 .state-busy { background: #fff8e1; color: #9a6b00; }
 .menu { display: grid; }
 .help .menu-row { padding: 12px 0; }
@@ -215,7 +212,7 @@ h1, h2, p { margin: 0; }
 .pay-empty { font-size: 14px; line-height: 1.6; color: var(--sub); text-align: center; }
 
 /* 에러 제보: 웹앱과 같은 플로팅 버튼·바텀 시트 */
-.feedback-fab { position: fixed; z-index: 30; right: max(16px, calc((100vw - 430px) / 2 + 16px));
+.feedback-fab { position: fixed; z-index: 30; right: max(16px, calc((100vw - var(--app-col)) / 2 + 16px));
   bottom: calc(116px + env(safe-area-inset-bottom)); display: grid; place-items: center;
   width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(33, 33, 37, .8);
   box-shadow: 0 6px 18px rgba(0, 0, 0, .2); backdrop-filter: blur(8px); cursor: pointer; }
@@ -348,34 +345,31 @@ h1, h2, p { margin: 0; }
 
 /* 결제 화면: 기간 한정 할인. 태그는 상태 칩(.state)과 같은 모양, 빨강은 보안 경고에만 쓰므로 가격 색(--main) */
 .promo { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--sub); }
-.promo-tag { padding: 2px 8px; border-radius: 10px; background: var(--accent-bg); color: #9a5523; font-size: 11px; font-weight: 600; }
+.promo-tag { padding: 2px 8px; border-radius: 10px; background: var(--info-bg); color: var(--main); font-size: 11px; font-weight: 600; }
 .pay-list { font-weight: 500; opacity: 0.6; }
 .price-promo { font-size: 14px; font-weight: 700; color: var(--main); }
 .price-promo span { font-size: 12px; font-weight: 400; color: var(--sub); }
 /* 결제 화면: 결제 버튼 위 샘플 리포트 텍스트 링크 (버튼처럼 보이지 않게) */
 .sample-cta { font-size: 13px; color: var(--sub); text-align: center; }
 .sample-cta a { color: var(--main); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-.scan-ring.stopped, .scan-ring.stopped .scan-core { animation: none; }
 
-/* 리포트는 넓은 화면에서 앱 컬럼(430px)을 벗어나 두 칸으로 읽는다 (report.css의 .rp-side / .rp-main) */
+/* 넓은 화면: 바탕·머리줄·아래 버튼 줄만 화면을 따라가고, 리포트 규격(앱 컬럼 430px)은 그대로 둔다 */
+:root { --report-col: 430px; }
 body.is-wide .app { max-width: none; }
 body.is-wide:not(.is-landing) { background: var(--bg); }
-#report { background: var(--bg); }
-/* 리포트: 모바일 구성 그대로, 폭은 화면 높이를 넘지 않게 (정사각형까지), 최소 430px, 최대 720px */
-#report .bar-head, #report .content, #report .cta { width: 100%; max-width: clamp(430px, 100dvh, 720px); margin-inline: auto; }
+/* 리포트·분석 화면: 내용은 화면에 맞춰 늘리지 않고 가운데 고정 폭으로 */
+#scanning > *, #preview > *, #report > * { width: 100%; max-width: var(--report-col); margin-inline: auto; }
 /* 홈도 넓은 화면에서는 왼쪽 요약, 오른쪽 리포트 목록 */
 #home .logo-head, #home .content, #home .cta { width: 100%; max-width: 1200px; margin-inline: auto; }
 .home-side, .home-main { min-width: 0; }
-#report .bar-head { position: sticky; top: 0; z-index: 20; height: 56px; margin-top: 0; background: var(--bg); }
-#report .cta { background: linear-gradient(rgba(249, 249, 253, 0), var(--bg) 24px); }
+#report .bar-head { position: sticky; top: 0; z-index: 20; max-width: none; height: 56px; margin-top: 0; background: rgba(240, 246, 255, 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+#report .cta { max-width: none; justify-items: center; }
+#report .cta .btn { max-width: calc(var(--report-col) - 32px); }
 @media (min-width: 40rem) {
   #report .bar-head { padding: 0 32px; }
-  #report .content { padding: 8px 32px 40px; }
 }
 @media (min-width: 60rem) {
   #report .bar-head { padding: 0 40px; }
-  #report .content { padding: 16px 40px 48px; }
-  #report .cta { padding: 16px 40px 24px; }
   body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
   #home .logo-head { padding: 16px 40px 8px; }
   #home .home-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; padding: 16px 40px 48px; }
@@ -403,3 +397,85 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 .save-bar-btn:active { transform: translateY(1px); }
 .save-bar-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 #login-desc { white-space: pre-line; }
+
+/* 사무실 도입 문의 폼 */
+.input select { flex: 1; width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); }
+.input-area { height: auto; padding: 12px 14px; }
+.input-area textarea { display: block; width: 100%; min-height: 112px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); resize: vertical; }
+.office-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* 넓은 화면의 폭: 입력·안내 화면은 640px, 긴 글(약관·정책·가격)은 760px까지. 리포트와 분석 화면은 --report-col로 고정 */
+:root { --app-col: 430px; }
+@media (min-width: 40rem) {
+  :root { --app-col: 640px; }
+  .app:has(> .legal) { max-width: 760px; }
+  .legal .bar-head { padding-inline: 32px; }
+  .legal-body { padding: 16px 32px 64px; font-size: 16px; }
+  .legal-body h3 { font-size: 18px; }
+  .legal-meta { font-size: 14px; }
+  .legal-table { font-size: 14px; }
+  .legal-table th, .legal-table td { padding: 12px 8px; }
+  #terms .content, #about .content, #connect .content, #help .content, #office .content { padding-inline: 32px; }
+  #terms .bar-head, #about .bar-head, #connect .bar-head, #help .bar-head, #office .bar-head { padding-inline: 32px; }
+  #terms .cta, #about .cta, #connect .cta, #help .cta, #office .cta { padding-inline: 32px; }
+}
+
+/* 휴대폰(40rem 이하): 화면 전체를 75%로 줄이고 간격을 붙인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
+   고정 폭은 함께 줄어드므로 75%로 나눠 원래 화면 폭을 그대로 채운다 */
+@media screen and (max-width: 40rem) {
+  :root { --app-col: calc(430px / 0.75); --report-col: calc(430px / 0.75); }
+  /* dvh도 75%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
+  html { height: 100%; }
+  body { zoom: 0.75; display: flex; flex-direction: column; min-height: 100%; }
+  .app { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; min-height: 0; }
+  .screen { flex: 1 0 auto; min-height: 0; }
+  .sheet, .feedback-sheet { max-width: none; }
+  /* 16px보다 작은 입력칸은 iOS가 화면을 확대하므로 실제 글자 크기를 16px로 유지한다 */
+  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.75); }
+
+  .content { padding: 0 20px 16px; }
+  .center { gap: 16px; padding: 24px 20px; }
+  .cta { gap: 8px; padding: 10px 20px calc(16px + env(safe-area-inset-bottom)); }
+  .bar-head { margin-top: 4px; }
+  .form-col { gap: 12px; padding-bottom: 16px; }
+  .title { padding: 12px 0 4px; }
+  .agree { padding: 12px; margin-top: 4px; }
+  .agree-row { padding-block: 8px; }
+  .help { padding-bottom: 32px; }
+  .help-h2 { margin-top: 20px; }
+  .legal-body { padding-bottom: 32px; }
+  .legal-body h3 { margin-top: 20px; }
+  .rp-h2 { margin: 20px 0 10px !important; }
+  .rp-hero { padding: 20px 20px; }
+  .rp-funnel { margin-top: 16px; padding-top: 12px; }
+  .rp-stats { gap: 8px; margin-top: 16px; }
+  .rp-finds { gap: 8px; }
+  .rp-row { padding-block: 10px; }
+  .rp-compact .rp-row { padding-block: 8px; }
+  .rp-method { margin-top: 20px; }
+  .foot-note { margin-top: 16px; }
+
+  /* 전체를 75%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.75가 실제 크기다 (보조 글자 11px, 본문 12px, 주요 터치 44px) */
+  .rp-date, .home-hero .rp-date, .rp-chip, .rp-funnel span, .rp-funnel small, .rp-stat-label, .rp-meta, .rp-why, .rp-amount span, .rp-find-tag,
+  .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .promo, .feedback-meta,
+  .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 15px; }
+  .rp-bar-n, .rp-bar-y { font-size: 14px; }
+  .rp-text, .rp-advice, .rp-desc, .rp-find p, .rp-note, .rp-method, .rp-empty, .rp-sample-note, .field-label, .title p, .agree-text, .fold-body,
+  .guide, .legal-table, .menu-row .menu-sub, .feedback-description, .sheet-desc, .home-empty, .dialog-list, .dialog-text, .error, .center-text > .error,
+  .head-link, .head-home, .agree-row, .chip, .value-text { font-size: 16px; }
+  .rp-text, .rp-advice { line-height: 1.4; }
+  .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 17px; }
+  .field-label { line-height: 1.4; }
+  .title p { line-height: 1.4; }
+
+  .btn { height: 59px; }
+  .input { height: 56px; }
+  .chip, .about-group .chip { height: 48px; }
+  .menu-row, .faq summary { min-height: 59px; }
+  .head-link, .head-home { height: 59px; }
+  .reveal { height: 56px; }
+  .fold-toggle { top: 0; height: 52px; }
+  .back { position: relative; }
+  .back::after, .feedback-fab::after { content: ""; position: absolute; inset: -8px; }
+  .rp-pop { width: calc(100% - 24px); }
+}

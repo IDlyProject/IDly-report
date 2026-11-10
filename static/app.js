@@ -127,7 +127,7 @@ function show(id) {
     .forEach((el) => (el.hidden = el.id !== id));
   // 시작 화면(랜딩)과 리포트는 앱 컬럼을 벗어나 넓게 쓴다 (landing.css, style.css)
   document.body.classList.toggle("is-landing", id === "intro");
-  document.body.classList.toggle("is-wide", id === "intro" || id === "report" || id === "home");
+  document.body.classList.toggle("is-wide", id === "intro" || $(`#${id}`).classList.contains("bg-gradient"));
   // 랜딩에서 로그인했거나 로그인 없이 쓰는 중이면 '내 리포트'로 가는 길을 보여 준다
   if (id === "intro") document.querySelectorAll("[data-my]").forEach((a) => (a.hidden = !signedIn()));
   window.scrollTo(0, 0);
@@ -354,7 +354,9 @@ async function onConnect(event) {
     }
     form.password.type = "password";
     $("#reveal").textContent = "보기";
-    location.hash = `r=${id}`;
+    // 뒤로 가기가 비밀번호 입력 화면으로 돌아가지 않게 이 기록을 바꿔 치운다
+    form.password.value = "";
+    location.replace(`#r=${id}`);
   } catch (err) {
     track("connect_error", { provider: kind, status: err.status || 0 });
     showError("#connect-error", err.message);
@@ -787,7 +789,8 @@ function renderBusiness() {
   ]
     .filter(Boolean)
     .join(" · ");
-  $("#landing-business").textContent = $("#business").textContent;
+  $("#landing-email").textContent = b.email || "";
+  $("#landing-copy").textContent = b.name ? `© ${b.name}` : "";
 }
 
 async function onLogout() {
@@ -858,10 +861,18 @@ function renderScanning(r) {
         ? `${n(r.total)}통 중 ${n(r.fetched)}통 읽음 (${pct}%)`
         : "메일 서버에 연결했어요";
   showError("#scan-error", failed ? r.error : "");
-  // 실패하면 경고 부엉이로 바꾸고 돌던 고리를 멈춘다
-  $(".scan-core img").src = `/static/assets/${failed ? "owl-warn" : "owl-stand"}.png`;
+  // 실패하면 경고 아이콘으로 바꾼다
+  $(".scan-core img").src = `/static/assets/${failed ? "ic-danger" : "ic-shield"}.svg`;
   $(".scan-ring").classList.toggle("stopped", failed);
   $("#scan-retry").hidden = !failed;
+  // 다시 연결할 때 메일 주소는 채워 두고 앱 비밀번호만 새로 받는다
+  if (failed && r.email) {
+    const form = $("#connect-form");
+    form.email.value = r.email;
+    form.password.value = "";
+    renderGuide();
+    detectLater();
+  }
 }
 
 async function renderResult(r) {
@@ -870,24 +881,31 @@ async function renderResult(r) {
     $("#report-body").innerHTML = view.html;
     // 샘플은 로그인 없이도 볼 수 있다. 돌아갈 곳과 아래 안내를 샘플에 맞춘다
     const backToPay = r.sample && sampleFromPay;
+    // 찾은 계정이 없으면 저장할 것이 없다: PDF·저장 대신 다른 메일로 다시 해 보게 한다
+    const empty = !r.sample && !(r.summary && r.summary.accounts);
+    $("#empty-note").hidden = !empty;
+    $("#empty-retry").hidden = !empty;
     $("#report-title").textContent = r.sample ? "샘플 리포트 (예시)" : "계정 리포트";
     $("#report-back").href = signedIn() ? "#home" : "#";
     $("#report-back").onclick = backToPay ? goBack : null;
     $("#new-report").textContent = r.sample
       ? "내 메일로 리포트 만들기"
       : "다른 메일로 새 리포트 만들기";
-    $("#new-report").href = signedIn() ? "#connect" : "#";
+    // 샘플을 보던 방문자는 랜딩으로 돌려보내지 않고 바로 메일 연결로 잇는다 (약관은 route가 먼저 받는다)
+    $("#new-report").href = "#connect";
+    $("#new-report").onclick = signedIn() ? null : () => startTrial();
     // 결제 화면에서 온 샘플: 내 리포트로 돌아가는 길만 둔다 (PDF·새 리포트 만들기는 뺀다)
-    $("#new-report").parentElement.hidden = backToPay;
-    $("#pdf").hidden = backToPay;
+    $("#new-report").parentElement.hidden = backToPay || empty;
+    $("#pdf").hidden = backToPay || empty;
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     // 체험(로그인 없이)으로 만든 리포트: 저장 줄을 보여 주고, PDF를 받으려 하면 먼저 로그인을 묻는다 (onPdf)
     const trial = !me.user && !r.sample;
-    $("#save-bar").hidden = !trial;
+    $("#save-bar").hidden = !trial || empty;
     $("#pdf").dataset.trial = trial ? "1" : "";
     for (const b of $("#report-body").querySelectorAll("[data-share]")) b.onclick = () => shareOffice(b);
     show("report");
+    initOfficePop(r.id);
     if (r.sample) track("sample_view", { from: backToPay ? "pay" : "direct" });
     if (justPaid === r.id) {
       justPaid = null;
@@ -944,6 +962,121 @@ async function renderResult(r) {
   show("preview");
   if (!empty) track("view_item", reportItem(r.price));
 }
+
+// 기업 서비스 문의: 보내면 서버가 조직 메일로 전달한다. 이 화면은 로그인 없이 열린다
+function renderOffice() {
+  $("#office-form").hidden = false;
+  $("#office-done").hidden = true;
+  $("#office-send").hidden = false;
+  $("#office-home").hidden = true;
+  showError("#office-error", "");
+  show("office");
+}
+
+async function onOffice(event) {
+  event.preventDefault();
+  const form = event.target;
+  showError("#office-error", "");
+  if (!form.company.value.trim()) return showError("#office-error", "회사명을 입력해 주세요.");
+  if (!form.name.value.trim()) return showError("#office-error", "담당자명을 입력해 주세요.");
+  if (!form.contact.value.trim()) return showError("#office-error", "연락받을 전화번호나 이메일을 입력해 주세요.");
+  if (!form.employees.value) return showError("#office-error", "직원 수를 골라 주세요.");
+  const button = $("#office-send");
+  button.disabled = true;
+  button.textContent = "보내는 중…";
+  try {
+    await api("/api/office-inquiry", {
+      method: "POST",
+      body: JSON.stringify({
+        company: form.company.value,
+        name: form.name.value,
+        contact: form.contact.value,
+        employees: form.employees.value,
+        message: form.message.value,
+        website: form.website.value,
+      }),
+    });
+    form.reset();
+    form.hidden = true;
+    $("#office-done").hidden = false;
+    button.hidden = true;
+    $("#office-home").hidden = false;
+    window.scrollTo(0, 0);
+  } catch (err) {
+    showError("#office-error", err.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "문의 보내기";
+  }
+}
+
+// 기업 서비스 알림: 위쪽 요약을 지나 내려가면 위에서 내려오고, 닫으면 그 리포트에서는 다시 뜨지 않는다
+const officePopClosed = new Set();
+let officePopId = null;
+const officePop = () => $("#report-body .rp-pop");
+
+function paintOfficePop() {
+  const pop = officePop();
+  if (!pop || pop.classList.contains("leaving")) return;
+  const band = $("#report-body .rp-band");
+  const passed = !$("#report").hidden && !!band && band.getBoundingClientRect().bottom < innerHeight * 0.6;
+  const next = !passed || officePopClosed.has(officePopId);
+  if (pop.hidden && !next) track("office_pop_view");
+  pop.hidden = next;
+}
+
+function closeOfficePop() {
+  const pop = officePop();
+  if (!pop || pop.hidden) return;
+  officePopClosed.add(officePopId);
+  track("office_pop_close");
+  pop.classList.add("leaving");
+  setTimeout(() => {
+    pop.hidden = true;
+    pop.classList.remove("leaving");
+  }, 260);
+}
+
+function initOfficePop(id) {
+  officePopId = id;
+  const pop = officePop();
+  if (!pop) return;
+  const link = pop.querySelector("a");
+  link.draggable = false;
+  pop.querySelector(".rp-pop-close").onclick = closeOfficePop;
+  // 위로 밀어 올리면 닫힌다. 밀었을 때는 문의 링크가 열리지 않게 한다
+  let startY = null;
+  let dragged = false;
+  pop.onpointerdown = (e) => {
+    startY = e.clientY;
+    dragged = false;
+  };
+  pop.onpointermove = (e) => {
+    if (startY === null) return;
+    const dy = Math.min(0, e.clientY - startY);
+    if (dy < -6) dragged = true;
+    pop.style.setProperty("--drag", `${dy}px`);
+  };
+  const endDrag = (e) => {
+    if (startY === null) return;
+    const dy = e.clientY - startY;
+    startY = null;
+    pop.style.removeProperty("--drag");
+    if (dy < -40) closeOfficePop();
+  };
+  pop.onpointerup = endDrag;
+  pop.onpointercancel = endDrag;
+  link.onclick = (e) => {
+    if (dragged) e.preventDefault();
+  };
+  paintOfficePop();
+}
+
+addEventListener("scroll", () => requestAnimationFrame(paintOfficePop), { passive: true });
+addEventListener("resize", paintOfficePop, { passive: true });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !layers.length) closeOfficePop();
+});
 
 // 리포트 끝 'IDly 링크 보내기': 리포트 주소가 아니라 소개 페이지(첫 화면)만 나눈다 (리포트 id는 열람 권한이라 남에게 주지 않는다)
 async function shareOffice(button) {
@@ -1250,6 +1383,7 @@ function route() {
   const hash = location.hash.replace("#", "");
   if (hash === "sample" && config.sample) return openSample();
   if (hash === "help") return renderHelp();
+  if (hash === "office") return renderOffice();
   // 루트(/)와 #intro는 언제나 랜딩. 로그인했거나 체험 중이면 랜딩 위쪽 '내 리포트'로 홈(#home)에 간다
   if (hash === "" || hash === "intro") return renderIntro();
   // 샘플이 아닌 리포트·연결·홈은 로그인(또는 로그인 없이 사용하기)이 필요하다 (샘플 리포트 주소는 그냥 열린다)
@@ -1281,6 +1415,7 @@ async function init() {
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
+  document.querySelectorAll("[data-contact-mail]").forEach((a) => (a.href = $("#contact-link").href));
   // [결제 OFF] 결제 FAQ의 가격
   // $("#help-price").textContent = config.promo
   //   ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
@@ -1293,6 +1428,7 @@ async function init() {
   });
   form.addEventListener("submit", onConnect);
   $("#terms-form").addEventListener("submit", onTerms);
+  $("#office-form").addEventListener("submit", onOffice);
   $("#about-form").addEventListener("submit", (e) => {
     e.preventDefault();
     saveAbout(aboutPicked);
