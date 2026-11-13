@@ -1,5 +1,5 @@
 // 화면: intro → connect → scanning → report(금액을 고르기 전이면 가린 리포트 위에 금액 고르기 시트). 도움말은 #help.
-// 원하는 금액 결제: 첫 리포트는 서버가 무료로 열고(paid: true), 두 번째부터 금액 고르기 시트(#pay-sheet)를 띄운다. 0원도 고를 수 있다.
+// 원하는 금액 결제: 새 리포트는 모두 금액 고르기 시트(#pay-sheet)를 거친다. 0원이 기본으로 골라져 있다.
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
@@ -823,16 +823,8 @@ async function renderHome() {
     empty.append(owl, el("p", "", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
     list.append(empty);
   }
-  // 줄마다 오른쪽에 삭제 버튼 (링크 안에 버튼을 넣을 수 없어 나란히 둔다)
-  reports.forEach((r) => {
-    const item = el("div", "home-item");
-    const del = el("button", "home-del", "삭제");
-    del.type = "button";
-    del.setAttribute("aria-label", `${r.mailbox} 리포트 삭제`);
-    del.addEventListener("click", () => onDeleteReport(r.id));
-    item.append(reportRow(r), del);
-    list.append(item);
-  });
+  // 지우기는 리포트 안(PDF 옆)에서만 한다. 목록에는 두지 않는다
+  reports.forEach((r) => list.append(reportRow(r)));
 }
 
 // 홈 요약 문구 (한 문장은 한 색: 숫자만 따로 칠하지 않는다)
@@ -1181,7 +1173,7 @@ ${url}`);
 }
 
 // --- 금액 고르기 ---------------------------------------------------------------
-// 고른 금액 (null이면 아직 안 고름). 기본으로 골라 두지 않는다
+// 고른 금액 (null이면 아직 안 고름). 열 때 0원을 기본으로 골라 둔다
 let payAmount = null;
 
 // 0원 줄은 금액을 먼저 쓰고, 옆에 '무료로 이용하기'를 다른 색 꼬리표로 붙인다
@@ -1193,7 +1185,7 @@ function amountLabel(amount) {
 
 // 서버가 준 금액마다 라디오 하나. 고르면 아래 '선택한 금액'과 버튼 문구가 바뀐다
 function renderAmounts() {
-  payAmount = null;
+  payAmount = config.amounts.includes(0) ? 0 : null;
   const box = $("#pay-options");
   box.innerHTML = "";
   for (const amount of config.amounts) {
@@ -1201,6 +1193,7 @@ function renderAmounts() {
       type: "radio",
       name: "pay-amount",
       value: String(amount),
+      checked: amount === payAmount,
     });
     input.addEventListener("change", () => {
       payAmount = amount;
@@ -1625,10 +1618,6 @@ async function init() {
   $("#withdraw-cancel").addEventListener("click", () => closeLayer($("#withdraw-modal")));
   $("#pay").addEventListener("click", onPay);
   $("#pay-open").addEventListener("click", openPaySheet);
-  $("#pay-later").addEventListener("click", () => {
-    track("pay_later");
-    closePaySheet();
-  });
   $("#pay-sheet").addEventListener("click", (e) => {
     if (e.target === $("#pay-sheet")) closePaySheet();
   });

@@ -157,19 +157,6 @@ def _accent(label: str) -> str:
     return re.sub(r"([\d,]+(?:원|개))", r'<em>\1</em>', _e(label))
 
 
-def _funnel(report: Dict[str, Any], s: Dict[str, Any]) -> str:
-    """메일 몇 통을 읽고, 몇 곳을 검토해, 몇 개로 추렸는지: 분석이 한 일을 숫자로 보여 준다."""
-    steps = [(s["messages"], "통", "읽은 메일")]
-    if report.get("candidates"):
-        steps.append((report["candidates"], "곳", "검토한 발신처"))
-    steps.append((s["accounts"], "개", "찾은 계정"))
-    if not s["messages"]:
-        return ""
-    cells = '<i aria-hidden="true">›</i>'.join(
-        f'<span><b>{n:,}<small>{unit}</small></b>{label}</span>' for n, unit, label in steps)
-    return f'<div class="rp-funnel">{cells}</div>'
-
-
 def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
     chip = f'<span class="rp-chip">{_img("ic-ai.svg")}AI 분석</span>' if report.get("ai_used") else ""
     sample = '<span class="rp-chip">샘플</span>' if report.get("sample") else ""
@@ -182,7 +169,6 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
   <div class="rp-hero-top"><span class="rp-date">{created.year}년 {created.month}월 {created.day}일 기준</span><span class="rp-chips">{sample}{chip}</span></div>
   <div class="rp-hero-main"><p class="rp-label">{_e(label)}</p>
   <p class="rp-desc">{_e(desc)}</p></div>
-  {_funnel(report, s)}
 </section>"""
 
 
@@ -192,9 +178,9 @@ def _stats(s: Dict[str, Any]) -> str:
         ("ic-danger.svg", "danger", s["security"], "보안 알림"),
         ("ic-caution.svg", "caution", s["unused"], "안 쓰는 계정"),
     ]
-    # 칸마다 뜻의 색을 입힌다. 0이면 색을 빼서 볼 것이 없다는 게 바로 보이게 한다
+    # 피그마처럼 흰 카드에 뜻의 색 동그라미 아이콘. 0이면 아이콘을 회색 동그라미로 둔다
     cells = "".join(
-        f'<div class="rp-stat s-{tone if n else "zero"}"><span class="rp-bubble">{_img(icon)}</span><b>{n}</b><span class="rp-stat-label">{label}</span></div>'
+        f'<div class="rp-stat"><span class="rp-bubble {"t-" + tone if n else "t-zero"}">{_img(icon)}</span><b>{n}</b><span class="rp-stat-label">{label}</span></div>'
         for icon, tone, n, label in items
     )
     return f'<div class="rp-stats">{cells}</div>'
@@ -352,14 +338,13 @@ def _todo(accounts: List[Dict[str, Any]]) -> str:
         icon, tint = KIND_STYLE.get(i["kind"], ("ic-caution.svg", "t-caution"))
         tone = tint.removeprefix("t-")
         rows.append(
-            f'<article class="rp-task k-{tone}"><div class="rp-task-head"><span class="rp-bubble {tint}">{_img(icon)}</span>'
-            f'<p class="rp-title">{_e(a["service"])}<span class="rp-kind">{_e(i["kind"])}</span></p>'
+            f'<div class="rp-row rp-rec"><span class="rp-dot d-{tone}"></span>'
+            f'<div class="rp-row-body"><div class="rp-row-head"><p class="rp-title">{_e(a["service"])} · {_e(i["kind"])}</p>'
             f'<span class="rp-meta">{_md(i.get("date"))}</span></div>'
-            f'<p class="rp-text">{_lines(i["status"])}</p>'
-            f'<p class="rp-advice"><b>할 일</b>{_e(i["advice"])}</p></article>'
+            f'<p class="rp-text">{_lines(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p></div></div>'
         )
-    return (f'<h2 class="rp-h2 h-urgent">확인할 일 <small>{len(items)}</small></h2>'
-            f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-tasks">{"".join(rows)}</div>')
+    return (f'<h2 class="rp-h2">확인할 일 <small>{len(items)}</small></h2>'
+            f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-card">{"".join(rows)}</div>')
 
 
 def _unused(accounts: List[Dict[str, Any]]) -> str:
@@ -497,14 +482,14 @@ def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: 
     # 맨 아래 두 칸(전체 목록 등). 좁은 화면과 PDF는 같은 순서로 위에서 아래로 한 줄 (report.css)
     block = lambda html: f'<section class="rp-block">{html}</section>' if html else ""
     top = _hero(report, s, created)
-    band = [_stats(s), _discoveries(report, created, full)]
+    # 피그마 IDly_Product '보안 리포트' 순서: 요약 → 숫자 3칸 → 권장 사항(확인할 일) → 그 밖의 목록
+    band = [_stats(s)]
     if full:
-        # 지금 손볼 것(확인할 일)이 먼저, 그다음 매달 나가는 돈(구독), 정리할 계정(안 쓰는 계정)
-        cols = [_todo(accounts), _subscriptions(accounts), _unused(accounts)]
+        cols = [_todo(accounts), _discoveries(report, created, full), _subscriptions(accounts), _unused(accounts)]
         wide = [_all_accounts(accounts), _connected_apps(report), _timeline(accounts, created)]
         after = (_office(accounts) if web and accounts else "") + _method(report, s)
     else:
-        cols = [_locked(accounts)]
+        cols = [_discoveries(report, created, full), _locked(accounts)]
         wide = [_timeline(accounts, created)]
         after = ""
     tail = _WATERMARK if report.get("sample") else ""
@@ -522,7 +507,7 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; background: #fff; font-family: "Pretendard Variable", Pretendard, "Malgun Gothic", sans-serif; }
 .pdf-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .pdf-head p { margin: 0; font-size: 12px; color: var(--rp-mute); text-align: right; }
-.rp-card, .rp-task:not(.k-danger), .rp-stat.s-zero, .rp-find:not(.f-accent) { box-shadow: 0 0 0 1px var(--rp-line); }
+.rp-card, .rp-stat, .rp-find:not(.f-accent) { box-shadow: 0 0 0 1px var(--rp-line); }
 """
 
 

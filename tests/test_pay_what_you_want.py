@@ -37,14 +37,15 @@ class PayWhatYouWantTests(unittest.TestCase):
         self.addCleanup(self.cutoff.stop)
 
     def add(self, report):
-        report.paid = app._first_report(report)
+        # 새 리포트는 언제나 금액 고르기를 거친다 (start_report와 같게)
+        report.paid = False
         app._reports[report.id] = report
         return report
 
-    def test_first_report_is_free_second_asks(self):
+    def test_every_new_report_asks_even_the_first(self):
         first = self.add(make_report())
         second = self.add(make_report())
-        self.assertTrue(app._open(first))
+        self.assertFalse(app._open(first))
         self.assertFalse(app._open(second))
         r = self.client.get(f"/api/reports/{second.id}/view", headers=self.headers).json()
         self.assertFalse(r["paid"])
@@ -100,7 +101,7 @@ class PayWhatYouWantTests(unittest.TestCase):
         app._reports[old.id] = old
         with patch.object(app, "PAYWALL_FROM", datetime.now() - timedelta(days=1)):
             self.assertTrue(app._open(old))
-            # 무료 기간에 만든 리포트도 한 번으로 센다: 다음 리포트는 금액을 고른다
+            # 그 뒤에 만든 새 리포트는 금액을 고른다
             self.assertFalse(app._open(self.add(make_report())))
         self.cutoff.start()
 

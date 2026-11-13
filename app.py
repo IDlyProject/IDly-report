@@ -41,7 +41,7 @@ from report_view import render_fragment, render_html, render_pdf, summarize, sum
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
-# 원하는 금액 결제: 첫 리포트는 무료로 바로 열고, 두 번째부터는 금액을 고르는 화면을 거친다 (0원도 된다).
+# 원하는 금액 결제: 새 리포트는 모두 금액을 고르는 시트를 거친다 (0원이 기본으로 골라져 있다).
 # 모든 금액이 Paddle 결제창을 거친다: 4,900원 가격 하나에 금액별 할인 코드를 붙인다 (0원은 teampass, billing.DISCOUNT_CODES)
 # 결제를 끄고 무료로 열던 동안 만든 리포트는 계속 열어 둔다 (그때는 paid가 저장되지 않았다)
 # 리포트의 created는 서버 시간대의 naive 시각이라 같은 기준으로 바꿔 둔다
@@ -573,18 +573,6 @@ def prices() -> Dict[str, Any]:
     return {"amounts": list(billing.AMOUNTS) if PAYMENT_MODE == "mock" else billing.amounts()}
 
 
-def _same_person(a: "Report", b: "Report") -> bool:
-    return bool((a.user_id and a.user_id == b.user_id) or (a.guest and a.guest == b.guest))
-
-
-def _first_report(report: "Report") -> bool:
-    """이 사람(계정, 로그인 없으면 이 브라우저)의 첫 리포트면 무료로 연다. 결제를 끄고 무료로 열던 동안의 리포트도 센다."""
-    return not any(
-        other is not report and not other.sample and other.data is not None and _same_person(other, report)
-        for other in _reports.values()
-    )
-
-
 def _open(report: "Report") -> bool:
     """전체 리포트를 볼 수 있나: 고른 금액을 냈거나(0원 포함), 샘플, 결제를 끄고 있던 동안 만든 것, 찾은 계정이 없는 것."""
     if report.paid or report.sample or report.created < PAYWALL_FROM:
@@ -708,8 +696,8 @@ def start_report(body: StartBody, request: Request):
         data.pop("sample", None)
         data["mock"] = True
         report = Report("test@idly.kr", user["id"] if user else None, data=data, guest=guest)
-        # 결제 화면도 확인할 수 있게 실제와 같이: 첫 목업은 열리고, 두 번째부터 금액 고르기
-        report.paid = _first_report(report)
+        # 결제 화면도 확인할 수 있게 실제와 같이 금액 고르기를 거친다
+        report.paid = False
         _reports[report.id] = report
         return {"id": report.id}
     provider = get_provider(body.provider) if body.provider else resolve_provider(body.email)
@@ -772,8 +760,9 @@ def start_report(body: StartBody, request: Request):
     if cred is None:
         raise ApiError(401, explain_login_error(str(error), provider), debug)
     report = Report(cred.email, user["id"] if user else None, guest=guest)
-    # 첫 리포트는 무료. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
-    report.paid = _first_report(report) or (bool(user) and db.unlock_of(user["id"], cred.email) == "paid")
+    # 새 리포트는 언제나 금액 고르기를 거친다 (첫 리포트·예전에 결제한 메일함도). 0원을 고르면 바로 열린다
+    report.paid = False
+    print(f"[billing] new report {report.id} account={bool(user)}")
     # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
     # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
     def on_done(_data: Dict[str, Any]) -> None:

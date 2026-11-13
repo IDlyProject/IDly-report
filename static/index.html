@@ -354,7 +354,7 @@
       <details><summary data-ga="faq_toggle" data-ga-label="delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
         <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요.<br>다시 분석할 때 새로 만들면 돼요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="payment">결제는 어떻게 하나요?</summary>
-        <p>첫 리포트는 무료예요.<br>두 번째 리포트부터는 0원, 900원, 1,900원, 2,900원, 3,900원, 4,900원 중 원하는 금액을 골라요. 0원을 골라도 전체 리포트가 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
+        <p>리포트를 열 때 0원, 900원, 1,900원, 2,900원, 3,900원, 4,900원 중 원하는 금액을 골라요. 0원을 골라도 전체 리포트가 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="refund">환불되나요?</summary>
         <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요.<br>분석이 잘못됐다면 문의해 주세요.<br><a href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책</a></p></details>
     </div>
@@ -471,22 +471,20 @@
 </main>
 
 <!-- 요약 + 결제 (Figma: 2-4-1 보안 리포트) -->
-<!-- 원하는 금액 결제 (바텀시트): 두 번째 리포트부터, 가린 리포트 위에 뜬다 (첫 리포트는 무료로 바로 열린다). 0원도 고를 수 있다.
-     고를 수 있는 금액은 서버가 준다. 기본으로 골라 둔 금액은 없다. 닫아도 리포트 아래 버튼으로 다시 연다 -->
+<!-- 원하는 금액 결제 (바텀시트): 새 리포트마다 가린 리포트 위에 뜬다. 0원이 기본으로 골라져 있다.
+     고를 수 있는 금액은 서버가 준다. 닫아도 리포트 아래 버튼으로 다시 연다 -->
 <div class="sheet-backdrop pay-sheet" id="pay-sheet" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pay-title">
     <span class="sheet-handle" aria-hidden="true"></span>
     <h2 class="sheet-title" id="pay-title">내 계정 보안 리포트</h2>
-    <p class="sheet-desc">지금까지 무료로 제공된 리포트입니다. 서비스 운영과 개선에 도움이 되고 싶다면 원하는 금액을 지불해 주세요.</p>
-    <fieldset class="pay-amounts">
-      <legend>얼마를 지불하시겠어요?</legend>
+    <p class="sheet-desc" id="pay-question">얼마를 지불하시겠어요?</p>
+    <div class="pay-amounts" role="radiogroup" aria-labelledby="pay-question">
       <div id="pay-options"></div>
-    </fieldset>
+    </div>
     <p class="pay-picked">선택한 금액 <b id="pay-picked">-</b></p>
     <p class="error" id="pay-error" role="alert" hidden></p>
     <button class="btn btn-main" id="pay" disabled>금액을 골라 주세요</button>
     <p class="cta-note" id="pay-note"></p>
-    <button class="cta-link" type="button" id="pay-later">나중에 고르기</button>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
   </div>
 </div>
