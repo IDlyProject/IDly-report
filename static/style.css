@@ -420,19 +420,19 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #terms .cta, #about .cta, #connect .cta, #help .cta, #office .cta { padding-inline: 32px; }
 }
 
-/* 휴대폰(40rem 이하): 화면 전체를 50%로 줄이고 간격을 붙인다. 휴대폰은 뷰포트(index.html)로 줄이고, 좁은 데스크탑 창만 zoom으로 줄인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
-   고정 폭은 함께 줄어드므로 50%로 나눠 원래 화면 폭을 그대로 채운다 */
-@media screen and (max-width: 40rem) and (min-device-width: 40.01rem) { body { zoom: 0.5; } }
+/* 휴대폰(40rem 이하): 화면 전체를 62.5%로 줄이고 간격을 붙인다. 휴대폰은 뷰포트(index.html)로 줄이고, 좁은 데스크탑 창만 zoom으로 줄인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
+   고정 폭은 함께 줄어드므로 62.5%로 나눠 원래 화면 폭을 그대로 채운다 */
+@media screen and (max-width: 40rem) and (min-device-width: 40.01rem) { body { zoom: 0.625; } }
 @media screen and (max-width: 40rem), screen and (max-device-width: 40rem) {
-  :root { --app-col: calc(430px / 0.5); --report-col: calc(430px / 0.5); }
-  /* dvh도 50%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
+  :root { --app-col: calc(430px / 0.625); --report-col: calc(430px / 0.625); }
+  /* dvh도 62.5%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
   html { height: 100%; }
   body { display: flex; flex-direction: column; min-height: 100%; }
   .app { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; min-height: 0; }
   .screen { flex: 1 0 auto; min-height: 0; }
   .sheet, .feedback-sheet { max-width: none; }
   /* 16px보다 작은 입력칸은 iOS가 화면을 확대하므로 실제 글자 크기를 16px로 유지한다 */
-  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.5); }
+  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.625); }
 
   .content { padding: 0 30px 16px; }
   .center { gap: 16px; padding: 24px 30px; }
@@ -456,7 +456,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .rp-method { margin-top: 20px; }
   .foot-note { margin-top: 16px; }
 
-  /* 전체를 50%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.5가 실제 크기다 (보조 글자 10px, 본문 11px, 주요 터치 40px) */
+  /* 전체를 62.5%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.625가 실제 크기다 (보조 글자 12.5px, 본문 13.75px, 주요 터치 50px) */
   .rp-date, .home-hero .rp-date, .rp-chip, .rp-funnel span, .rp-funnel small, .rp-stat-label, .rp-meta, .rp-why, .rp-amount span, .rp-find-tag,
   .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .promo, .feedback-meta,
   .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 20px; }
