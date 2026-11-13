@@ -351,12 +351,10 @@
         <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요.<br>메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
         <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요.<br>다시 분석할 때 새로 만들면 돼요.</p></details>
-      <!-- [결제 OFF] 결제·환불 FAQ
       <details><summary data-ga="faq_toggle" data-ga-label="payment">결제는 어떻게 하나요?</summary>
-        <p>전체 리포트는 메일함마다 <span id="help-price"></span>을 한 번 결제해요.<br>결제한 메일함은 다시 분석해도 추가 결제 없이 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
+        <p>첫 리포트는 무료예요.<br>두 번째 리포트부터는 0원, 900원, 1,900원, 2,900원, 3,900원, 4,900원 중 원하는 금액을 골라요. 0원을 골라도 전체 리포트가 열려요.<br>결제는 해외 결제 대행사 Paddle이 처리해요.</p></details>
       <details><summary data-ga="faq_toggle" data-ga-label="refund">환불되나요?</summary>
         <p>전체 리포트는 결제하면 바로 열리는 디지털 콘텐츠라, 열람 후 단순 변심 환불은 제한돼요.<br>분석이 잘못됐다면 문의해 주세요.<br><a href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책</a></p></details>
-      -->
     </div>
 
     <h2 class="help-h2">문의</h2>
@@ -366,7 +364,7 @@
 
     <h2 class="help-h2">약관·정책</h2>
     <div class="menu">
-      <!-- [결제 OFF] <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책<span class="chev" aria-hidden="true"></span></a> -->
+      <a class="menu-row" href="/legal/refund" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="refund">환불 정책<span class="chev" aria-hidden="true"></span></a>
       <a class="menu-row" href="/legal/terms" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="terms">이용약관<span class="chev" aria-hidden="true"></span></a>
       <a class="menu-row" href="/legal/privacy" target="_blank" rel="noopener" data-ga="legal_view" data-ga-label="privacy">개인정보처리방침<span class="chev" aria-hidden="true"></span></a>
     </div>
@@ -471,38 +469,26 @@
 </main>
 
 <!-- 요약 + 결제 (Figma: 2-4-1 보안 리포트) -->
+<!-- 원하는 금액 결제: 두 번째 리포트부터 전체 리포트 앞에 뜬다 (첫 리포트는 무료로 바로 열린다). 0원도 고를 수 있다.
+     고를 수 있는 금액은 서버가 준다 (Paddle 가격 id가 있는 금액만). 기본으로 골라 둔 금액은 없다 -->
 <main id="preview" class="screen bg-gradient" hidden>
   <header class="bar-head">
     <a class="back" href="#home" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
-    <h2 class="head-title">분석 결과</h2>
   </header>
   <div class="content">
-    <div id="preview-body"></div>
-    <div id="pay-pitch">
-    <!-- 가격을 커피 한 잔과 비교해 보여 준다 (분석 숫자로 문구가 바뀐다) -->
-    <div class="rp rp-card value-card">
-      <p class="value-title" id="value-title"></p>
-      <p class="value-text" id="value-text"></p>
+    <div class="title pay-head">
+      <h1>내 계정 보안 리포트</h1>
+      <p>지금까지 무료로 제공된 리포트입니다. 서비스 운영과 개선에 도움이 되고 싶다면 원하는 금액을 지불해 주세요.</p>
     </div>
-    <h2 class="rp rp-h2">전체 리포트에 들어 있는 것</h2>
-    <div class="rp rp-card">
-      <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">구독 목록</p><p class="rp-text">서비스별 금액, 주기, 다음 결제일</p></div></div>
-      <div class="rp-row"><span class="rp-dot d-danger"></span><div class="rp-row-body"><p class="rp-title">확인할 일</p><p class="rp-text">곧 결제될 구독, 의심 로그인, 휴면 안내</p></div></div>
-      <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">Google로 로그인한 서비스</p><p class="rp-text">계정 정보를 공유한 앱과 연결 끊는 곳</p></div></div>
-      <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">안 쓰는 계정</p><p class="rp-text">마지막 활동 날짜와 탈퇴 제안</p></div></div>
-      <div class="rp-row"><span class="rp-dot d-info"></span><div class="rp-row-body"><p class="rp-title">찾은 계정 전체 · PDF</p><p class="rp-text">보관하거나 가족과 나눠 보기 좋은 A4 파일</p></div></div>
-    </div>
-    </div>
+    <fieldset class="pay-amounts">
+      <legend>얼마를 지불하시겠어요?</legend>
+      <div id="pay-options"></div>
+    </fieldset>
+    <p class="pay-picked">선택한 금액 <b id="pay-picked">-</b></p>
     <p class="error" id="pay-error" role="alert" hidden></p>
   </div>
   <div class="cta">
-    <p class="pay-empty" id="pay-empty" hidden>찾은 계정이 없어서 결제할 내용이 없어요.<br>다른 메일 주소로 다시 해 보세요.</p>
-    <a class="btn btn-main" id="pay-retry" href="#connect" data-ga="other_mail_click" hidden>다른 메일 연결하기</a>
-    <!-- 결제 전에 전체 리포트가 어떻게 생겼는지 예시로 먼저 본다. 내 리포트로 오해하지 않게 버튼이 아닌 텍스트 링크로 둔다 (샘플에서 뒤로 가면 이 결제 화면으로 돌아온다) -->
-    <p class="sample-cta" id="sample-cta" hidden>결제가 고민되시나요? <a id="sample-link" href="#sample" data-ga="sample_click">샘플 리포트 보기</a></p>
-    <!-- 기간 한정 할인 (서버에 진행 중인 할인이 있을 때만): 마감까지 남은 날. 할인가는 결제 버튼에 -->
-    <p class="promo" id="promo" hidden><span class="promo-tag">기간 한정 할인</span><span id="promo-left"></span></p>
-    <button class="btn btn-main" id="pay"></button>
+    <button class="btn btn-main" id="pay" disabled>금액을 골라 주세요</button>
     <p class="cta-note" id="pay-note"></p>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
   </div>
@@ -544,7 +530,7 @@
       <li>방문 기록·쿠키·사이트 데이터를 지울 때</li>
       <li>다른 기기나 다른 브라우저에서 열 때</li>
       <li>시크릿·사생활 보호 창을 닫을 때</li>
-      <!-- [결제 OFF] <li>결제한 리포트도 똑같아요</li> -->
+      <li>결제한 리포트도 똑같아요</li>
     </ul>
     <p class="dialog-warn" id="guest-blocked" role="alert" hidden>지금 이 브라우저는 저장을 막아 두었어요.<br>이 창을 닫으면 만든 리포트가 바로 사라져요.</p>
     <p class="dialog-sub">나중에 로그인하면 이 브라우저의 리포트를 계정으로 옮겨 드려요.</p>

@@ -1,7 +1,11 @@
 """Paddle Billing 결제 (MoR).
 
 결제창
-- 화면에서 Paddle.js 오버레이 결제창을 연다 (PADDLE_CLIENT_TOKEN, PADDLE_PRICE_ID)
+- 원하는 금액 결제(0·900·1,900·2,900·3,900·4,900원). Paddle 가격은 4,900원 하나(PADDLE_PRICE_ID)이고,
+  고른 금액은 Paddle 할인 코드로 맞춘다: 0원 teampass, 900원 discount0, 1,900원 discount1, 2,900원 discount2,
+  3,900원 discount3, 4,900원은 할인 없음. 코드는 Paddle(Catalog > Discounts)에 같은 이름으로 만들어 둔다
+- 고른 금액의 할인 코드는 결제창에 미리 붙이고 지우거나 바꿀 수 없게 한다
+- 화면에서 Paddle.js 오버레이 결제창을 연다 (PADDLE_CLIENT_TOKEN)
 - custom data에 report_id·user_id를 넣어, 웹훅이 오면 그 사용자의 그 리포트만 연다
 
 웹훅 (POST /api/webhooks/paddle)
@@ -22,8 +26,17 @@ from typing import Any, Dict, Optional
 ENVIRONMENT = os.getenv("PADDLE_ENV", "production")
 CLIENT_TOKEN = os.getenv("PADDLE_CLIENT_TOKEN", "")
 PRICE_ID = os.getenv("PADDLE_PRICE_ID", "")
-# 기간 한정 할인: Catalog > Discounts의 할인 id (dsc_…, 정가에서 고정 금액 KRW 할인, 만료일 설정). 할인 기간에만 결제창에 붙인다
-PROMO_DISCOUNT_ID = os.getenv("PADDLE_PROMO_DISCOUNT_ID", "")
+# 원하는 금액 결제: 금액(원) → 결제창에 붙일 Paddle 할인 코드 (None이면 할인 없이 정가 4,900원).
+# 1,000원부터 5,000원까지 1,000원 간격에서 100원씩 뺀 금액과 0원. 금액이나 코드를 바꿀 때는 이 표만 고친다
+DISCOUNT_CODES: Dict[int, Optional[str]] = {
+    0: "teampass",
+    900: "discount0",
+    1900: "discount1",
+    2900: "discount2",
+    3900: "discount3",
+    4900: None,
+}
+AMOUNTS = sorted(DISCOUNT_CODES)
 WEBHOOK_SECRET = os.getenv("PADDLE_WEBHOOK_SECRET", "")
 # 서명 시각이 이보다 오래된 웹훅은 재전송 공격으로 보고 버린다
 SIGNATURE_TOLERANCE = 300
@@ -33,17 +46,22 @@ class BillingError(Exception):
     pass
 
 
-def checkout_options(report_id: str, user_id: str, email: Optional[str], promo: bool = False) -> Dict[str, Any]:
+def amounts() -> list:
+    """결제창을 열 수 있는 금액. 가격 id와 클라이언트 토큰이 없으면 아무것도 고를 수 없다."""
+    return list(AMOUNTS) if (PRICE_ID and CLIENT_TOKEN) else []
+
+
+def checkout_options(report_id: str, user_id: str, email: Optional[str], amount: int) -> Dict[str, Any]:
     """화면이 Paddle.Checkout.open에 넘길 값."""
-    if not (CLIENT_TOKEN and PRICE_ID):
-        raise BillingError("PADDLE_CLIENT_TOKEN·PADDLE_PRICE_ID가 설정되지 않았어요.")
+    if amount not in amounts():
+        raise BillingError(f"{amount}원은 고를 수 없어요 (PADDLE_PRICE_ID·PADDLE_CLIENT_TOKEN 확인).")
     return {
         "environment": ENVIRONMENT,
         "token": CLIENT_TOKEN,
         "priceId": PRICE_ID,
+        "discountCode": DISCOUNT_CODES[amount],
         "email": email or None,
-        "customData": {"report_id": report_id, "user_id": user_id},
-        "discountId": PROMO_DISCOUNT_ID if promo else None,
+        "customData": {"report_id": report_id, "user_id": user_id, "amount": amount},
     }
 
 
@@ -73,7 +91,7 @@ def parse_webhook(raw: bytes) -> Optional[Dict[str, Any]]:
     data = payload.get("data") or {}
     if event == "transaction.completed":
         custom = data.get("custom_data") or {}
-        # 우리 상품 가격으로 결제한 거래만 (다른 가격 id로 연 결제창은 무시)
+        # 우리 상품 가격으로 결제한 거래만 (할인 코드로 0원이 된 거래도 같다)
         prices = {((item.get("price") or {}).get("id")) for item in data.get("items") or []}
         if not custom.get("report_id") or PRICE_ID not in prices:
             return None

@@ -1,10 +1,9 @@
 // 화면: intro → connect → scanning → preview(요약·결제) → report. 도움말은 #help.
-// [결제 OFF] 지금은 서버가 늘 paid: true를 주므로 preview(결제 화면)를 거치지 않고 바로 전체 리포트로 간다.
-//            결제 화면 코드(onPay, Paddle 등)는 되돌리기 쉽게 그대로 두었다.
+// 원하는 금액 결제: 첫 리포트는 서버가 무료로 열고(paid: true), 두 번째부터 preview(금액 고르기) 화면을 거친다. 0원도 고를 수 있다.
 // 주소: #connect, #r=<리포트 id>. 새로고침하면 테스트를 위해 intro로 돌아간다.
 const $ = (sel) => document.querySelector(sel);
 const won = (n) => `${n.toLocaleString("ko-KR")}원`;
-let config = { price: 4900, list_price: 4900, promo: null, payment_mode: "mock", sample: false };
+let config = { amounts: [0], payment_mode: "mock", sample: false };
 let providers = [];
 let pollTimer = null;
 // 방금 결제한 리포트: 열자마자 PDF를 내려받는다
@@ -785,7 +784,7 @@ function renderBusiness() {
   $("#business").textContent = [
     b.name && `운영 ${b.name}`,
     b.email && `문의 ${b.email}`,
-    // [결제 OFF] b.seller && `결제·판매 ${b.seller}`,
+    b.seller && `결제·판매 ${b.seller}`,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -913,54 +912,10 @@ async function renderResult(r) {
     }
     return;
   }
-  $("#preview-body").innerHTML = view.html;
-  // 이름을 가린 목록을 누르면 '누구인지' 궁금한 바로 그때 결제창을 연다
-  for (const card of $("#preview-body").querySelectorAll("[data-unlock]")) {
-    const unlock = () => {
-      track("locked_click", { section: card.dataset.unlock });
-      if (!$("#pay").disabled) onPay();
-    };
-    card.onclick = unlock;
-    card.onkeydown = (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        unlock();
-      }
-    };
-  }
-  // 찾은 계정이 하나도 없으면 결제할 내용이 없다: 결제 대신 다른 메일 연결을 권한다
-  const empty = !(r.summary && r.summary.accounts);
-  $("#pay-empty").hidden = !empty;
-  $("#pay-pitch").hidden = empty;
-  $("#pay-retry").hidden = !empty;
-  $("#pay").hidden = empty;
-  $("#pay-note").hidden = empty;
-  // 결제 전이면 언제나 샘플을 볼 수 있게 (찾은 계정이 없을 때도)
-  $("#sample-cta").hidden = !config.sample;
-  $("#pay").disabled = false;
-  setPayLabel(r);
-  renderPromo(r, empty);
-  renderCoffee(r);
-  const note = $("#pay-note");
-  note.innerHTML = "";
-  note.append(
-    el(
-      "span",
-      "",
-      (config.payment_mode === "mock"
-        ? "개발 모드라 실제로 결제되지 않아요.\n"
-        : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
-        "결제는 해외 결제 대행사 Paddle에서 진행돼요. ",
-    ),
-    Object.assign(el("a", "", "환불 정책"), {
-      href: "/legal/refund",
-      target: "_blank",
-      rel: "noopener",
-    }),
-  );
+  renderAmounts();
   $("#dev-confirm").hidden = !(config.debug && config.payment_mode !== "mock");
   show("preview");
-  if (!empty) track("view_item", reportItem(r.price));
+  track("view_item", reportItem(0));
 }
 
 // 기업 서비스 문의: 보내면 서버가 조직 메일로 전달한다. 이 화면은 로그인 없이 열린다
@@ -1095,52 +1050,75 @@ ${url}`);
   }
 }
 
-// 결제 버튼: 할인 중이면 버튼에서도 정가에 줄을 긋고 '지금만' 가격임을 보여 준다
-function setPayLabel(r) {
+// --- 금액 고르기 ---------------------------------------------------------------
+// 고른 금액 (null이면 아직 안 고름). 기본으로 골라 두지 않는다
+let payAmount = null;
+
+function amountLabel(amount) {
+  return amount === 0 ? "무료로 이용하기 · 0원" : won(amount);
+}
+
+// 서버가 준 금액마다 라디오 하나. 고르면 아래 '선택한 금액'과 버튼 문구가 바뀐다
+function renderAmounts() {
+  payAmount = null;
+  const box = $("#pay-options");
+  box.innerHTML = "";
+  for (const amount of config.amounts) {
+    const input = Object.assign(document.createElement("input"), {
+      type: "radio",
+      name: "pay-amount",
+      value: String(amount),
+    });
+    input.addEventListener("change", () => {
+      payAmount = amount;
+      track("select_amount", { value: amount });
+      setPayLabel();
+    });
+    const label = el("label", "pay-option");
+    label.append(input, el("span", "", amountLabel(amount)));
+    box.append(label);
+  }
+  showError("#pay-error", "");
+  setPayLabel();
+}
+
+function setPayLabel() {
   const button = $("#pay");
-  button.textContent = "";
-  if (r.promo) button.append(el("s", "pay-list", won(r.list_price)), " ");
-  button.append(r.promo ? `${won(r.price)}(지금만) 전체 리포트 받기` : `${won(r.price)} 결제하고 전체 리포트 받기`);
+  const picked = payAmount !== null;
+  button.disabled = !picked || Boolean(payPoll);
+  button.textContent = !picked
+    ? "금액을 골라 주세요"
+    : payAmount === 0
+      ? "무료로 리포트 보기"
+      : `${won(payAmount)} 결제하고 리포트 보기`;
+  $("#pay-picked").textContent = picked ? won(payAmount) : "-";
+  // 결제할 때만 결제 대행사와 환불 안내를 붙인다
+  const note = $("#pay-note");
+  note.innerHTML = "";
+  if (!picked) return;
+  // 0원도 Paddle 결제창을 거친다 (할인 코드로 0원). 그때는 환불 안내 대신 확인만 하면 열린다고 알린다
+  note.append(
+    el(
+      "span",
+      "",
+      (config.payment_mode === "mock"
+        ? "개발 모드라 실제로 결제되지 않아요.\n"
+        : payAmount === 0
+          ? "0원으로 Paddle 결제창에서 확인을 마치면 바로 전체 리포트가 열려요.\n"
+          : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
+        "결제는 해외 결제 대행사 Paddle에서 진행돼요. ",
+    ),
+    Object.assign(el("a", "", "환불 정책"), { href: "/legal/refund", target: "_blank", rel: "noopener" }),
+  );
 }
 
-// 기간 한정 할인: 마감까지 남은 날과 마감 뒤 가격을 알린다 (할인가는 결제 버튼에 있다)
-function renderPromo(r, empty) {
-  const p = r.promo;
-  $("#promo").hidden = empty || !p;
-  if (!p) return;
-  const days = Math.ceil((new Date(p.ends) - Date.now()) / 86400000);
-  $("#promo-left").textContent =
-    `${p.last_day}까지 · ${days <= 1 ? "오늘 마감" : `${days}일 남음`} · 이후 ${won(r.list_price)}`;
-}
-
-// 통계(GA 전자상거래)에 보내는 상품 정보: 상품은 전체 리포트 하나뿐이다 (할인 중이면 정가와의 차액을 discount로)
+// 통계(GA 전자상거래)에 보내는 상품 정보: 상품은 전체 리포트 하나, 값은 고른 금액
 function reportItem(price, currency = "KRW") {
-  const discount = config.promo && config.list_price > price ? config.list_price - price : 0;
   return {
     currency,
     value: price,
-    items: [{ item_id: "full_report", item_name: "Full report", price, quantity: 1, ...(discount ? { discount } : {}) }],
+    items: [{ item_id: "full_report", item_name: "Full report", price, quantity: 1 }],
   };
-}
-
-// 가격을 커피 한 잔 값과 비교하고, 이 메일함에서 나가는 구독료로 '본전'을 보여 준다
-function renderCoffee(r) {
-  const s = r.summary || {};
-  $("#value-title").textContent = `${won(r.price)}, 커피 한 잔 값이에요`;
-  let text;
-  if (s.monthly_charge) {
-    const avg = Math.round(s.monthly_charge / Math.max(1, s.monthly_count));
-    text =
-      `이 메일함에서 매달 ${won(s.monthly_charge)}이 구독으로 나가요. ` +
-      (avg >= r.price
-        ? `평균 구독 하나(월 ${won(avg)})만 정리해도 첫 달에 커피값보다 많이 아껴요.`
-        : "안 쓰는 구독 몇 개만 정리해도 금방 커피값을 아껴요.");
-  } else if (s.yearly_charge) {
-    text = `이 메일함에서 1년에 ${won(s.yearly_charge)}이 구독으로 나가요. 갱신 전에 한 번 확인하는 값이에요.`;
-  } else {
-    text = `안 쓰는 계정 ${s.unused || 0}개, 보안 알림 ${s.security || 0}건을 한 번에 정리하는 값이에요.`;
-  }
-  $("#value-text").textContent = text;
 }
 
 async function load(id) {
@@ -1198,14 +1176,13 @@ function waitForPayment(id) {
       if (r.paid) {
         clearInterval(payPoll);
         payPoll = null;
-        trackPurchase(r.price);
+        trackPurchase(payAmount || 0);
         justPaid = id;
         await load(id);
       } else if (Date.now() - started > 180000) {
         clearInterval(payPoll);
         payPoll = null;
-        button.disabled = false;
-        setPayLabel(r);
+        setPayLabel();
         showError(
           "#pay-error",
           "결제 확인이 늦어지고 있어요.\n결제했다면 잠시 뒤 홈에서 다시 열어 보세요.\n계속 안 열리면 문의해 주세요.",
@@ -1289,34 +1266,51 @@ function savedDiscount() {
 async function openCheckout(opts, id) {
   const paddle = await loadPaddle(opts);
   checkoutId = id;
-  const discountCode = savedDiscount();
+  // 고른 금액은 서버가 준 할인 코드로 맞춘다 (0원 teampass, 900원 discount0 …). 지우거나 바꿀 수 없게 한다.
+  // 할인이 없는 4,900원에만 팀원·테스트용 링크(/?discount=코드)의 코드를 붙인다
+  const tierCode = opts.discountCode || "";
+  const discountCode = tierCode || savedDiscount();
   paddle.Checkout.open({
     items: [{ priceId: opts.priceId, quantity: 1 }],
     customData: opts.customData,
     ...(opts.email ? { customer: { email: opts.email } } : {}),
-    ...(discountCode ? { discountCode } : opts.discountId ? { discountId: opts.discountId } : {}),
-    settings: { displayMode: "overlay", locale: "ko", theme: "light", allowLogout: false, showAddDiscounts: true },
+    ...(discountCode ? { discountCode } : {}),
+    settings: {
+      displayMode: "overlay",
+      locale: "ko",
+      theme: "light",
+      allowLogout: false,
+      showAddDiscounts: !tierCode,
+      allowDiscountRemoval: !tierCode,
+    },
   });
 }
 
 async function onPay() {
+  if (payAmount === null) return;
   const id = currentId();
+  const amount = payAmount;
   const button = $("#pay");
   button.disabled = true;
   showError("#pay-error", "");
   try {
-    const res = await api(`/api/reports/${id}/checkout`, { method: "POST" });
+    const res = await api(`/api/reports/${id}/checkout`, {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    });
     if (res.paid) {
-      justPaid = id;
+      track(amount === 0 ? "choose_free" : "purchase", reportItem(amount));
+      // 0원은 PDF를 바로 받게 하지 않는다 (결제 완료 때만 PDF를 연다)
+      if (amount > 0) justPaid = id;
       return load(id);
     }
-    track("begin_checkout", reportItem(config.price));
+    track("begin_checkout", reportItem(amount));
     await openCheckout(res.paddle, id);
   } catch (err) {
-    track("checkout_error", { status: err.status || 0 });
+    track("checkout_error", { status: err.status || 0, value: amount });
     showError("#pay-error", err.message);
   } finally {
-    if (!payPoll) button.disabled = false;
+    if (!payPoll) setPayLabel();
   }
 }
 
@@ -1416,10 +1410,6 @@ async function init() {
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;
   document.querySelectorAll("[data-contact-mail]").forEach((a) => (a.href = $("#contact-link").href));
-  // [결제 OFF] 결제 FAQ의 가격
-  // $("#help-price").textContent = config.promo
-  //   ? `${won(config.price)}(${config.promo.last_day}까지 할인가, 정가 ${won(config.list_price)})`
-  //   : won(config.price);
   renderBusiness();
   const form = $("#connect-form");
   form.email.addEventListener("input", () => {
@@ -1519,7 +1509,6 @@ async function init() {
     );
   });
   $("#pdf").addEventListener("click", onPdf);
-  $("#sample-link").addEventListener("click", () => (sampleFromPay = true));
   $("#sample-back").addEventListener("click", goBack);
   if (!history.state || typeof history.state.idx !== "number") history.replaceState({ idx: 0 }, "");
   else navMax = history.state.idx;

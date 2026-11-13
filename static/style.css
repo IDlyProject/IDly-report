@@ -209,7 +209,6 @@ h1, h2, p { margin: 0; }
 .legal-table th, .legal-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .legal-table th { color: var(--sub); font-weight: 600; }
 
-.pay-empty { font-size: 14px; line-height: 1.6; color: var(--sub); text-align: center; }
 
 /* 에러 제보: 웹앱과 같은 플로팅 버튼·바텀 시트 */
 .feedback-fab { position: fixed; z-index: 30; right: max(16px, calc((100vw - var(--app-col)) / 2 + 16px));
@@ -335,23 +334,28 @@ h1, h2, p { margin: 0; }
 .about-group .chip { min-height: 40px; }
 .about-note { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--sub); }
 
-/* 결제 화면: 커피 한 잔 값 (알림과 같은 내용) */
-.value-card { margin-top: 16px; padding: 20px; }
-.value-title { font-size: 16px; font-weight: 700; line-height: 1.4; }
-.value-text { margin-top: 6px !important; font-size: 14px; line-height: 1.6; color: var(--sub); word-break: keep-all; }
+/* 결제 화면: 원하는 금액 고르기. 한 줄에 금액 하나, 고른 줄은 칩(.chip)을 고른 모양과 같게 */
+.pay-head p { line-height: 1.5; word-break: keep-all; }
+.pay-amounts { margin: 16px 0 0; padding: 0; border: 0; min-width: 0; }
+.pay-amounts legend { padding: 0; margin-bottom: 12px; font-size: 16px; font-weight: 700; color: var(--ink); }
+#pay-options { display: grid; gap: 8px; }
+.pay-option { position: relative; display: flex; align-items: center; min-height: 52px; padding: 0 16px; border: 1px solid var(--line);
+  border-radius: 14px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer;
+  transition: border-color 160ms ease-out, background-color 160ms ease-out; }
+.pay-option input { position: absolute; opacity: 0; pointer-events: none; }
+.pay-option span::before { content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 12px; vertical-align: -4px;
+  border: 1.5px solid var(--border); border-radius: 50%; background: #fff; box-sizing: border-box; }
+.pay-option:has(input:checked) { border-color: var(--main); background: var(--info-bg); color: var(--main); }
+.pay-option:has(input:checked) span::before { border: 5px solid var(--main); }
+.pay-option:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.pay-picked { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid var(--line); font-size: 14px; color: var(--sub); }
+.pay-picked b { font-size: 20px; font-weight: 700; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .pay-option { transition: none; } }
 
 /* 스크립트가 넣는 여러 문장짜리 안내는 문장마다 줄을 바꾼다 (\n) */
 .error, .cta-note, #guest-note-text { white-space: pre-line; }
 
-/* 결제 화면: 기간 한정 할인. 태그는 상태 칩(.state)과 같은 모양, 빨강은 보안 경고에만 쓰므로 가격 색(--main) */
-.promo { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--sub); }
-.promo-tag { padding: 2px 8px; border-radius: 10px; background: var(--info-bg); color: var(--main); font-size: 11px; font-weight: 600; }
-.pay-list { font-weight: 500; opacity: 0.6; }
-.price-promo { font-size: 14px; font-weight: 700; color: var(--main); }
-.price-promo span { font-size: 12px; font-weight: 400; color: var(--sub); }
-/* 결제 화면: 결제 버튼 위 샘플 리포트 텍스트 링크 (버튼처럼 보이지 않게) */
-.sample-cta { font-size: 13px; color: var(--sub); text-align: center; }
-.sample-cta a { color: var(--main); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 /* 넓은 화면: 바탕·머리줄·아래 버튼 줄만 화면을 따라가고, 리포트 규격(앱 컬럼 430px)은 그대로 둔다 */
 :root { --report-col: 430px; }
@@ -458,7 +462,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 
   /* 전체를 62.5%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.625가 실제 크기다 (보조 글자 12.5px, 본문 13.75px, 주요 터치 50px) */
   .rp-date, .home-hero .rp-date, .rp-chip, .rp-funnel span, .rp-funnel small, .rp-stat-label, .rp-meta, .rp-why, .rp-amount span, .rp-find-tag,
-  .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .promo, .feedback-meta,
+  .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .feedback-meta,
   .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 20px; }
   .rp-bar-n, .rp-bar-y { font-size: 19px; }
   .rp-text, .rp-advice, .rp-desc, .rp-find p, .rp-note, .rp-method, .rp-empty, .rp-sample-note, .field-label, .title p, .agree-text, .fold-body,
@@ -468,6 +472,14 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 23px; }
   /* 위 하한으로 본문이 커진 만큼 제목도 키워 제목이 본문보다 작아지지 않게 한다 */
   .legal-body h3, .rp-h2, .bar-head h1 { font-size: 26px; }
+  /* 주 버튼 글자와 자주 묻는 질문은 본문보다 작아지지 않게 */
+  .btn, .faq summary, .pay-option, .pay-amounts legend { font-size: 23px; }
+  .pay-picked { font-size: 20px; }
+  .pay-picked b { font-size: 28px; }
+  .pay-option { min-height: 80px; }
+  .pay-option span::before { width: 26px; height: 26px; vertical-align: -6px; }
+  .pay-option:has(input:checked) span::before { border-width: 8px; }
+  .foot-note a { display: inline-flex; align-items: center; min-height: 72px; }
   .title h1 { font-size: 30px; line-height: 1.35; }
   .field-label { line-height: 1.4; }
   .title p { line-height: 1.4; }
@@ -481,5 +493,9 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .fold-toggle { top: 0; height: 72px; }
   .back { position: relative; }
   .back::after, .feedback-fab::after { content: ""; position: absolute; inset: -16px; }
+  /* 떠 있는 의견 버튼이 금액·라벨을 덜 가리게 가장자리로 붙이고 옅게 둔다 (누를 곳은 ::after로 넓게 유지) */
+  .feedback-fab, body.is-landing .feedback-fab { right: 12px; opacity: .72; }
+  /* 금액 고르기 화면은 아래 결제 버튼이 폭을 다 써서 의견 버튼이 그 위에 겹친다: 이 화면에서만 숨긴다 */
+  body:has(#preview:not([hidden])) .feedback-fab { display: none; }
   .rp-pop { width: calc(100% - 40px); }
 }

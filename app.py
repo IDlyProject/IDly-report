@@ -41,13 +41,11 @@ from report_view import render_fragment, render_html, render_pdf, summarize, sum
 
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
-# [결제 OFF] 지금은 전체 리포트를 무료로 연다. 결제 코드는 지우지 않고 "[결제 OFF]" 표시와 함께 주석으로 남겨 둔다.
-# 되돌리려면 `grep -rn "결제 OFF"`로 찾아 주석을 풀고, 바로 아래에 둔 무료용 줄(paid: True, full=True)을 지운다.
-# DB의 paid 값은 건드리지 않는다: 보관 기간(결제 안 한 리포트 7일)과 결제 기록은 그대로다.
-# 기간 한정 할인. 가격 변경이 아니다: 정가(PRICE)·Paddle 가격은 그대로 두고, 기간 동안만 결제창에 Paddle 할인을 붙인다.
-# PROMO_ENDS는 그 시각 '전까지' (11월 1일까지 → 11월 2일 0시 KST). Paddle 할인에도 같은 만료일을 걸어 둔다
-PROMO_PRICE = int(os.getenv("PROMO_PRICE", "2900") or 0)
-PROMO_ENDS = datetime.fromisoformat(os.getenv("PROMO_ENDS", "2026-11-02T00:00:00+09:00"))
+# 원하는 금액 결제: 첫 리포트는 무료로 바로 열고, 두 번째부터는 금액을 고르는 화면을 거친다 (0원도 된다).
+# 모든 금액이 Paddle 결제창을 거친다: 4,900원 가격 하나에 금액별 할인 코드를 붙인다 (0원은 teampass, billing.DISCOUNT_CODES)
+# 결제를 끄고 무료로 열던 동안 만든 리포트는 계속 열어 둔다 (그때는 paid가 저장되지 않았다)
+# 리포트의 created는 서버 시간대의 naive 시각이라 같은 기준으로 바꿔 둔다
+PAYWALL_FROM = datetime.fromisoformat(os.getenv("PAYWALL_FROM", "2026-11-13T14:30:00+09:00")).astimezone().replace(tzinfo=None)
 KST = timezone(timedelta(hours=9))
 # 보관 기간: 결제 안 한 리포트는 짧게, 결제한 리포트는 사용자가 지우거나 탈퇴할 때까지 (최대 1년)
 UNPAID_DAYS = int(os.getenv("UNPAID_REPORT_DAYS", "7"))
@@ -570,20 +568,28 @@ def withdraw(request: Request):
     return response
 
 
-def promo() -> Optional[Dict[str, Any]]:
-    """진행 중인 할인 {price, ends, last_day}. 결제창에 할인을 붙일 수 없으면(Paddle 할인 id 없음) 화면에도 안 보인다."""
-    if not 0 < PROMO_PRICE < PRICE or datetime.now(timezone.utc) >= PROMO_ENDS:
-        return None
-    if PAYMENT_MODE != "mock" and not billing.PROMO_DISCOUNT_ID:
-        return None
-    last = (PROMO_ENDS - timedelta(seconds=1)).astimezone(KST)
-    return {"price": PROMO_PRICE, "ends": PROMO_ENDS.isoformat(), "last_day": f"{last.month}월 {last.day}일"}
-
-
 def prices() -> Dict[str, Any]:
-    """화면에 넘기는 가격: price는 지금 실제로 내는 금액, list_price는 정가."""
-    p = promo()
-    return {"price": p["price"] if p else PRICE, "list_price": PRICE, "promo": p}
+    """화면에 넘기는 고를 수 있는 금액 (0원 포함). Paddle 설정이 없으면 비어 있다."""
+    return {"amounts": list(billing.AMOUNTS) if PAYMENT_MODE == "mock" else billing.amounts()}
+
+
+def _same_person(a: "Report", b: "Report") -> bool:
+    return bool((a.user_id and a.user_id == b.user_id) or (a.guest and a.guest == b.guest))
+
+
+def _first_report(report: "Report") -> bool:
+    """이 사람(계정, 로그인 없으면 이 브라우저)의 첫 리포트면 무료로 연다. 결제를 끄고 무료로 열던 동안의 리포트도 센다."""
+    return not any(
+        other is not report and not other.sample and other.data is not None and _same_person(other, report)
+        for other in _reports.values()
+    )
+
+
+def _open(report: "Report") -> bool:
+    """전체 리포트를 볼 수 있나: 고른 금액을 냈거나(0원 포함), 샘플, 결제를 끄고 있던 동안 만든 것, 찾은 계정이 없는 것."""
+    if report.paid or report.sample or report.created < PAYWALL_FROM:
+        return True
+    return report.data is not None and not summarize(report.data)["accounts"]
 
 
 # --- 설정·메일 서비스 -------------------------------------------------------------
@@ -623,9 +629,8 @@ def _paid(report_id: str, request: Request) -> Report:
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    # [결제 OFF]
-    # if not report.paid:
-    #     raise ApiError(402, "결제 후 볼 수 있어요.")
+    if not _open(report):
+        raise ApiError(402, "금액을 고른 뒤 볼 수 있어요.")
     return report
 
 
@@ -654,8 +659,7 @@ def my_reports(request: Request):
         s = summarize(report.data) if report.data is not None else None
         items.append({
             "id": report.id, "mailbox": report.email, "created": report.created.isoformat(timespec="minutes"),
-            # [결제 OFF] "paid": report.paid,
-            "status": report.status, "paid": True,
+            "status": report.status, "paid": _open(report),
             "summary": s and {"accounts": s["accounts"], "subscriptions": s["subscriptions"], "security": s["security"],
                               "money": _money_line(s)},
         })
@@ -704,7 +708,8 @@ def start_report(body: StartBody, request: Request):
         data.pop("sample", None)
         data["mock"] = True
         report = Report("test@idly.kr", user["id"] if user else None, data=data, guest=guest)
-        report.paid = True
+        # 결제 화면도 확인할 수 있게 실제와 같이: 첫 목업은 열리고, 두 번째부터 금액 고르기
+        report.paid = _first_report(report)
         _reports[report.id] = report
         return {"id": report.id}
     provider = get_provider(body.provider) if body.provider else resolve_provider(body.email)
@@ -767,8 +772,8 @@ def start_report(body: StartBody, request: Request):
     if cred is None:
         raise ApiError(401, explain_login_error(str(error), provider), debug)
     report = Report(cred.email, user["id"] if user else None, guest=guest)
-    # 메일함마다 한 번 결제한다. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
-    report.paid = bool(user) and db.unlock_of(user["id"], cred.email) == "paid"
+    # 첫 리포트는 무료. 결제한 메일함은 다시 분석해도 열려 있다 (게스트는 묶을 계정이 없어 리포트마다)
+    report.paid = _first_report(report) or (bool(user) and db.unlock_of(user["id"], cred.email) == "paid")
     # 분석이 끝나면 결과를 DB에 쓴다 (서버를 다시 켜도 남게)
     # 분석이 끝나면 결과를 DB에 쓰고, 결제 전에 PDF까지 만들어 둔다
     def on_done(_data: Dict[str, Any]) -> None:
@@ -810,39 +815,40 @@ def report_status(report_id: str, request: Request):
         "fetched": job.get("fetched"),
         "error": job.get("error") or ("서버가 다시 시작되면서 진행 중이던 분석이 멈췄어요." if report.interrupted else None),
         "debug": job.get("debug") if DEBUG else None,
-        # [결제 OFF] "paid": report.paid,
-        "paid": True,
+        "paid": _open(report),
         "sample": report.sample,
         **prices(),
         "summary": summarize(data) if data is not None else None,
     }
 
 
-# [결제 OFF] 결제창 열기
-# @app.post("/api/reports/{report_id}/checkout")
-# def checkout(report_id: str, request: Request):
-#     user = _user(request)
-#     report = _get(report_id, request)
-#     if report.data is None:
-#         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-#     # 찾은 계정이 없으면 팔 것이 없다
-#     if not summarize(report.data)["accounts"]:
-#         raise ApiError(409, "찾은 계정이 없어서 결제할 내용이 없어요.")
-#     if report.paid:
-#         return {"paid": True}
-#     if PAYMENT_MODE == "mock":
-#         report.paid = True
-#         report.save()
-#         return {"paid": True}
-#     try:
-#         options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"),
-#                                            promo=promo() is not None)
-#     except billing.BillingError as e:
-#         raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
-#     return {"paid": False, "paddle": options}
+class CheckoutBody(BaseModel):
+    amount: int
 
 
-# [결제 OFF] 웹훅은 살려 둔다: 예전 결제의 환불 알림을 받아 결제 기록에 남겨야 한다
+# 금액 고르기: 고른 금액의 할인 코드를 붙여 Paddle 결제창을 연다 (0원도). 열리는 것은 웹훅이 거래를 확인한 뒤
+@app.post("/api/reports/{report_id}/checkout")
+def checkout(report_id: str, body: CheckoutBody, request: Request):
+    user = _user(request)
+    report = _get(report_id, request)
+    if report.data is None:
+        raise ApiError(409, "아직 분석이 끝나지 않았어요.")
+    if _open(report):
+        return {"paid": True}
+    if body.amount not in prices()["amounts"]:
+        raise ApiError(400, "고를 수 없는 금액이에요.")
+    if PAYMENT_MODE == "mock":
+        report.paid = True
+        report.save()
+        print(f"[billing] chose {body.amount} report={report.id} mode={PAYMENT_MODE}")
+        return {"paid": True}
+    try:
+        options = billing.checkout_options(report.id, (user or {}).get("id") or "", (user or {}).get("email"), body.amount)
+    except billing.BillingError as e:
+        raise ApiError(502, "결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.", {"error": str(e)})
+    return {"paid": False, "paddle": options}
+
+
 @app.post("/api/webhooks/paddle")
 async def paddle_webhook(request: Request):
     raw = await request.body()
@@ -870,18 +876,18 @@ async def paddle_webhook(request: Request):
     return {"ok": True}
 
 
-# [결제 OFF] 개발용 결제 완료 처리
-# @app.post("/api/reports/{report_id}/dev-confirm")
-# def dev_confirm(report_id: str, request: Request):
-#     """개발용: 로컬에서는 결제사 웹훅이 들어올 수 없으니 결제 완료를 흉내 낸다 (IDLY_DEBUG=1일 때만)."""
-#     if not DEBUG:
-#         raise ApiError(404, "없는 기능이에요.")
-#     report = _get(report_id, request)
-#     db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", prices()["price"], "KRW", "dev_confirm")
-#     for other in _reports.values():
-#         if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
-#             other.paid = True
-#     return {"paid": True}
+# 개발용 결제 완료 처리
+@app.post("/api/reports/{report_id}/dev-confirm")
+def dev_confirm(report_id: str, request: Request):
+    """개발용: 로컬에서는 결제사 웹훅이 들어올 수 없으니 결제 완료를 흉내 낸다 (IDLY_DEBUG=1일 때만)."""
+    if not DEBUG:
+        raise ApiError(404, "없는 기능이에요.")
+    report = _get(report_id, request)
+    db.record_payment(f"dev-{report.id}", report.id, report.user_id, "paid", billing.AMOUNTS[0], "KRW", "dev_confirm")
+    for other in _reports.values():
+        if other is report or (report.user_id and _same_owner(other, report) and other.email.lower() == report.email.lower()):
+            other.paid = True
+    return {"paid": True}
 
 
 @app.post("/api/guest/claim")
@@ -905,8 +911,8 @@ def report_view(report_id: str, request: Request):
     report = _get(report_id, request)
     if report.data is None:
         raise ApiError(409, "아직 분석이 끝나지 않았어요.")
-    # [결제 OFF] return {"paid": report.paid, "html": render_fragment(report.data, report.created, full=report.paid)}
-    return {"paid": True, "html": render_fragment(report.data, report.created, full=True)}
+    opened = _open(report)
+    return {"paid": opened, "html": render_fragment(report.data, report.created, full=opened)}
 
 
 @app.get("/api/reports/{report_id}/pdf")
@@ -941,11 +947,6 @@ def legal(page: str):
     body = (HERE / "static" / "legal" / f"{page}.html").read_text(encoding="utf-8")
     # {{name}} 같은 자리에 사업자 정보·가격을 넣는다 (비어 있으면 '준비 중')
     fields = {**BUSINESS, "price": f"₩{PRICE:,}"}
-    # 할인 중이면 가격 카드에 할인가와 기간을 덧붙인다 (정가 표시는 그대로)
-    p = promo()
-    body = body.replace("{{promo}}", f'<p class="price-promo">{p["last_day"]}까지 할인가 ₩{p["price"]:,}<br>'
-                                     f'<span>Limited-time price ₩{p["price"]:,} through {(PROMO_ENDS - timedelta(seconds=1)).astimezone(KST):%Y-%m-%d} (KST)</span></p>'
-                        if p else "")
     body = re.sub(r"\{\{(\w+)\}\}", lambda m: escape(fields.get(m.group(1)) or "준비 중"), body)
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><script>(function(){{var w=Math.min(screen.width,screen.height);if(w&&w<=640){{var m=document.querySelector('meta[name=viewport]');m.setAttribute('content','width='+Math.round(w/0.625)+', initial-scale=0.625'+(m.content.indexOf('viewport-fit')>-1?', viewport-fit=cover':''))}}}})()</script><title>{LEGAL_PAGES[page]} · IDly</title>
