@@ -420,22 +420,22 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #terms .cta, #about .cta, #connect .cta, #help .cta, #office .cta { padding-inline: 32px; }
 }
 
-/* 휴대폰(40rem 이하): 화면 전체를 75%로 줄이고 간격을 붙인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
-   고정 폭은 함께 줄어드므로 75%로 나눠 원래 화면 폭을 그대로 채운다 */
+/* 휴대폰(40rem 이하): 화면 전체를 50%로 줄이고 간격을 붙인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
+   고정 폭은 함께 줄어드므로 50%로 나눠 원래 화면 폭을 그대로 채운다 */
 @media screen and (max-width: 40rem) {
-  :root { --app-col: calc(430px / 0.75); --report-col: calc(430px / 0.75); }
-  /* dvh도 75%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
+  :root { --app-col: calc(430px / 0.5); --report-col: calc(430px / 0.5); }
+  /* dvh도 50%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
   html { height: 100%; }
-  body { zoom: 0.75; display: flex; flex-direction: column; min-height: 100%; }
+  body { zoom: 0.5; display: flex; flex-direction: column; min-height: 100%; }
   .app { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; min-height: 0; }
   .screen { flex: 1 0 auto; min-height: 0; }
   .sheet, .feedback-sheet { max-width: none; }
   /* 16px보다 작은 입력칸은 iOS가 화면을 확대하므로 실제 글자 크기를 16px로 유지한다 */
-  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.75); }
+  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.5); }
 
-  .content { padding: 0 20px 16px; }
-  .center { gap: 16px; padding: 24px 20px; }
-  .cta { gap: 8px; padding: 10px 20px calc(16px + env(safe-area-inset-bottom)); }
+  .content { padding: 0 30px 16px; }
+  .center { gap: 16px; padding: 24px 30px; }
+  .cta { gap: 8px; padding: 10px 30px calc(32px + env(safe-area-inset-bottom)); }
   .bar-head { margin-top: 4px; }
   .form-col { gap: 12px; padding-bottom: 16px; }
   .title { padding: 12px 0 4px; }
@@ -446,7 +446,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .legal-body { padding-bottom: 32px; }
   .legal-body h3 { margin-top: 20px; }
   .rp-h2 { margin: 20px 0 10px !important; }
-  .rp-hero { padding: 20px 20px; }
+  .rp-hero { padding: 20px 30px; }
   .rp-funnel { margin-top: 16px; padding-top: 12px; }
   .rp-stats { gap: 8px; margin-top: 16px; }
   .rp-finds { gap: 8px; }
@@ -455,27 +455,27 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .rp-method { margin-top: 20px; }
   .foot-note { margin-top: 16px; }
 
-  /* 전체를 75%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.75가 실제 크기다 (보조 글자 11px, 본문 12px, 주요 터치 44px) */
+  /* 전체를 50%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.5가 실제 크기다 (보조 글자 10px, 본문 11px, 주요 터치 40px) */
   .rp-date, .home-hero .rp-date, .rp-chip, .rp-funnel span, .rp-funnel small, .rp-stat-label, .rp-meta, .rp-why, .rp-amount span, .rp-find-tag,
   .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .promo, .feedback-meta,
-  .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 15px; }
-  .rp-bar-n, .rp-bar-y { font-size: 14px; }
+  .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 20px; }
+  .rp-bar-n, .rp-bar-y { font-size: 19px; }
   .rp-text, .rp-advice, .rp-desc, .rp-find p, .rp-note, .rp-method, .rp-empty, .rp-sample-note, .field-label, .title p, .agree-text, .fold-body,
   .guide, .legal-table, .menu-row .menu-sub, .feedback-description, .sheet-desc, .home-empty, .dialog-list, .dialog-text, .error, .center-text > .error,
-  .head-link, .head-home, .agree-row, .chip, .value-text { font-size: 16px; }
+  .head-link, .head-home, .agree-row, .chip, .value-text { font-size: 22px; }
   .rp-text, .rp-advice { line-height: 1.4; }
-  .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 17px; }
+  .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 23px; }
   .field-label { line-height: 1.4; }
   .title p { line-height: 1.4; }
 
-  .btn { height: 59px; }
-  .input { height: 56px; }
-  .chip, .about-group .chip { height: 48px; }
-  .menu-row, .faq summary { min-height: 59px; }
-  .head-link, .head-home { height: 59px; }
-  .reveal { height: 56px; }
-  .fold-toggle { top: 0; height: 52px; }
+  .btn { height: 80px; }
+  .input { height: 76px; }
+  .chip, .about-group .chip { height: 64px; }
+  .menu-row, .faq summary { min-height: 80px; }
+  .head-link, .head-home { height: 80px; }
+  .reveal { height: 76px; }
+  .fold-toggle { top: 0; height: 72px; }
   .back { position: relative; }
-  .back::after, .feedback-fab::after { content: ""; position: absolute; inset: -8px; }
-  .rp-pop { width: calc(100% - 24px); }
+  .back::after, .feedback-fab::after { content: ""; position: absolute; inset: -16px; }
+  .rp-pop { width: calc(100% - 40px); }
 }

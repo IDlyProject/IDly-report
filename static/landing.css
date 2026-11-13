@@ -239,12 +239,12 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
   .js .landing .ld-chip.done .ld-tick { animation: none; }
 }
 
-/* 랜딩은 모든 화면에서 75%로 보여 준다. 휴대폰(40rem 이하)은 style.css에서 body 전체를 줄이므로 여기서 또 줄이지 않는다 */
+/* 랜딩은 모든 화면에서 75%로 보여 준다. 휴대폰(40rem 이하)은 style.css에서 body 전체를 50%로 줄이므로 여기서 또 줄이지 않는다 */
 @media (min-width: 40.01rem) { .landing { zoom: 0.75; } }
 
 /* 휴대폰: 구역 사이와 카드 안 간격을 붙인다 */
 @media screen and (max-width: 40rem) {
-  :root { --ld-fade: 72px; --ld-credit-gap: 48px; --ld-sec: 36px; --ld-gutter: 20px; }
+  :root { --ld-fade: 72px; --ld-credit-gap: 48px; --ld-sec: 36px; --ld-gutter: 30px; }
   .ld-hero { padding-block: 20px 24px; }
   .ld-hero-in { gap: 12px; }
   .ld-hero-more { margin-top: 12px; }
@@ -282,11 +282,11 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
   .ld-supports li + li { border-top: 1px solid var(--ld-rule); }
   .ld-supports b { margin-bottom: 4px; }
 
-  /* 전체를 75%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.75가 실제 크기다 */
-  .ld-card p, .ld-supports li, .ld-qa p, .ld-office-side, .ld-pop-title, .ld-pop-text { font-size: 16px; }
-  .ld-tile, .ld-together-links a, .ld-btn-ghost, .ld-link { font-size: 15px; }
-  .ld-pop-head { font-size: 14px; }
-  .ld-btn-main, .ld-btn-white, .ld-start .ld-btn, .ld-link, .ld-top-links a, .ld-top-start, .ld-qa summary { min-height: 59px; }
-  .ld-btn-ghost { min-height: 52px; }
-  .ld-pop { width: calc(100% - 24px); }
+  /* 전체를 50%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.5가 실제 크기다 (보조 10px, 본문 11px, 주요 터치 40px) */
+  .ld-card p, .ld-supports li, .ld-qa p, .ld-office-side, .ld-pop-title, .ld-pop-text { font-size: 22px; }
+  .ld-tile, .ld-together-links a, .ld-btn-ghost, .ld-link { font-size: 20px; }
+  .ld-pop-head { font-size: 19px; }
+  .ld-btn-main, .ld-btn-white, .ld-start .ld-btn, .ld-link, .ld-top-links a, .ld-top-start, .ld-qa summary { min-height: 80px; }
+  .ld-btn-ghost { min-height: 72px; }
+  .ld-pop { width: calc(100% - 40px); }
 }
