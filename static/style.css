@@ -347,7 +347,7 @@ h1, h2, p { margin: 0; }
 .guest-login:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
 /* 아주 좁은 화면 (320px): 칸 안 여백을 줄여 넘치지 않게 */
-@media (max-width: 340px), (max-device-width: 340px) {
+@media (max-width: 340px) {
   .form-col { padding: 0 16px 24px; }
   .input { padding: 0 10px; gap: 8px; }
 }
@@ -395,10 +395,10 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 #report .bar-head { position: sticky; top: 0; z-index: 20; max-width: none; height: 56px; margin-top: 0; background: rgba(249, 249, 253, 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 #report .cta { max-width: none; justify-items: center; }
 #report .cta .btn { max-width: calc(var(--report-col) - 32px); }
-@media (min-width: 40rem) and (min-device-width: 40.01rem) {
+@media (min-width: 40rem) {
   #report .bar-head { padding: 0 32px; }
 }
-@media (min-width: 60rem) and (min-device-width: 40.01rem) {
+@media (min-width: 60rem) {
   #report .bar-head { padding: 0 40px; }
   body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
   #home .logo-head { padding: 16px 40px 8px; }
@@ -407,7 +407,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #home .cta { display: flex; justify-content: flex-end; padding: 16px 40px 24px; background: none; }
   #home .cta .btn { width: auto; min-width: 240px; padding: 0 32px; }
 }
-@media (min-width: 40rem) and (max-width: 59.99rem) and (min-device-width: 40.01rem) {
+@media (min-width: 40rem) and (max-width: 59.99rem) {
   #home .logo-head { padding-inline: 32px; }
   #home .content { padding-inline: 32px; }
   #home .cta { padding-inline: 32px; }
@@ -436,7 +436,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 
 /* 넓은 화면의 폭: 입력·안내 화면은 640px, 긴 글(약관·정책·가격)은 760px까지. 리포트와 분석 화면은 --report-col로 고정 */
 :root { --app-col: 430px; }
-@media (min-width: 40rem) and (min-device-width: 40.01rem) {
+@media (min-width: 40rem) {
   :root { --app-col: 640px; }
   .app:has(> .legal) { max-width: 760px; }
   .legal .bar-head { padding-inline: 32px; }
@@ -450,82 +450,5 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #terms .cta, #about .cta, #connect .cta, #help .cta, #office .cta { padding-inline: 32px; }
 }
 
-/* 휴대폰(40rem 이하): 화면 전체를 62.5%로 줄이고 간격을 붙인다. 휴대폰은 뷰포트(index.html)로 줄이고, 좁은 데스크탑 창만 zoom으로 줄인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
-   고정 폭은 함께 줄어드므로 62.5%로 나눠 원래 화면 폭을 그대로 채운다 */
-@media screen and (max-width: 40rem) and (min-device-width: 40.01rem) { body { zoom: 0.625; } }
-@media screen and (max-width: 40rem), screen and (max-device-width: 40rem) {
-  :root { --app-col: calc(430px / 0.625); --report-col: calc(430px / 0.625); }
-  /* dvh도 62.5%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
-  html { height: 100%; }
-  body { display: flex; flex-direction: column; min-height: 100%; }
-  .app { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; min-height: 0; }
-  .screen { flex: 1 0 auto; min-height: 0; }
-  .sheet, .feedback-sheet { max-width: none; }
-  /* 16px보다 작은 입력칸은 iOS가 화면을 확대하므로 실제 글자 크기를 16px로 유지한다 */
-  .input input, .input select, .input-area textarea, .feedback-sheet textarea { font-size: calc(16px / 0.625); }
-
-  .content { padding: 0 30px 16px; }
-  .center { gap: 16px; padding: 24px 30px; }
-  .cta { gap: 8px; padding: 10px 30px calc(32px + env(safe-area-inset-bottom)); }
-  .bar-head { margin-top: 4px; }
-  .form-col { gap: 12px; padding-bottom: 16px; }
-  .title { padding: 12px 0 4px; }
-  .agree { padding: 12px; margin-top: 4px; }
-  .agree-row { padding-block: 8px; }
-  .help { padding-bottom: 32px; }
-  .help-h2 { margin-top: 20px; }
-  .legal-body { padding-bottom: 32px; }
-  .legal-body h3 { margin-top: 20px; }
-  .rp-h2 { margin: 20px 0 10px !important; }
-  .rp-hero { padding: 20px 30px; }
-  .rp-funnel { margin-top: 16px; padding-top: 12px; }
-  .rp-stats { gap: 8px; margin-top: 16px; }
-  .rp-finds { gap: 8px; }
-  .rp-row { padding-block: 10px; }
-  .rp-compact .rp-row { padding-block: 8px; }
-  .rp-method { margin-top: 20px; }
-  .foot-note { margin-top: 16px; }
-
-  /* 전체를 62.5%로 줄여도 읽고 누를 수 있게 하는 하한. 아래 값 × 0.625가 실제 크기다 (보조 글자 12.5px, 본문 13.75px, 주요 터치 50px) */
-  .rp-date, .home-hero .rp-date, .rp-chip, .rp-funnel span, .rp-funnel small, .rp-stat-label, .rp-meta, .rp-why, .rp-amount span, .rp-find-tag,
-  .state, .caption, .cta-note, .kind-note, .field-hint, .business, .foot-note, .sheet-note, .sheet-mock, .feedback-meta,
-  .help-h2, .reveal, .fold-toggle, .agree-row a, .legal-meta, .cta-link.dev { font-size: 20px; }
-  .rp-bar-n, .rp-bar-y { font-size: 19px; }
-  .rp-text, .rp-advice, .rp-desc, .rp-find p, .rp-note, .rp-method, .rp-empty, .rp-sample-note, .field-label, .title p, .agree-text, .fold-body,
-  .guide, .legal-table, .menu-row .menu-sub, .feedback-description, .sheet-desc, .home-empty, .dialog-list, .dialog-text, .error, .center-text > .error,
-  .head-link, .head-home, .agree-row, .chip, .value-text { font-size: 22px; }
-  .rp-text, .rp-advice { line-height: 1.4; }
-  .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 23px; }
-  /* 위 하한으로 본문이 커진 만큼 제목도 키워 제목이 본문보다 작아지지 않게 한다 */
-  .legal-body h3, .rp-h2, .bar-head h1 { font-size: 26px; }
-  /* 주 버튼 글자와 자주 묻는 질문은 본문보다 작아지지 않게 */
-  .btn, .faq summary, .pay-option, .pay-amounts legend { font-size: 23px; }
-  .pay-picked { font-size: 20px; }
-  .pay-picked b { font-size: 28px; }
-  .pay-option { min-height: 80px; }
-  .pay-option span::before { width: 26px; height: 26px; vertical-align: -6px; }
-  .pay-option:has(input:checked) span::before { border-width: 8px; }
-  .pay-free { font-size: 20px; padding: 3px 12px; }
-  .foot-note a { display: inline-flex; align-items: center; min-height: 72px; }
-  .delete-link { min-height: 72px; font-size: 20px; }
-  .title h1 { font-size: 30px; line-height: 1.35; }
-  .field-label { line-height: 1.4; }
-  .title p { line-height: 1.4; }
-
-  .btn { height: 80px; }
-  .input { height: 76px; }
-  .chip, .about-group .chip { height: 64px; }
-  .menu-row, .faq summary { min-height: 80px; }
-  .head-link, .head-home, .head-delete { height: 80px; }
-  .head-delete { font-size: 22px; }
-  .home-del { min-height: 72px; font-size: 20px; padding: 0 20px; margin-right: 16px; }
-  .reveal { height: 76px; }
-  .fold-toggle { top: 0; height: 72px; }
-  .back { position: relative; }
-  .back::after, .feedback-fab::after { content: ""; position: absolute; inset: -16px; }
-  /* 떠 있는 의견 버튼이 금액·라벨을 덜 가리게 가장자리로 붙이고 옅게 둔다 (누를 곳은 ::after로 넓게 유지) */
-  .feedback-fab, body.is-landing .feedback-fab { right: 12px; opacity: .72; }
-  /* 금액 고르기 화면은 아래 결제 버튼이 폭을 다 써서 의견 버튼이 그 위에 겹친다: 이 화면에서만 숨긴다 */
-  body:has(#preview:not([hidden])) .feedback-fab { display: none; }
-  .rp-pop { width: calc(100% - 40px); }
-}
+/* 휴대폰: 앱 화면(홈·연결·분석·금액·리포트·약관)은 줄이지 않고 휴대폰 폭(390 기준) 그대로 그린다 (랜딩 붙이기 전 1a73904와 같은 방식).
+   62.5% 축소는 랜딩(#intro)에만 쓴다: index.html의 뷰포트 스크립트가 화면을 바꿀 때마다 뷰포트를 바꾼다 */

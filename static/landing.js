@@ -57,7 +57,7 @@
   let popDone = false; // 닫았거나 이미 열어 봤으면 다시 띄우지 않는다
 
   // 휴대폰은 화면이 좁아 알림이 본문을 오래 가리므로, 알림이 가리키는 기업 구역에 닿으면 거둔다
-  const phone = matchMedia("(max-device-width: 40rem)");
+  const phone = matchMedia("(max-width: 40rem)");
   function onPop() {
     const left = scene.getBoundingClientRect().bottom < innerHeight * 0.6;
     const reached = phone.matches && b2b && b2b.getBoundingClientRect().top < innerHeight;

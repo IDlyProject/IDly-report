@@ -21,7 +21,7 @@
   --ld-dur: 180ms;
 }
 @media (max-width: 60rem) { :root { --ld-sec: 72px; --ld-nav-h: 64px; } }
-@media (max-width: 40rem), (max-device-width: 40rem) { :root { --ld-fade: 112px; --ld-credit-gap: 72px; --ld-sec: 56px; --ld-gutter: 16px; --ld-nav-h: 60px; } }
+@media (max-width: 40rem) { :root { --ld-fade: 112px; --ld-credit-gap: 72px; --ld-sec: 56px; --ld-gutter: 16px; --ld-nav-h: 60px; } }
 
 html, body { overflow-x: clip; }
 body.is-landing { background: var(--ld-page); }
@@ -215,7 +215,7 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
   .ld-office-side img { width: 96px; }
   .ld-banner { padding: 40px 32px; border-radius: 40px; }
 }
-@media (max-width: 40rem), (max-device-width: 40rem) {
+@media (max-width: 40rem) {
   .ld-top-links a[href="#ld-office-b2b"] { display: none; }
   .ld-top-links { gap: 16px; }
   .ld-tile { min-height: 112px; font-size: 0.875rem; }
@@ -239,12 +239,12 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
   .js .landing .ld-chip.done .ld-tick { animation: none; }
 }
 
-/* 랜딩은 모든 화면에서 75%로 보여 준다. 휴대폰(화면 폭 40rem 이하)은 index.html의 뷰포트가 62.5%로 줄이므로 여기서 또 줄이지 않는다 */
-@media (min-width: 40.01rem) and (min-device-width: 40.01rem) { .landing { zoom: 0.75; } }
+/* 넓은 화면의 랜딩은 75%로 보여 준다. 휴대폰은 줄이지 않고 휴대폰 폭에 맞춘 배치(아래 블록)로 그린다 (리포트·앱 화면과 같은 방식) */
+@media (min-width: 40.01rem) { .landing { zoom: 0.75; } }
 
-/* 휴대폰: 구역 사이와 카드 안 간격을 붙인다 */
-@media screen and (max-width: 40rem), screen and (max-device-width: 40rem) {
-  :root { --ld-fade: 72px; --ld-credit-gap: 48px; --ld-sec: 36px; --ld-gutter: 30px; }
+/* 휴대폰(폭 40rem 이하): 휴대폰 폭 그대로 그리고, 구역 사이와 카드 안 간격을 붙인다 */
+@media screen and (max-width: 40rem) {
+  :root { --ld-fade: 72px; --ld-credit-gap: 48px; --ld-sec: 48px; --ld-gutter: 16px; }
   .ld-hero { padding-block: 20px 24px; }
   .ld-hero-in { gap: 12px; }
   .ld-hero-more { margin-top: 12px; }
@@ -285,15 +285,14 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
   /* 시작 카드 묶음도 화면 폭을 다 써서 위 문구·아래 타일과 양쪽 선을 맞춘다 */
   .ld-hero-side { justify-self: stretch; width: 100%; }
 
-  /* 글자는 하나씩 하한을 두지 않고, 랜딩 글자의 기준(rem)을 통째로 키워 데스크탑의 제목·본문 비율을 그대로 둔다.
-     랜딩 글자는 거의 rem이고 다른 화면은 px라서 랜딩에만 걸린다. 본문 15px × 1.333 × 0.625 ≈ 실제 12.5px */
-  html { font-size: 133.333%; }
-  .ld-pop-head { font-size: 0.8125rem; }
-  .ld-pop-title, .ld-pop-text { font-size: 0.9375rem; }
+  /* 휴대폰 제목은 한 줄에 들어가게 조금 작게 */
+  .ld-hero h1 { font-size: 1.75rem; }
+  .ld-pains .ld-say { font-size: 1.625rem; }
+  .ld-line { font-size: 1.0625rem; }
 
-  /* 누르는 곳은 실제 44px 이상 (아래 값 × 0.625) */
-  .ld-btn-main, .ld-btn-white, .ld-start .ld-btn, .ld-link, .ld-top-links a, .ld-top-start, .ld-qa summary { min-height: 80px; }
-  .ld-btn-ghost, .ld-mark, .ld-foot-list > *, .ld-foot-notice a { min-height: 72px; }
+  /* 누르는 곳은 44px 이상, 주 버튼은 52px */
+  .ld-btn-main, .ld-btn-white, .ld-start .ld-btn { min-height: 52px; }
+  .ld-btn-ghost, .ld-link, .ld-top-links a, .ld-top-start, .ld-qa summary, .ld-mark, .ld-foot-list > *, .ld-foot-notice a { min-height: 44px; }
   .ld-mark, .ld-foot-notice a { display: inline-flex; align-items: center; }
-  .ld-pop { width: calc(100% - 40px); }
+  .ld-pop { width: calc(100% - 24px); }
 }
