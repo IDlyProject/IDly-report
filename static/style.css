@@ -60,6 +60,19 @@ h1, h2, p { margin: 0; }
 .head-home:hover { color: var(--main); }
 .head-home:focus-visible, .logo-head a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
 .logo-head a { display: flex; }
+/* 리포트 머리줄의 삭제: 'IDly 소개' 옆, 빨강 글자 */
+#report .head-home { margin-right: 0; }
+.head-delete { display: flex; align-items: center; flex: none; height: 44px; padding: 0 8px; margin-right: -8px; border: 0; background: none;
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--danger); cursor: pointer; }
+.head-delete:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+/* 홈 목록: 줄 링크와 삭제 버튼을 나란히 */
+.home-item { display: flex; align-items: center; }
+.home-item + .home-item { border-top: 1.33px solid var(--line); }
+.home-item > .home-row { flex: 1; min-width: 0; }
+.home-del { flex: none; min-height: 44px; margin-right: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff;
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--danger); cursor: pointer; }
+.home-del:hover { border-color: var(--danger); }
+.home-del:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .head-title { font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
 .steps { display: flex; gap: 6px; }
 .steps i { width: 8px; height: 8px; border-radius: 4px; background: var(--border); }
@@ -503,7 +516,9 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .input { height: 76px; }
   .chip, .about-group .chip { height: 64px; }
   .menu-row, .faq summary { min-height: 80px; }
-  .head-link, .head-home { height: 80px; }
+  .head-link, .head-home, .head-delete { height: 80px; }
+  .head-delete { font-size: 22px; }
+  .home-del { min-height: 72px; font-size: 20px; padding: 0 20px; margin-right: 16px; }
   .reveal { height: 76px; }
   .fold-toggle { top: 0; height: 72px; }
   .back { position: relative; }

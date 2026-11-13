@@ -556,6 +556,8 @@
     <a class="back" href="#home" id="report-back" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
     <h2 class="head-title" id="report-title">계정 리포트</h2>
     <a class="head-home" href="#intro" data-ga="intro_open" data-ga-label="report">IDly 소개</a>
+    <!-- 리포트 지우기: 머리줄 오른쪽에 늘 보이게 (샘플에서는 숨긴다). 누르면 확인 창을 먼저 띄운다 -->
+    <button class="head-delete" type="button" id="delete-report" data-delete-report>삭제</button>
   </header>
   <div class="content">
     <!-- 체험(로그인 없이)으로 만든 리포트: 저장하려면 로그인 -->
@@ -568,8 +570,7 @@
     </div>
     <div id="report-body"></div>
     <p class="foot-note"><a href="#connect" id="new-report" data-ga="new_report_click" data-ga-label="report">다른 메일로 새 리포트 만들기</a></p>
-    <!-- 만든 리포트 지우기 (샘플에서는 숨긴다). 누르면 확인 창을 먼저 띄운다 -->
-    <p class="delete-row"><button class="delete-link" type="button" id="delete-report" data-delete-report>이 리포트 삭제하기</button></p>
+    <p class="delete-row"><button class="delete-link" type="button" id="delete-report-foot" data-delete-report>이 리포트 삭제하기</button></p>
   </div>
   <div class="cta">
     <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>

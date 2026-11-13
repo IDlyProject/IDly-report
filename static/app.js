@@ -771,7 +771,16 @@ async function renderHome() {
     empty.append(owl, el("p", "", "아래 '새 리포트 만들기'로 첫 리포트를 만들어 보세요."));
     list.append(empty);
   }
-  reports.forEach((r) => list.append(reportRow(r)));
+  // 줄마다 오른쪽에 삭제 버튼 (링크 안에 버튼을 넣을 수 없어 나란히 둔다)
+  reports.forEach((r) => {
+    const item = el("div", "home-item");
+    const del = el("button", "home-del", "삭제");
+    del.type = "button";
+    del.setAttribute("aria-label", `${r.mailbox} 리포트 삭제`);
+    del.addEventListener("click", () => onDeleteReport(r.id));
+    item.append(reportRow(r), del);
+    list.append(item);
+  });
 }
 
 // 홈 요약 문구 (한 문장은 한 색: 숫자만 따로 칠하지 않는다)
@@ -821,14 +830,17 @@ async function onWithdrawConfirmed() {
   route();
 }
 
-// 리포트 지우기: 확인 창을 거쳐 지운 뒤 홈(로그인·체험 중) 또는 처음 화면으로
-function onDeleteReport() {
+// 리포트 지우기: 확인 창을 거쳐 지운 뒤 홈(로그인·체험 중) 또는 처음 화면으로.
+// 리포트 화면에서는 지금 연 리포트, 홈 목록에서는 그 줄의 리포트를 지운다
+let deleteId = null;
+function onDeleteReport(id) {
+  deleteId = typeof id === "string" ? id : currentId();
   showError("#delete-error", "");
   openLayer($("#delete-modal"), $("#delete-cancel"));
 }
 
 async function onDeleteConfirmed() {
-  const id = currentId();
+  const id = deleteId;
   const ok = $("#delete-ok");
   ok.disabled = true;
   try {
@@ -922,6 +934,7 @@ async function renderResult(r) {
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
     $("#delete-report").hidden = r.sample;
+    $("#delete-report-foot").hidden = r.sample;
     // 체험(로그인 없이)으로 만든 리포트: 저장 줄을 보여 주고, PDF를 받으려 하면 먼저 로그인을 묻는다 (onPdf)
     const trial = !me.user && !r.sample;
     $("#save-bar").hidden = !trial || empty;
@@ -1512,7 +1525,7 @@ async function init() {
   );
   $("#logout").addEventListener("click", onLogout);
   $("#withdraw").addEventListener("click", onWithdraw);
-  document.querySelectorAll("[data-delete-report]").forEach((b) => b.addEventListener("click", onDeleteReport));
+  document.querySelectorAll("[data-delete-report]").forEach((b) => b.addEventListener("click", () => onDeleteReport()));
   $("#delete-ok").addEventListener("click", onDeleteConfirmed);
   $("#delete-cancel").addEventListener("click", () => closeLayer($("#delete-modal")));
   $("#withdraw-ok").addEventListener("click", onWithdrawConfirmed);
