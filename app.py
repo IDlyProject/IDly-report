@@ -948,7 +948,7 @@ def legal(page: str):
                         if p else "")
     body = re.sub(r"\{\{(\w+)\}\}", lambda m: escape(fields.get(m.group(1)) or "준비 중"), body)
     return HTMLResponse(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>{LEGAL_PAGES[page]} · IDly</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><script>(function(){{var w=Math.min(screen.width,screen.height);if(w&&w<=640){{var m=document.querySelector('meta[name=viewport]');m.setAttribute('content','width='+w*2+', initial-scale=0.5'+(m.content.indexOf('viewport-fit')>-1?', viewport-fit=cover':''))}}}})()</script><title>{LEGAL_PAGES[page]} · IDly</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/static/style.css?v={asset_version()}">{GA_SNIPPET}</head>
 <body><div class="app"><main class="screen legal">

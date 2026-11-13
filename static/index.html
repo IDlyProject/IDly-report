@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 휴대폰(화면 폭 640px 이하)은 화면을 두 배 폭으로 그리고 50%로 줄여 보여 준다. CSS zoom은 아이폰 사파리에서 글자가 줄지 않아서 뷰포트로 줄인다 -->
+<script>(function(){var w=Math.min(screen.width,screen.height);if(w&&w<=640){var m=document.querySelector('meta[name=viewport]');m.setAttribute('content','width='+w*2+', initial-scale=0.5'+(m.content.indexOf('viewport-fit')>-1?', viewport-fit=cover':''))}})()</script>
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/static/assets/logo-owl.svg" type="image/svg+xml">
 <title>IDly 계정 리포트 · 메일로 찾는 내 계정과 구독</title>

@@ -138,7 +138,7 @@
 /* 리포트는 모바일 한 줄 구성만 쓴다. 넓은 화면에서도 같은 구성, 같은 폭이다 (style.css --report-col) */
 .rp-block, .rp-top, .rp-band, .rp-cols, .rp-wide, .rp-after { min-width: 0; }
 
-@media (max-width: 22rem) {
+@media (max-width: 22rem), (max-device-width: 22rem) {
   .rp-stat { padding-inline: 4px; }
   .rp-stat .rp-bubble { display: none; }
   .rp-finds { grid-template-columns: minmax(0, 1fr); }

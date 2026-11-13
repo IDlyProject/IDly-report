@@ -325,7 +325,7 @@ h1, h2, p { margin: 0; }
 .guest-login:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
 /* 아주 좁은 화면 (320px): 칸 안 여백을 줄여 넘치지 않게 */
-@media (max-width: 340px) {
+@media (max-width: 340px), (max-device-width: 340px) {
   .form-col { padding: 0 16px 24px; }
   .input { padding: 0 10px; gap: 8px; }
 }
@@ -365,10 +365,10 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 #report .bar-head { position: sticky; top: 0; z-index: 20; max-width: none; height: 56px; margin-top: 0; background: rgba(240, 246, 255, 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 #report .cta { max-width: none; justify-items: center; }
 #report .cta .btn { max-width: calc(var(--report-col) - 32px); }
-@media (min-width: 40rem) {
+@media (min-width: 40rem) and (min-device-width: 40.01rem) {
   #report .bar-head { padding: 0 32px; }
 }
-@media (min-width: 60rem) {
+@media (min-width: 60rem) and (min-device-width: 40.01rem) {
   #report .bar-head { padding: 0 40px; }
   body.is-wide:not(.is-landing) .feedback-fab { right: 24px; }
   #home .logo-head { padding: 16px 40px 8px; }
@@ -377,7 +377,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #home .cta { display: flex; justify-content: flex-end; padding: 16px 40px 24px; background: none; }
   #home .cta .btn { width: auto; min-width: 240px; padding: 0 32px; }
 }
-@media (min-width: 40rem) and (max-width: 59.99rem) {
+@media (min-width: 40rem) and (max-width: 59.99rem) and (min-device-width: 40.01rem) {
   #home .logo-head { padding-inline: 32px; }
   #home .content { padding-inline: 32px; }
   #home .cta { padding-inline: 32px; }
@@ -406,7 +406,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 
 /* 넓은 화면의 폭: 입력·안내 화면은 640px, 긴 글(약관·정책·가격)은 760px까지. 리포트와 분석 화면은 --report-col로 고정 */
 :root { --app-col: 430px; }
-@media (min-width: 40rem) {
+@media (min-width: 40rem) and (min-device-width: 40.01rem) {
   :root { --app-col: 640px; }
   .app:has(> .legal) { max-width: 760px; }
   .legal .bar-head { padding-inline: 32px; }
@@ -420,13 +420,14 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   #terms .cta, #about .cta, #connect .cta, #help .cta, #office .cta { padding-inline: 32px; }
 }
 
-/* 휴대폰(40rem 이하): 화면 전체를 50%로 줄이고 간격을 붙인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
+/* 휴대폰(40rem 이하): 화면 전체를 50%로 줄이고 간격을 붙인다. 휴대폰은 뷰포트(index.html)로 줄이고, 좁은 데스크탑 창만 zoom으로 줄인다. 데스크탑과 PDF(report.css만 씀)는 그대로.
    고정 폭은 함께 줄어드므로 50%로 나눠 원래 화면 폭을 그대로 채운다 */
-@media screen and (max-width: 40rem) {
+@media screen and (max-width: 40rem) and (min-device-width: 40.01rem) { body { zoom: 0.5; } }
+@media screen and (max-width: 40rem), screen and (max-device-width: 40rem) {
   :root { --app-col: calc(430px / 0.5); --report-col: calc(430px / 0.5); }
   /* dvh도 50%로 줄어 화면이 덜 차므로, 높이는 html부터 비율로 이어 받는다 */
   html { height: 100%; }
-  body { zoom: 0.5; display: flex; flex-direction: column; min-height: 100%; }
+  body { display: flex; flex-direction: column; min-height: 100%; }
   .app { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; min-height: 0; }
   .screen { flex: 1 0 auto; min-height: 0; }
   .sheet, .feedback-sheet { max-width: none; }
@@ -465,6 +466,9 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
   .head-link, .head-home, .agree-row, .chip, .value-text { font-size: 22px; }
   .rp-text, .rp-advice { line-height: 1.4; }
   .rp-title, .rp-amount, .rp-h2 small, .cta-link, .menu-row, .faq p, .legal-body, .agree-text b, .save-bar, .rp-unlock { font-size: 23px; }
+  /* 위 하한으로 본문이 커진 만큼 제목도 키워 제목이 본문보다 작아지지 않게 한다 */
+  .legal-body h3, .rp-h2, .bar-head h1 { font-size: 26px; }
+  .title h1 { font-size: 30px; line-height: 1.35; }
   .field-label { line-height: 1.4; }
   .title p { line-height: 1.4; }
 
