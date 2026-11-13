@@ -115,5 +115,22 @@ class PayWhatYouWantTests(unittest.TestCase):
         self.assertEqual(event["status"], "paid")
 
 
+class DeleteReportTests(unittest.TestCase):
+    def setUp(self):
+        app._reports.clear()
+        self.client = TestClient(app.app)
+
+    def test_owner_can_delete_others_cannot(self):
+        report = make_report()
+        app._reports[report.id] = report
+        other = self.client.delete(f"/api/reports/{report.id}", headers={app.GUEST_HEADER: "x" * 40})
+        self.assertEqual(other.status_code, 404)
+        self.assertIn(report.id, app._reports)
+        mine = self.client.delete(f"/api/reports/{report.id}", headers={app.GUEST_HEADER: TOKEN})
+        self.assertEqual(mine.json(), {"ok": True})
+        self.assertNotIn(report.id, app._reports)
+        self.assertEqual(self.client.get(f"/api/reports/{report.id}", headers={app.GUEST_HEADER: TOKEN}).status_code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()

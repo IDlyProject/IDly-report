@@ -486,6 +486,7 @@
     </fieldset>
     <p class="pay-picked">선택한 금액 <b id="pay-picked">-</b></p>
     <p class="error" id="pay-error" role="alert" hidden></p>
+    <p class="delete-row"><button class="delete-link" type="button" data-delete-report>이 리포트 삭제하기</button></p>
   </div>
   <div class="cta">
     <button class="btn btn-main" id="pay" disabled>금액을 골라 주세요</button>
@@ -493,6 +494,16 @@
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
   </div>
 </main>
+
+<div class="modal-backdrop" id="delete-modal" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-text">
+    <p class="dialog-title" id="delete-title">이 리포트를 삭제할까요?</p>
+    <p class="dialog-text" id="delete-text">리포트와 PDF가 바로 지워지고 되돌릴 수 없어요.<br>결제한 기록은 영수증 메일에 그대로 남아요.</p>
+    <p class="error" id="delete-error" role="alert" hidden></p>
+    <button class="btn btn-danger" type="button" id="delete-ok">삭제하기</button>
+    <button class="cta-link dialog-later" type="button" id="delete-cancel">취소</button>
+  </div>
+</div>
 
 <div class="modal-backdrop" id="withdraw-modal" hidden>
   <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="withdraw-title" aria-describedby="withdraw-text">
@@ -557,6 +568,8 @@
     </div>
     <div id="report-body"></div>
     <p class="foot-note"><a href="#connect" id="new-report" data-ga="new_report_click" data-ga-label="report">다른 메일로 새 리포트 만들기</a></p>
+    <!-- 만든 리포트 지우기 (샘플에서는 숨긴다). 누르면 확인 창을 먼저 띄운다 -->
+    <p class="delete-row"><button class="delete-link" type="button" id="delete-report" data-delete-report>이 리포트 삭제하기</button></p>
   </div>
   <div class="cta">
     <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>

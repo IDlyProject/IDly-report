@@ -821,6 +821,29 @@ async function onWithdrawConfirmed() {
   route();
 }
 
+// 리포트 지우기: 확인 창을 거쳐 지운 뒤 홈(로그인·체험 중) 또는 처음 화면으로
+function onDeleteReport() {
+  showError("#delete-error", "");
+  openLayer($("#delete-modal"), $("#delete-cancel"));
+}
+
+async function onDeleteConfirmed() {
+  const id = currentId();
+  const ok = $("#delete-ok");
+  ok.disabled = true;
+  try {
+    await api(`/api/reports/${id}`, { method: "DELETE" });
+    track("report_delete");
+    closeLayer($("#delete-modal"));
+    location.hash = signedIn() ? "#home" : "";
+    route();
+  } catch (err) {
+    showError("#delete-error", err.message);
+  } finally {
+    ok.disabled = false;
+  }
+}
+
 // --- 리포트 상태별 화면 -------------------------------------------------------------
 
 function renderScanning(r) {
@@ -898,6 +921,7 @@ async function renderResult(r) {
     $("#pdf").hidden = backToPay || empty;
     $("#sample-back").hidden = !backToPay;
     $("#pdf").href = `/api/reports/${r.id}/pdf`;
+    $("#delete-report").hidden = r.sample;
     // 체험(로그인 없이)으로 만든 리포트: 저장 줄을 보여 주고, PDF를 받으려 하면 먼저 로그인을 묻는다 (onPdf)
     const trial = !me.user && !r.sample;
     $("#save-bar").hidden = !trial || empty;
@@ -1054,8 +1078,11 @@ ${url}`);
 // 고른 금액 (null이면 아직 안 고름). 기본으로 골라 두지 않는다
 let payAmount = null;
 
+// 0원 줄은 금액을 먼저 쓰고, 옆에 '무료로 이용하기'를 다른 색 꼬리표로 붙인다
 function amountLabel(amount) {
-  return amount === 0 ? "무료로 이용하기 · 0원" : won(amount);
+  const span = el("span", "", won(amount));
+  if (amount === 0) span.append(el("em", "pay-free", "무료로 이용하기"));
+  return span;
 }
 
 // 서버가 준 금액마다 라디오 하나. 고르면 아래 '선택한 금액'과 버튼 문구가 바뀐다
@@ -1075,7 +1102,7 @@ function renderAmounts() {
       setPayLabel();
     });
     const label = el("label", "pay-option");
-    label.append(input, el("span", "", amountLabel(amount)));
+    label.append(input, amountLabel(amount));
     box.append(label);
   }
   showError("#pay-error", "");
@@ -1485,6 +1512,9 @@ async function init() {
   );
   $("#logout").addEventListener("click", onLogout);
   $("#withdraw").addEventListener("click", onWithdraw);
+  document.querySelectorAll("[data-delete-report]").forEach((b) => b.addEventListener("click", onDeleteReport));
+  $("#delete-ok").addEventListener("click", onDeleteConfirmed);
+  $("#delete-cancel").addEventListener("click", () => closeLayer($("#delete-modal")));
   $("#withdraw-ok").addEventListener("click", onWithdrawConfirmed);
   $("#withdraw-cancel").addEventListener("click", () => closeLayer($("#withdraw-modal")));
   $("#pay").addEventListener("click", onPay);

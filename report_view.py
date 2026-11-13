@@ -517,8 +517,8 @@ PDF_CSS = """
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; background: #fff; font-family: "Pretendard Variable", Pretendard, "Malgun Gothic", sans-serif; }
 .pdf-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.pdf-head p { margin: 0; font-size: 12px; color: #8c8f96; text-align: right; }
-.rp-card, .rp-stat { box-shadow: 0 0 0 1px #eceef2; }
+.pdf-head p { margin: 0; font-size: 12px; color: var(--rp-mute); text-align: right; }
+.rp-card, .rp-stat { box-shadow: 0 0 0 1px var(--rp-line); }
 """
 
 
@@ -538,7 +538,7 @@ def render_pdf(html: str) -> bytes:
     """크로미움으로 HTML을 A4 PDF로 인쇄한다. 웹 폰트를 받을 때까지 기다린다."""
     from playwright.sync_api import sync_playwright
 
-    footer = ('<div style="width:100%;font-size:9px;color:#999;padding:0 16mm;'
+    footer = ('<div style="width:100%;font-size:9px;color:#767d8c;padding:0 16mm;'
               'display:flex;justify-content:space-between;font-family:sans-serif">'
               '<span>IDly 계정 리포트</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>')
     with sync_playwright() as p:
