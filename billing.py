@@ -1,9 +1,9 @@
 """Paddle Billing 결제 (MoR).
 
 결제창
-- 원하는 금액 결제(0·900·1,900·2,900·3,900·4,900원). Paddle 가격은 4,900원 하나(PADDLE_PRICE_ID)이고,
-  고른 금액은 Paddle 할인 코드로 맞춘다: 0원 teampass, 900원 discount0, 1,900원 discount1, 2,900원 discount2,
-  3,900원 discount3, 4,900원은 할인 없음. 코드는 Paddle(Catalog > Discounts)에 같은 이름으로 만들어 둔다
+- 원하는 금액 결제(0·900·1,900·2,900·3,900·4,900원). 0원(무료로 이용하기)은 결제창 없이 서버가 바로 연다.
+  Paddle 가격은 4,900원 하나(PADDLE_PRICE_ID)이고, 고른 금액은 Paddle 할인 코드로 맞춘다: 900원 discount0,
+  1,900원 discount1, 2,900원 discount2, 3,900원 discount3, 4,900원은 할인 없음. 코드는 Paddle(Catalog > Discounts)에 같은 이름으로 만들어 둔다
 - 고른 금액의 할인 코드는 결제창에 미리 붙이고 지우거나 바꿀 수 없게 한다
 - 화면에서 Paddle.js 오버레이 결제창을 연다 (PADDLE_CLIENT_TOKEN)
 - custom data에 report_id·user_id를 넣어, 웹훅이 오면 그 사용자의 그 리포트만 연다
@@ -26,10 +26,9 @@ from typing import Any, Dict, Optional
 ENVIRONMENT = os.getenv("PADDLE_ENV", "production")
 CLIENT_TOKEN = os.getenv("PADDLE_CLIENT_TOKEN", "")
 PRICE_ID = os.getenv("PADDLE_PRICE_ID", "")
-# 원하는 금액 결제: 금액(원) → 결제창에 붙일 Paddle 할인 코드 (None이면 할인 없이 정가 4,900원).
-# 1,000원부터 5,000원까지 1,000원 간격에서 100원씩 뺀 금액과 0원. 금액이나 코드를 바꿀 때는 이 표만 고친다
+# 결제창에서 고르는 금액(원) → 붙일 Paddle 할인 코드 (None이면 할인 없이 정가 4,900원).
+# 1,000원부터 5,000원까지 1,000원 간격에서 100원씩 뺀 금액. 0원은 결제창을 거치지 않아 여기 없다 (app.FREE_AMOUNT)
 DISCOUNT_CODES: Dict[int, Optional[str]] = {
-    0: "teampass",
     900: "discount0",
     1900: "discount1",
     2900: "discount2",
@@ -47,7 +46,7 @@ class BillingError(Exception):
 
 
 def amounts() -> list:
-    """결제창을 열 수 있는 금액. 가격 id와 클라이언트 토큰이 없으면 아무것도 고를 수 없다."""
+    """결제창을 열 수 있는 금액 (0원 제외). 가격 id와 클라이언트 토큰이 없으면 비어 있다."""
     return list(AMOUNTS) if (PRICE_ID and CLIENT_TOKEN) else []
 
 

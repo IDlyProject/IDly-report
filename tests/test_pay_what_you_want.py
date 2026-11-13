@@ -68,7 +68,7 @@ class PayWhatYouWantTests(unittest.TestCase):
         self.add(make_report())
         second = self.add(make_report())
         self.assertEqual(app.prices()["amounts"], [0, 900, 1900, 2900, 3900, 4900])
-        expected = {0: "teampass", 900: "discount0", 1900: "discount1", 2900: "discount2", 3900: "discount3", 4900: None}
+        expected = {900: "discount0", 1900: "discount1", 2900: "discount2", 3900: "discount3", 4900: None}
         for amount, code in expected.items():
             body = self.checkout(second, amount).json()
             self.assertFalse(body["paid"], amount)
@@ -77,15 +77,21 @@ class PayWhatYouWantTests(unittest.TestCase):
         # 결제창만 열었을 뿐 아직 열리지 않는다 (웹훅이 거래를 확인해야 열린다)
         self.assertFalse(app._open(second))
 
+    def test_zero_opens_without_paddle(self):
+        self.paddle()
+        report = self.add(make_report())
+        self.assertEqual(self.checkout(report, 0).json(), {"paid": True})
+        self.assertTrue(app._open(report))
+
     def test_unknown_amount_is_rejected(self):
         self.paddle()
         self.add(make_report())
         second = self.add(make_report())
         self.assertEqual(self.checkout(second, 1000).status_code, 400)
 
-    def test_without_paddle_config_nothing_to_pick(self):
+    def test_without_paddle_config_only_zero(self):
         with patch.object(app, "PAYMENT_MODE", "paddle"), patch.object(billing, "PRICE_ID", ""):
-            self.assertEqual(app.prices()["amounts"], [])
+            self.assertEqual(app.prices()["amounts"], [0])
 
     def test_mock_mode_opens_at_once(self):
         self.add(make_report())

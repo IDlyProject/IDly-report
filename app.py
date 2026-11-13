@@ -42,7 +42,8 @@ from report_view import render_fragment, render_html, render_pdf, summarize, sum
 PRICE = int(os.getenv("REPORT_PRICE", "4900"))
 PAYMENT_MODE = os.getenv("PAYMENT_MODE", "paddle")
 # 원하는 금액 결제: 새 리포트는 모두 금액을 고르는 시트를 거친다 (0원이 기본으로 골라져 있다).
-# 모든 금액이 Paddle 결제창을 거친다: 4,900원 가격 하나에 금액별 할인 코드를 붙인다 (0원은 teampass, billing.DISCOUNT_CODES)
+# 0원(무료로 이용하기)은 결제창 없이 바로 열고, 그 밖의 금액은 4,900원 가격 하나에 금액별 할인 코드를 붙인 Paddle 결제창을 연다
+FREE_AMOUNT = 0
 # 결제를 끄고 무료로 열던 동안 만든 리포트는 계속 열어 둔다 (그때는 paid가 저장되지 않았다)
 # 리포트의 created는 서버 시간대의 naive 시각이라 같은 기준으로 바꿔 둔다
 PAYWALL_FROM = datetime.fromisoformat(os.getenv("PAYWALL_FROM", "2026-11-13T14:00:00+09:00")).astimezone().replace(tzinfo=None)
@@ -569,8 +570,9 @@ def withdraw(request: Request):
 
 
 def prices() -> Dict[str, Any]:
-    """화면에 넘기는 고를 수 있는 금액 (0원 포함). Paddle 설정이 없으면 비어 있다."""
-    return {"amounts": list(billing.AMOUNTS) if PAYMENT_MODE == "mock" else billing.amounts()}
+    """화면에 넘기는 고를 수 있는 금액. 0원은 늘 있고, 결제 금액은 Paddle 설정이 있을 때만 (개발 모드는 모두)."""
+    paid = list(billing.AMOUNTS) if PAYMENT_MODE == "mock" else billing.amounts()
+    return {"amounts": [FREE_AMOUNT, *paid]}
 
 
 def _open(report: "Report") -> bool:
@@ -815,7 +817,7 @@ class CheckoutBody(BaseModel):
     amount: int
 
 
-# 금액 고르기: 고른 금액의 할인 코드를 붙여 Paddle 결제창을 연다 (0원도). 열리는 것은 웹훅이 거래를 확인한 뒤
+# 금액 고르기: 0원이면 바로 열고, 그 밖의 금액은 할인 코드를 붙인 Paddle 결제창을 연다 (열리는 것은 웹훅이 확인한 뒤)
 @app.post("/api/reports/{report_id}/checkout")
 def checkout(report_id: str, body: CheckoutBody, request: Request):
     user = _user(request)
@@ -826,7 +828,7 @@ def checkout(report_id: str, body: CheckoutBody, request: Request):
         return {"paid": True}
     if body.amount not in prices()["amounts"]:
         raise ApiError(400, "고를 수 없는 금액이에요.")
-    if PAYMENT_MODE == "mock":
+    if body.amount == FREE_AMOUNT or PAYMENT_MODE == "mock":
         report.paid = True
         report.save()
         print(f"[billing] chose {body.amount} report={report.id} mode={PAYMENT_MODE}")

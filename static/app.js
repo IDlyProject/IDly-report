@@ -1222,16 +1222,15 @@ function setPayLabel() {
   const note = $("#pay-note");
   note.innerHTML = "";
   if (!picked) return;
-  // 0원도 Paddle 결제창을 거친다 (할인 코드로 0원). 그때는 환불 안내 대신 확인만 하면 열린다고 알린다
+  // 0원은 결제창 없이 바로 열린다: 결제·환불 안내는 결제할 때만
+  if (payAmount === 0) return;
   note.append(
     el(
       "span",
       "",
       (config.payment_mode === "mock"
         ? "개발 모드라 실제로 결제되지 않아요.\n"
-        : payAmount === 0
-          ? "0원으로 Paddle 결제창에서 확인을 마치면 바로 전체 리포트가 열려요.\n"
-          : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
+        : "결제하면 바로 전체 리포트가 열려요.\n디지털 콘텐츠라 열람 후 단순 변심 환불은 제한돼요.\n") +
         "결제는 해외 결제 대행사 Paddle에서 진행돼요. ",
     ),
     Object.assign(el("a", "", "환불 정책"), { href: "/legal/refund", target: "_blank", rel: "noopener" }),
@@ -1392,7 +1391,7 @@ function savedDiscount() {
 async function openCheckout(opts, id) {
   const paddle = await loadPaddle(opts);
   checkoutId = id;
-  // 고른 금액은 서버가 준 할인 코드로 맞춘다 (0원 teampass, 900원 discount0 …). 지우거나 바꿀 수 없게 한다.
+  // 고른 금액은 서버가 준 할인 코드로 맞춘다 (900원 discount0, 1,900원 discount1 …, 0원은 결제창을 열지 않는다). 지우거나 바꿀 수 없게 한다.
   // 할인이 없는 4,900원에만 팀원·테스트용 링크(/?discount=코드)의 코드를 붙인다
   const tierCode = opts.discountCode || "";
   const discountCode = tierCode || savedDiscount();
