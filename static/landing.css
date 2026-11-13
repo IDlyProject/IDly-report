@@ -45,7 +45,10 @@ body.is-landing .app { max-width: none; }
 .ld-top-links { display: flex; gap: 48px; }
 .ld-top-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 1rem; font-weight: 700; text-decoration: none; white-space: nowrap; transition: color var(--ld-dur) ease-out; }
 .ld-top-links a:hover { color: var(--ld-navy); }
-.ld-top-start { justify-self: end; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 0.9375rem; font-weight: 700; color: var(--ld-navy); cursor: pointer; white-space: nowrap; }
+.ld-top-end { justify-self: end; display: flex; align-items: center; gap: 4px; }
+.ld-top-login { min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 0.9375rem; font-weight: 600; color: var(--ld-ink-2); cursor: pointer; white-space: nowrap; transition: color var(--ld-dur) ease-out; }
+.ld-top-login:hover { color: var(--ld-navy); }
+.ld-top-start { min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 0.9375rem; font-weight: 700; color: var(--ld-navy); cursor: pointer; white-space: nowrap; }
 .ld-top-start:hover { color: var(--ld-navy); }
 
 /* 버튼 */
@@ -292,7 +295,7 @@ body.is-landing .feedback-fab { right: 24px; bottom: 24px; }
 
   /* 누르는 곳은 44px 이상, 주 버튼은 52px */
   .ld-btn-main, .ld-btn-white, .ld-start .ld-btn { min-height: 52px; }
-  .ld-btn-ghost, .ld-link, .ld-top-links a, .ld-top-start, .ld-qa summary, .ld-mark, .ld-foot-list > *, .ld-foot-notice a { min-height: 44px; }
+  .ld-btn-ghost, .ld-link, .ld-top-links a, .ld-top-start, .ld-top-login, .ld-qa summary, .ld-mark, .ld-foot-list > *, .ld-foot-notice a { min-height: 44px; }
   .ld-mark, .ld-foot-notice a { display: inline-flex; align-items: center; }
   .ld-pop { width: calc(100% - 24px); }
 }

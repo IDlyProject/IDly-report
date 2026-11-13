@@ -188,13 +188,14 @@ def _hero(report: Dict[str, Any], s: Dict[str, Any], created: datetime) -> str:
 
 def _stats(s: Dict[str, Any]) -> str:
     items = [
-        ("ic-event.svg", "t-info", s["subscriptions"], "구독 중"),
-        ("ic-danger.svg", "t-danger", s["security"], "보안 알림"),
-        ("ic-caution.svg", "t-caution", s["unused"], "안 쓰는 계정"),
+        ("ic-event.svg", "info", s["subscriptions"], "구독 중"),
+        ("ic-danger.svg", "danger", s["security"], "보안 알림"),
+        ("ic-caution.svg", "caution", s["unused"], "안 쓰는 계정"),
     ]
+    # 칸마다 뜻의 색을 입힌다. 0이면 색을 빼서 볼 것이 없다는 게 바로 보이게 한다
     cells = "".join(
-        f'<div class="rp-stat"><span class="rp-bubble {tint}">{_img(icon)}</span><b>{n}</b><span class="rp-stat-label">{label}</span></div>'
-        for icon, tint, n, label in items
+        f'<div class="rp-stat s-{tone if n else "zero"}"><span class="rp-bubble">{_img(icon)}</span><b>{n}</b><span class="rp-stat-label">{label}</span></div>'
+        for icon, tone, n, label in items
     )
     return f'<div class="rp-stats">{cells}</div>'
 
@@ -349,14 +350,16 @@ def _todo(accounts: List[Dict[str, Any]]) -> str:
     rows = []
     for a, i in items:
         icon, tint = KIND_STYLE.get(i["kind"], ("ic-caution.svg", "t-caution"))
+        tone = tint.removeprefix("t-")
         rows.append(
-            f'<div class="rp-row"><span class="rp-bubble {tint}">{_img(icon)}</span>'
-            f'<div class="rp-row-body"><div class="rp-row-head"><p class="rp-title">{_e(a["service"])} · {_e(i["kind"])}</p>'
+            f'<article class="rp-task k-{tone}"><div class="rp-task-head"><span class="rp-bubble {tint}">{_img(icon)}</span>'
+            f'<p class="rp-title">{_e(a["service"])}<span class="rp-kind">{_e(i["kind"])}</span></p>'
             f'<span class="rp-meta">{_md(i.get("date"))}</span></div>'
-            f'<p class="rp-text">{_lines(i["status"])}</p><p class="rp-advice">{_e(i["advice"])}</p></div></div>'
+            f'<p class="rp-text">{_lines(i["status"])}</p>'
+            f'<p class="rp-advice"><b>할 일</b>{_e(i["advice"])}</p></article>'
         )
-    return (f'<h2 class="rp-h2">확인할 일 <small>{len(items)}</small></h2>'
-            f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-card">{"".join(rows)}</div>')
+    return (f'<h2 class="rp-h2 h-urgent">확인할 일 <small>{len(items)}</small></h2>'
+            f'<p class="rp-note">구독·보안·휴면 안내 중 최근 것만 골랐어요.</p><div class="rp-tasks">{"".join(rows)}</div>')
 
 
 def _unused(accounts: List[Dict[str, Any]]) -> str:
@@ -496,7 +499,8 @@ def render_fragment(report: Dict[str, Any], created: datetime, full: bool, web: 
     top = _hero(report, s, created)
     band = [_stats(s), _discoveries(report, created, full)]
     if full:
-        cols = [_subscriptions(accounts), _todo(accounts), _unused(accounts)]
+        # 지금 손볼 것(확인할 일)이 먼저, 그다음 매달 나가는 돈(구독), 정리할 계정(안 쓰는 계정)
+        cols = [_todo(accounts), _subscriptions(accounts), _unused(accounts)]
         wide = [_all_accounts(accounts), _connected_apps(report), _timeline(accounts, created)]
         after = (_office(accounts) if web and accounts else "") + _method(report, s)
     else:
@@ -518,7 +522,7 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; background: #fff; font-family: "Pretendard Variable", Pretendard, "Malgun Gothic", sans-serif; }
 .pdf-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .pdf-head p { margin: 0; font-size: 12px; color: var(--rp-mute); text-align: right; }
-.rp-card, .rp-stat { box-shadow: 0 0 0 1px var(--rp-line); }
+.rp-card, .rp-task:not(.k-danger), .rp-stat.s-zero, .rp-find:not(.f-accent) { box-shadow: 0 0 0 1px var(--rp-line); }
 """
 
 

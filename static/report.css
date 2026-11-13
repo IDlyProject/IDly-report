@@ -7,6 +7,7 @@
   --rp-paper: #f9f9fd; --rp-paper-2: #eef0f7; --rp-surface: #ffffff;
   --rp-accent: #ff9b54; --rp-accent-ink: #202f61; --rp-accent-bg: #eef3ff; --rp-accent-deep: #1b2740;
   --rp-danger: #ee4e4e; --rp-caution: #ffb200; --rp-info: #2a2f8f;
+  --rp-danger-ink: #c62828; --rp-caution-ink: #8a5a00;
   --rp-tint-danger: #fef2f2; --rp-tint-caution: #fff8e1; --rp-tint-safe: #e8f5e9; --rp-tint-info: #eef3ff;
   --rp-on-navy: #ffffff; --rp-on-navy-2: rgba(255, 255, 255, 0.8); --rp-on-navy-3: rgba(255, 255, 255, 0.5); --rp-on-navy-rule: rgba(255, 255, 255, 0.16); --rp-navy-2: rgba(255, 255, 255, 0.1);
   --rp-focus: #2a2f8f;
@@ -40,10 +41,10 @@
 .rp-chips { display: flex; align-items: center; gap: 4px; }
 .rp-chip { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 12px;
   background: var(--rp-navy-2); font-size: 12px; font-weight: 600; color: var(--rp-on-navy); }
-.rp-label { margin-top: 20px !important; font-size: 24px; font-weight: 700; line-height: 1.3; color: var(--rp-on-navy);
+.rp-label { margin-top: 20px !important; font-size: 30px; font-weight: 800; line-height: 1.25; letter-spacing: -0.02em; color: var(--rp-on-navy);
   word-break: keep-all; overflow-wrap: break-word; min-width: 0; text-wrap: balance; font-variant-numeric: tabular-nums; }
 .rp-label em { font-style: normal; }
-.rp-desc { margin-top: 8px !important; font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--rp-on-navy-2); }
+.rp-desc { margin-top: 8px !important; font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--rp-on-navy-2); }
 
 /* 분석이 한 일: 읽은 메일 > 검토한 곳 > 찾은 계정. 칸은 세로 선으로만 나눈다 */
 .rp-funnel { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-top: 24px; padding-top: 16px;
@@ -57,20 +58,32 @@
 
 /* 숫자 3칸 */
 .rp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
-.rp-stat { padding: 16px 8px; border-radius: 16px; background: var(--rp-surface); text-align: center; box-shadow: var(--rp-shadow-sm); }
-.rp-stat .rp-bubble img { width: 14px; height: 14px; }
-.rp-stat b { display: block; margin-top: 8px; font-size: 24px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.rp-stat-label { display: block; margin-top: 4px; font-size: 12px; color: var(--rp-mute); white-space: nowrap; }
+/* 칸마다 뜻의 색: 구독은 네이비, 보안은 빨강, 안 쓰는 계정은 주황빛. 0인 칸은 색을 빼서 볼 것이 없다는 게 보이게 */
+.rp-stat { padding: 16px 8px 14px; border-radius: 16px; background: var(--rp-surface); text-align: center; box-shadow: var(--rp-shadow-sm); }
+.rp-stat .rp-bubble { background: var(--rp-surface); }
+.rp-stat .rp-bubble img { width: 16px; height: 16px; }
+.rp-stat b { display: block; margin-top: 8px; font-size: 30px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.rp-stat-label { display: block; margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--rp-sub); white-space: nowrap; }
+.rp-stat.s-info { background: var(--rp-tint-info); box-shadow: none; }
+.rp-stat.s-info b { color: var(--rp-main); }
+.rp-stat.s-danger { background: var(--rp-tint-danger); box-shadow: none; }
+.rp-stat.s-danger b { color: var(--rp-danger-ink); }
+.rp-stat.s-caution { background: var(--rp-tint-caution); box-shadow: none; }
+.rp-stat.s-caution b { color: var(--rp-caution-ink); }
+.rp-stat.s-zero b { color: var(--rp-mute); }
+.rp-stat.s-zero .rp-bubble { background: var(--rp-paper-2); }
 
 /* IDly가 찾아낸 것: 흰 카드 2열. 가장 큰 돈 하나만 옅은 파랑으로 한 줄을 다 쓴다 */
 .rp-finds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .rp-find { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; background: var(--rp-surface); box-shadow: var(--rp-shadow-sm); break-inside: avoid; }
 .rp-find-tag { font-size: 13px; font-weight: 600; color: var(--rp-mute); }
-.rp-find b { font-size: 22px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; color: var(--rp-main); word-break: keep-all; font-variant-numeric: tabular-nums; }
-.rp-find p { font-size: 13px; line-height: 1.5; color: var(--rp-sub); word-break: keep-all; }
+.rp-find b { font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; color: var(--rp-main); word-break: keep-all; font-variant-numeric: tabular-nums; }
+.rp-find p { font-size: 14px; line-height: 1.5; color: var(--rp-sub); word-break: keep-all; }
 /* 강조 칸(가장 큰 돈)은 한 줄을 다 쓰고, 나머지가 홀수로 남으면 마지막 칸도 한 줄을 쓴다 */
 .rp-finds:not(:has(.f-accent)) .rp-find:last-child:nth-child(odd), .rp-find.f-accent ~ .rp-find:last-child:nth-child(even) { grid-column: span 2; }
-.rp-find.f-accent { grid-column: span 2; background: var(--rp-accent-bg); box-shadow: none; }
+/* 가장 큰 돈: 시선이 머무는 한 곳이라 랜딩처럼 오렌지 바탕 */
+.rp-find.f-accent { grid-column: span 2; padding: 20px; background: var(--rp-note-bg); box-shadow: none; }
+.rp-find.f-accent b { font-size: 32px; }
 .rp-find.f-accent b { color: var(--rp-accent-ink); }
 .rp-find.f-accent .rp-find-tag, .rp-find.f-accent p { color: var(--rp-accent-deep); }
 
@@ -90,35 +103,54 @@
 .t-info { background: var(--rp-tint-info); }
 
 /* 섹션 */
-.rp-h2 { margin: 32px 0 14px !important; font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--rp-ink); text-wrap: balance; }
-.rp-h2 small { margin-left: 4px; font-size: 14px; font-weight: 600; color: var(--rp-mute); font-variant-numeric: tabular-nums; }
-.rp-note { margin: -6px 0 14px !important; font-size: 13px; line-height: 1.55; color: var(--rp-sub); }
+.rp-h2 { display: flex; align-items: center; gap: 8px; margin: 40px 0 14px !important; font-size: 22px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; color: var(--rp-ink); text-wrap: balance; }
+/* 개수는 제목 옆 둥근 꼬리표 */
+.rp-h2 small { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 13px; background: var(--rp-paper-2);
+  font-size: 14px; font-weight: 700; color: var(--rp-ink); font-variant-numeric: tabular-nums; }
+/* 확인할 일: 손볼 것이 있다는 신호라 오렌지 */
+.rp-h2.h-urgent small { background: var(--rp-accent); color: var(--rp-main); }
+.rp-note { margin: -4px 0 14px !important; font-size: 14px; line-height: 1.55; color: var(--rp-sub); }
 .rp-card { border-radius: 18px; background: var(--rp-surface); box-shadow: var(--rp-shadow-sm); overflow: hidden; }
-.rp-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; break-inside: avoid; }
+.rp-row { display: flex; gap: 12px; align-items: flex-start; padding: 16px; break-inside: avoid; }
 .rp-row + .rp-row { border-top: 1.33px solid var(--rp-line); }
 .rp-row-body { flex: 1; min-width: 0; }
 .rp-row-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.rp-title { font-size: 14px; font-weight: 600; }
-.rp-meta { flex: none; font-size: 11px; color: var(--rp-mute); font-variant-numeric: tabular-nums; }
-.rp-text { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--rp-sub); }
-.rp-advice { margin-top: 4px !important; font-size: 12px; line-height: 17px; color: var(--rp-main); font-weight: 500; }
+.rp-title { font-size: 16px; font-weight: 700; line-height: 1.35; color: var(--rp-ink); }
+.rp-meta { flex: none; font-size: 12px; color: var(--rp-mute); font-variant-numeric: tabular-nums; }
+.rp-text { margin-top: 4px !important; font-size: 14px; line-height: 1.55; color: var(--rp-sub); word-break: keep-all; }
+.rp-advice { margin-top: 4px !important; font-size: 14px; line-height: 1.55; color: var(--rp-main); font-weight: 600; word-break: keep-all; }
+
+/* 확인할 일: 항목마다 카드. 보안은 옅은 빨강 바탕, 할 일은 따로 상자에 굵게 */
+.rp-tasks { display: grid; gap: 10px; }
+.rp-task { padding: 16px; border-radius: 18px; background: var(--rp-surface); box-shadow: var(--rp-shadow-sm); break-inside: avoid; }
+.rp-task.k-danger { background: var(--rp-tint-danger); box-shadow: none; }
+.rp-task-head { display: flex; align-items: center; gap: 10px; }
+.rp-task-head .rp-title { flex: 1; min-width: 0; }
+.rp-task .rp-bubble { width: 36px; height: 36px; border-radius: 18px; }
+.rp-task.k-danger .rp-bubble { background: var(--rp-surface); }
+.rp-kind { margin-left: 6px; font-size: 13px; font-weight: 600; color: var(--rp-mute); }
+.rp-task.k-danger .rp-kind { color: var(--rp-danger-ink); }
+.rp-task > .rp-text { margin-top: 10px !important; }
+.rp-task .rp-advice { display: grid; gap: 2px; margin-top: 12px !important; padding: 12px 14px; border-radius: 12px; background: var(--rp-paper); }
+.rp-task.k-danger .rp-advice { background: var(--rp-surface); }
+.rp-advice b { font-size: 12px; font-weight: 700; color: var(--rp-mute); }
 .rp-why { display: inline-block; margin-top: 8px !important; padding: 2px 8px; border-radius: 6px; background: var(--rp-paper-2);
   font-size: 12px; line-height: 1.5; color: var(--rp-sub); }
-.rp-amount { flex: none; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.rp-amount span { display: block; font-size: 12px; font-weight: 400; color: var(--rp-mute); }
+.rp-amount { flex: none; text-align: right; font-size: 16px; font-weight: 800; color: var(--rp-ink); font-variant-numeric: tabular-nums; }
+.rp-amount span { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--rp-mute); }
 .rp-dot { flex: none; width: 8px; height: 8px; margin: 8px 4px 0; border-radius: 50%; }
 .d-danger { background: var(--rp-danger); }
 .d-caution { background: var(--rp-caution); }
 .d-info { background: var(--rp-info); }
-.rp-compact .rp-row { padding: 11px 16px; align-items: center; }
-.rp-compact .rp-title { font-weight: 500; }
+.rp-compact .rp-row { padding: 12px 16px; align-items: center; }
+.rp-compact .rp-title { font-size: 15px; font-weight: 600; }
 /* 이름만 가린 목록 (지금은 결제 OFF라 쓰지 않는다) */
 .rp-locked { cursor: pointer; }
 .rp-hidden { filter: blur(5px); user-select: none; }
 .rp-unlock { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; font-size: 14px; font-weight: 600; color: var(--rp-main); }
 .rp-unlock img { width: 14px; height: 14px; }
-.rp-empty { padding: 20px 16px; font-size: 13px; color: var(--rp-mute); }
-.rp-method { margin-top: 32px; font-size: 12px; line-height: 1.6; color: var(--rp-mute); }
+.rp-empty { padding: 20px 16px; font-size: 14px; color: var(--rp-mute); }
+.rp-method { margin-top: 40px; font-size: 13px; line-height: 1.6; color: var(--rp-mute); }
 .rp-method p + p { margin-top: 8px; }
 
 /* 사무실 도입 알림 (웹 리포트만, PDF에는 없음). iOS 알림 모양: 반투명 회색 판, 머리줄, 굵은 제목, 내용. 위로 밀어 올리거나 Esc로 닫는다 */
@@ -154,7 +186,7 @@
 }
 
 @media print {
-  .rp-row, .rp-stat, .rp-hero, .rp-find, .rp-timeline { break-inside: avoid; }
+  .rp-row, .rp-stat, .rp-hero, .rp-find, .rp-timeline, .rp-task { break-inside: avoid; }
   .rp-h2 { break-after: avoid; }
 }
 @media (prefers-reduced-motion: reduce) {

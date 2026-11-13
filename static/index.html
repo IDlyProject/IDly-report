@@ -27,7 +27,11 @@
         <a href="#ld-office-b2b">기업 서비스</a>
         <a href="#help" data-ga="help_open">도움말</a>
       </nav>
-      <button class="ld-top-start" type="button" data-start data-ga-label="nav">시작하기</button>
+      <!-- 계정이 있으면 로그인해서 내 리포트로 (계정으로 로그인하지 않았을 때만 보인다). 로그인하면 '내 리포트'가 대신 보인다 -->
+      <div class="ld-top-end">
+        <button class="ld-top-login" type="button" data-open-login="login" data-login-link data-ga="login_open" data-ga-label="nav">로그인</button>
+        <button class="ld-top-start" type="button" data-start data-ga-label="nav">시작하기</button>
+      </div>
     </div>
   </header>
 
@@ -467,31 +471,25 @@
 </main>
 
 <!-- 요약 + 결제 (Figma: 2-4-1 보안 리포트) -->
-<!-- 원하는 금액 결제: 두 번째 리포트부터 전체 리포트 앞에 뜬다 (첫 리포트는 무료로 바로 열린다). 0원도 고를 수 있다.
-     고를 수 있는 금액은 서버가 준다 (Paddle 가격 id가 있는 금액만). 기본으로 골라 둔 금액은 없다 -->
-<main id="preview" class="screen bg-gradient" hidden>
-  <header class="bar-head">
-    <a class="back" href="#home" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
-  </header>
-  <div class="content">
-    <div class="title pay-head">
-      <h1>내 계정 보안 리포트</h1>
-      <p>지금까지 무료로 제공된 리포트입니다. 서비스 운영과 개선에 도움이 되고 싶다면 원하는 금액을 지불해 주세요.</p>
-    </div>
+<!-- 원하는 금액 결제 (바텀시트): 두 번째 리포트부터, 가린 리포트 위에 뜬다 (첫 리포트는 무료로 바로 열린다). 0원도 고를 수 있다.
+     고를 수 있는 금액은 서버가 준다. 기본으로 골라 둔 금액은 없다. 닫아도 리포트 아래 버튼으로 다시 연다 -->
+<div class="sheet-backdrop pay-sheet" id="pay-sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pay-title">
+    <span class="sheet-handle" aria-hidden="true"></span>
+    <h2 class="sheet-title" id="pay-title">내 계정 보안 리포트</h2>
+    <p class="sheet-desc">지금까지 무료로 제공된 리포트입니다. 서비스 운영과 개선에 도움이 되고 싶다면 원하는 금액을 지불해 주세요.</p>
     <fieldset class="pay-amounts">
       <legend>얼마를 지불하시겠어요?</legend>
       <div id="pay-options"></div>
     </fieldset>
     <p class="pay-picked">선택한 금액 <b id="pay-picked">-</b></p>
     <p class="error" id="pay-error" role="alert" hidden></p>
-    <p class="delete-row"><button class="delete-link" type="button" data-delete-report>이 리포트 삭제하기</button></p>
-  </div>
-  <div class="cta">
     <button class="btn btn-main" id="pay" disabled>금액을 골라 주세요</button>
     <p class="cta-note" id="pay-note"></p>
+    <button class="cta-link" type="button" id="pay-later">나중에 고르기</button>
     <button class="cta-link dev" id="dev-confirm" type="button" hidden>테스트: 결제 완료 처리 (IDLY_DEBUG)</button>
   </div>
-</main>
+</div>
 
 <div class="modal-backdrop" id="delete-modal" hidden>
   <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-text">
@@ -519,14 +517,14 @@
     <h2 class="sheet-title" id="login-title">로그인하고 시작하기</h2>
     <p class="sheet-desc" id="login-desc">만든 리포트를 계정에 모아 두고 언제든 다시 볼 수 있어요.</p>
     <div class="sheet-actions">
-      <button class="btn btn-social btn-kakao" type="button" data-login="kakao"><img src="/static/assets/kakao-symbol.svg" alt="" width="18" height="18">카카오로 시작하기</button>
-      <button class="btn btn-social btn-apple" type="button" data-login="apple"><img src="/static/assets/apple-logo.svg" alt="" width="24" height="24">Apple로 계속하기</button>
+      <button class="btn btn-social btn-kakao" type="button" data-login="kakao"><img src="/static/assets/kakao-symbol.svg" alt="" width="18" height="18"><span id="login-kakao-label">카카오로 시작하기</span></button>
+      <button class="btn btn-social btn-apple" type="button" data-login="apple"><img src="/static/assets/apple-logo.svg" alt="" width="24" height="24"><span id="login-apple-label">Apple로 계속하기</span></button>
     </div>
     <button class="cta-link" type="button" id="open-guest">로그인 없이 사용하기</button>
     <button class="cta-link" type="button" id="login-skip" hidden>로그인 없이 PDF만 받기</button>
     <p class="error" id="login-error" role="alert" hidden></p>
     <p class="sheet-mock" id="login-mock" hidden>목업 로그인: 누르면 테스트 계정으로 바로 로그인돼요.</p>
-    <p class="sheet-note">처음이면 다음 단계에서 이용약관·개인정보처리방침에 동의해요.</p>
+    <p class="sheet-note" id="login-note">처음이면 다음 단계에서 이용약관·개인정보처리방침에 동의해요.</p>
   </div>
 </div>
 
@@ -554,8 +552,6 @@
     <a class="back" href="#home" id="report-back" aria-label="홈으로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
     <h2 class="head-title" id="report-title">계정 리포트</h2>
     <a class="head-home" href="#intro" data-ga="intro_open" data-ga-label="report">IDly 소개</a>
-    <!-- 리포트 지우기: 머리줄 오른쪽에 늘 보이게 (샘플에서는 숨긴다). 누르면 확인 창을 먼저 띄운다 -->
-    <button class="head-delete" type="button" id="delete-report" data-delete-report>삭제</button>
   </header>
   <div class="content">
     <!-- 체험(로그인 없이)으로 만든 리포트: 저장하려면 로그인 -->
@@ -568,10 +564,15 @@
     </div>
     <div id="report-body"></div>
     <p class="foot-note"><a href="#connect" id="new-report" data-ga="new_report_click" data-ga-label="report">다른 메일로 새 리포트 만들기</a></p>
-    <p class="delete-row"><button class="delete-link" type="button" id="delete-report-foot" data-delete-report>이 리포트 삭제하기</button></p>
   </div>
   <div class="cta">
-    <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>
+    <!-- PDF 옆에 작은 삭제 버튼 (샘플에서는 숨긴다). 누르면 확인 창을 먼저 띄운다 -->
+    <div class="cta-row">
+      <a class="btn btn-main" id="pdf" href="#">PDF 다운로드</a>
+      <!-- 금액을 고르기 전(가린 리포트): PDF 대신 금액 고르기 시트를 다시 연다 -->
+      <button class="btn btn-main" type="button" id="pay-open" hidden>금액 고르고 전체 리포트 보기</button>
+      <button class="btn btn-delete" type="button" id="delete-report" data-delete-report>삭제</button>
+    </div>
     <a class="btn btn-main" id="empty-retry" href="#connect" data-ga="empty_retry_click" hidden>다른 메일로 다시 해 보기</a>
     <a class="btn btn-main" id="sample-back" href="#" data-ga="sample_back_click" hidden>내 리포트 확인하러 가기</a>
   </div>

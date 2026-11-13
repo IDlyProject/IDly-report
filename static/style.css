@@ -3,7 +3,7 @@
    바탕 #F9F9FD → #EEF0F7. 글자·선은 랜딩의 반투명 값을 흰 바탕에 올린 단색 */
 :root {
   --main: #202f61; --main-2: #2a2f8f; --main-press: #17234a; --ink: #1b2740; --ink-2: #3d465a; --sub: #565f71; --mute: #767d8c; --hint: #a9aebb;
-  --line: #e4e6ec; --border: #d7dae3; --info-bg: #eef3ff; --lavender: #eef0f7; --danger: #ee4e4e;
+  --line: #e4e6ec; --border: #d7dae3; --info-bg: #eef3ff; --lavender: #eef0f7; --danger: #ee4e4e; --danger-strong: #c62828;
   --accent: #ff9b54; --accent-bg: #ffe9d3; --accent-ink: #7a3d0e; --bg: #f9f9fd; --bg-end: #eef0f7; --focus: #2a2f8f;
   --shadow: 0 1px 2px rgba(27, 39, 64, 0.04), 0 12px 32px -8px rgba(32, 47, 97, 0.16);
   --shadow-sm: 0 1px 2px rgba(27, 39, 64, 0.06), 0 6px 16px -6px rgba(32, 47, 97, 0.18);
@@ -60,18 +60,19 @@ h1, h2, p { margin: 0; }
 .head-home:hover { color: var(--main); }
 .head-home:focus-visible, .logo-head a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
 .logo-head a { display: flex; }
-/* 리포트 머리줄의 삭제: 'IDly 소개' 옆, 빨강 글자 */
-#report .head-home { margin-right: 0; }
-.head-delete { display: flex; align-items: center; flex: none; height: 44px; padding: 0 8px; margin-right: -8px; border: 0; background: none;
-  font: inherit; font-size: 15px; font-weight: 600; color: var(--danger); cursor: pointer; }
-.head-delete:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+/* 리포트 아래 버튼 줄: PDF 다운로드 옆에 작은 삭제 */
+.cta-row { display: flex; gap: 8px; width: 100%; max-width: calc(var(--report-col) - 32px); }
+.cta-row > .btn-main { flex: 1; min-width: 0; }
+.btn-delete { flex: none; width: auto; padding: 0 18px; border: 1px solid var(--line); background: #fff; color: var(--danger-strong); font-size: 15px; }
+.btn-delete:hover { border-color: var(--danger-strong); }
+.btn-delete:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* 홈 목록: 줄 링크와 삭제 버튼을 나란히 */
 .home-item { display: flex; align-items: center; }
 .home-item + .home-item { border-top: 1.33px solid var(--line); }
 .home-item > .home-row { flex: 1; min-width: 0; }
 .home-del { flex: none; min-height: 44px; margin-right: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff;
-  font: inherit; font-size: 13px; font-weight: 600; color: var(--danger); cursor: pointer; }
-.home-del:hover { border-color: var(--danger); }
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--danger-strong); cursor: pointer; }
+.home-del:hover { border-color: var(--danger-strong); }
 .home-del:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .head-title { font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
 .steps { display: flex; gap: 6px; }
@@ -195,7 +196,7 @@ h1, h2, p { margin: 0; }
 .state { flex: none; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 .state-paid { background: #e8f5e9; color: #2e7d32; }
 .state-unpaid { background: var(--info-bg); color: var(--main); }
-.state-busy { background: #fff8e1; color: #9a6b00; }
+.state-busy { background: #fff8e1; color: #8a5a00; }
 .menu { display: grid; }
 .help .menu-row { padding: 12px 0; }
 .help .menu-row + .menu-row { border-top-width: 1px; }
@@ -327,12 +328,12 @@ h1, h2, p { margin: 0; }
 .help .business { margin-top: 40px; }
 
 /* 확인 모달의 위험 버튼 (회원 탈퇴) */
-.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger { background: var(--danger-strong); color: #fff; }
 /* 리포트 지우기: 눈에 덜 띄는 텍스트 버튼 (실수로 누르지 않게 맨 아래, 확인 창을 거친다) */
 .delete-row { margin-top: 8px; text-align: center; }
 .delete-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; border: 0; background: none;
   font: inherit; font-size: 13px; color: var(--mute); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.delete-link:hover { color: var(--danger); }
+.delete-link:hover { color: var(--danger-strong); }
 .delete-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
 
 /* 로그인 없이 사용하기: 저장 안내 팝업과 홈 안내 카드 */
@@ -357,11 +358,17 @@ h1, h2, p { margin: 0; }
 .about-group .chip { min-height: 40px; }
 .about-note { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--sub); }
 
-/* 결제 화면: 원하는 금액 고르기. 한 줄에 금액 하나, 고른 줄은 칩(.chip)을 고른 모양과 같게 */
-.pay-head p { line-height: 1.5; word-break: keep-all; }
+/* 금액 고르기 시트: 리포트 위에 뜨고, 머리줄·알림·의견 버튼보다 위. 한 줄에 금액 하나, 고른 줄은 칩(.chip)을 고른 모양과 같게 */
+.pay-sheet { z-index: 45; }
+.pay-sheet .sheet { max-height: 92dvh; overflow-y: auto; }
+.pay-sheet .sheet-desc { line-height: 1.5; word-break: keep-all; }
+.pay-sheet .btn { margin-top: 16px; }
+.pay-sheet .cta-note { margin-top: 10px; }
+.pay-sheet #pay-later { display: block; width: 100%; min-height: 44px; margin-top: 4px; color: var(--sub); font-weight: 600; }
 .pay-amounts { margin: 16px 0 0; padding: 0; border: 0; min-width: 0; }
 .pay-amounts legend { padding: 0; margin-bottom: 12px; font-size: 16px; font-weight: 700; color: var(--ink); }
-#pay-options { display: grid; gap: 8px; }
+#pay-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#pay-options .pay-option:first-child { grid-column: 1 / -1; }
 .pay-option { position: relative; display: flex; align-items: center; min-height: 52px; padding: 0 16px; border: 1px solid var(--line);
   border-radius: 14px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer;
   transition: border-color 160ms ease-out, background-color 160ms ease-out; }
@@ -374,7 +381,7 @@ h1, h2, p { margin: 0; }
 .pay-free { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--accent-bg);
   color: var(--accent-ink); font-size: 13px; font-style: normal; font-weight: 600; vertical-align: 1px; }
 .pay-option:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
-.pay-picked { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; padding-top: 16px;
+.pay-picked { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 14px;
   border-top: 1px solid var(--line); font-size: 14px; color: var(--sub); }
 .pay-picked b { font-size: 20px; font-weight: 700; color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .pay-option { transition: none; } }
@@ -395,6 +402,7 @@ body.is-wide:not(.is-landing) { background: var(--bg); }
 #report .bar-head { position: sticky; top: 0; z-index: 20; max-width: none; height: 56px; margin-top: 0; background: rgba(249, 249, 253, 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 #report .cta { max-width: none; justify-items: center; }
 #report .cta .btn { max-width: calc(var(--report-col) - 32px); }
+#report .cta-row .btn { max-width: none; }
 @media (min-width: 40rem) {
   #report .bar-head { padding: 0 32px; }
 }

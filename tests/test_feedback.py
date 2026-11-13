@@ -3,11 +3,16 @@ import os
 import unittest
 from unittest.mock import patch
 
-import httpx
-from fastapi.testclient import TestClient
+# .env의 실제 DB(팀 공용)에 붙지 않게 app을 불러오기 전에 비운다. 이 파일이 가장 먼저 app을 불러오므로
+# 여기서 비우지 않으면 셸에서 DATABASE_URL을 지운 경우(PowerShell의 $env:X='') .env 값이 들어간다
+os.environ["DATABASE_URL"] = ""
+os.environ["IDLY_DB"] = ":memory:"
 
-import app
-import db
+import httpx  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+import app  # noqa: E402
+import db  # noqa: E402
 
 
 class FakeDiscordClient:
