@@ -7,7 +7,9 @@ WORKDIR /app
 
 COPY requirements.txt .
 # 크로뮴과 시스템 라이브러리, PDF 한글이 깨지지 않게 CJK 글꼴
-RUN pip install -r requirements.txt \
+# playwright 1.65부터 드라이버(node)가 libatomic1을 찾으므로 먼저 깐다
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 \
+    && pip install -r requirements.txt \
     && playwright install --with-deps chromium \
     && apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
