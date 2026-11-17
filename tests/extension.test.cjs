@@ -29,7 +29,7 @@ test('bridge announces installation before documentElement is available and chec
 test('worker runs login → confirmation → click → completion without sending login-page contents', async () => {
   let onMessage;
   const statuses = [], decisions = [], requests = [];
-  let clicks = 0, created = 0, loginPage = true;
+  let clicks = 0, created = 0, loginPage = true, browserSessions = 0, confirmationId = null;
   const chrome = {
     runtime: { getManifest: () => manifest, onMessage: { addListener: (fn) => { onMessage = fn; } } },
     tabs: {
@@ -49,7 +49,19 @@ test('worker runs login → confirmation → click → completion without sendin
   };
   let finished;
   const done = new Promise((resolve) => { finished = resolve; });
+  class FakeBrowserSession {
+    constructor(api, tabId) { this.tabId = tabId; browserSessions++; }
+    async attach() {}
+    async close() {}
+    async snapshot() { return { url: 'https://example.com/account', password: loginPage,
+      snapshotId: 's1', text: loginPage ? '' : '설정', elements: loginPage ? [] : [
+        { i: 0, ref: 's1:e0', role: 'button', tag: 'button', text: '탈퇴', disabled: false }] }; }
+    async click(ref, snapshotId) {
+      assert.equal(ref, 's1:e0'); assert.equal(snapshotId, 's1'); clicks++; return true;
+    }
+  }
   vm.runInNewContext(source('extension/background.js'), {
+    importScripts() {}, IdlyBrowser: { BrowserSession: FakeBrowserSession, StaleSnapshotError: class extends Error {} },
     chrome, URL, setTimeout: (fn) => { queueMicrotask(fn); },
     fetch: async (url, options) => {
       const body = options.body ? JSON.parse(options.body) : null;
@@ -57,14 +69,15 @@ test('worker runs login → confirmation → click → completion without sendin
       let data = {};
       if (url.endsWith('/status')) {
         statuses.push(body.status);
+        confirmationId = body.confirmationId;
         if (body.status === '완료') finished();
       } else if (url.endsWith('/commands')) {
         if (statuses.at(-1) === '입력 필요') { loginPage = false; data = { commands: ['resume'] }; }
-        else data = { commands: statuses.at(-1) === '확인 필요' ? ['confirm'] : [] };
+        else data = { commands: statuses.at(-1) === '확인 필요' ? [{ type: 'confirm', confirmationId }] : [] };
       } else if (url.endsWith('/decide')) {
         decisions.push(body);
         data = decisions.length === 1
-          ? { decision: 'click', index: 0, label: '탈퇴', confirm: true }
+          ? { decision: 'click', ref: 's1:e0', snapshotId: 's1', label: '탈퇴', confirm: true }
           : { decision: 'done' };
       }
       return { ok: true, json: async () => data };
@@ -77,6 +90,7 @@ test('worker runs login → confirmation → click → completion without sendin
   onMessage({ type: 'IDLY_START', run }, { url: 'https://idly.kr' });
   await Promise.race([done, new Promise((_, reject) => setTimeout(() => reject(new Error('worker timeout')), 2000))]);
   assert.equal(created, 1);
+  assert.equal(browserSessions, 1);
   assert.equal(clicks, 1);
   assert.ok(statuses.includes('입력 필요'));
   assert.ok(statuses.includes('확인 필요'));

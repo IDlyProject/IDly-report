@@ -50,7 +50,7 @@
           choices.push(['cancel', '취소']);
           for (const [type, label] of choices) row.append(button(label, async () => {
             try {
-              await api(`/api/reports/${id}/extension-runs/${run.id}/commands`, { method: 'POST', body: JSON.stringify({ type }) });
+              await api(`/api/reports/${id}/extension-runs/${run.id}/commands`, { method: 'POST', body: JSON.stringify({ type, confirmationId: run.confirmationId }) });
               await refresh(id, current);
             } catch (error) { showError('#extension-error', error.message); }
           }));

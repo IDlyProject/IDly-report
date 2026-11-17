@@ -655,11 +655,13 @@ def _owned_extension_run(report_id: str, run_id: str, request: Request):
 
 class ExtensionCommand(BaseModel):
     type: str = Field(pattern="^(resume|confirm|cancel)$")
+    confirmationId: Optional[str] = Field(default=None, max_length=256)
 
 
 @app.post("/api/reports/{report_id}/extension-runs/{run_id}/commands")
 def extension_command(report_id: str, run_id: str, body: ExtensionCommand, request: Request):
-    _owned_extension_run(report_id, run_id, request).send({"type": body.type})
+    if not _owned_extension_run(report_id, run_id, request).send({"type": body.type, "confirmationId": body.confirmationId}):
+        raise ApiError(409, "확인할 화면이 바뀌었어요. 최신 상태에서 다시 확인해주세요.")
     return {"ok": True}
 
 
@@ -675,7 +677,12 @@ class AgentElement(BaseModel):
     i: int = Field(ge=0, lt=150)
     tag: str = Field(max_length=30)
     text: str = Field(max_length=80)
-    href: str = Field(default="", max_length=120)
+    href: str = Field(default="", max_length=2048)
+    ref: str = Field(default="", max_length=128)
+    role: str = Field(default="", max_length=40)
+    frameId: str = Field(default="", max_length=128)
+    disabled: bool = False
+    editable: bool = False
 
 
 class AgentPage(BaseModel):
@@ -684,6 +691,9 @@ class AgentPage(BaseModel):
     elements: list[AgentElement] = Field(default_factory=list, max_length=150)
     history: list[str] = Field(default_factory=list, max_length=25)
     step: int = Field(default=0, ge=0, lt=25)
+    snapshotId: str = Field(default="", max_length=128)
+    truncated: bool = False
+    blockedFrames: int = Field(default=0, ge=0, le=32)
 
 
 @app.post("/api/agent/{run_id}/decide")
@@ -691,7 +701,8 @@ def agent_decide(run_id: str, body: AgentPage, request: Request):
     run = _ext_run(run_id, request)
     if not _extension_enabled():
         raise ApiError(409, "브라우저 확장 에이전트가 아직 설정되지 않았어요.")
-    state = {"elements": [e.model_dump() for e in body.elements], "text": body.text}
+    state = {"elements": [e.model_dump() for e in body.elements], "text": body.text,
+             "snapshotId": body.snapshotId, "truncated": body.truncated, "blockedFrames": body.blockedFrames}
     try:
         return run.decide(os.environ["OPENAI_API_KEY"], body.url, state, [h[:200] for h in body.history][-8:])
     except RuntimeError as exc:
@@ -703,11 +714,12 @@ class AgentStatus(BaseModel):
     message: str = Field(default="", max_length=300)
     step: int = Field(default=0, ge=0, lt=25)
     error: Optional[str] = Field(default=None, max_length=300)
+    confirmationId: Optional[str] = Field(default=None, max_length=256)
 
 
 @app.post("/api/agent/{run_id}/status")
 def agent_status(run_id: str, body: AgentStatus, request: Request):
-    _ext_run(run_id, request).report(body.status, body.message, body.step, body.error)
+    _ext_run(run_id, request).report(body.status, body.message, body.step, body.error, body.confirmationId)
     return {"ok": True}
 
 

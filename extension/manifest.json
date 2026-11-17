@@ -1,11 +1,13 @@
 {
   "manifest_version": 3,
   "name": "IDly 계정 정리 에이전트",
-  "version": "0.1.0",
+  "version": "0.3.0",
+  "minimum_chrome_version": "125",
   "description": "IDly에서 고른 계정의 탈퇴·구독 해지를 내 크롬에서 대신 진행합니다. 비밀번호와 로그인 정보는 브라우저 밖으로 나가지 않습니다.",
   "permissions": [
     "tabs",
-    "scripting"
+    "scripting",
+    "debugger"
   ],
   "host_permissions": [
     "<all_urls>"

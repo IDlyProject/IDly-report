@@ -47,7 +47,8 @@ class ExtensionRun:
         self.step = 0
         self.message = "IDly 확장이 새 탭을 여는 중"
         self.error: Optional[str] = None
-        self.commands: Deque[str] = deque()
+        self.confirmation_id: Optional[str] = None
+        self.commands: Deque[Any] = deque()
         self._on_event = on_event or (lambda event, detail: None)
 
     def to_dict(self) -> dict:
@@ -63,6 +64,7 @@ class ExtensionRun:
             "message": self.message,
             "error": self.error,
             "hasScreen": False,
+            "confirmationId": self.confirmation_id,
         }
 
     def launch_info(self, api_base: str) -> dict:
@@ -71,19 +73,29 @@ class ExtensionRun:
 
     # --- 웹에서 오는 명령 ---
 
-    def send(self, command: Dict[str, Any]) -> None:
+    def send(self, command: Dict[str, Any]) -> bool:
         kind = command.get("type")
+        if kind == "confirm":
+            if self.status != "확인 필요":
+                return False
+            if self.confirmation_id:
+                if command.get("confirmationId") != self.confirmation_id:
+                    return False
+                self.commands.append({"type": kind, "confirmationId": self.confirmation_id})
+                return True
         if kind in ("resume", "confirm", "cancel"):
             self.commands.append(kind)
+            return True
+        return False
 
     # --- 확장에서 오는 요청 ---
 
-    def take_commands(self) -> List[str]:
+    def take_commands(self) -> List[Any]:
         out = list(self.commands)
         self.commands.clear()
         return out
 
-    def report(self, status: str, message: str, step: int, error: Optional[str]) -> None:
+    def report(self, status: str, message: str, step: int, error: Optional[str], confirmation_id: Optional[str] = None) -> None:
         if status not in STATUSES:
             return
         if status != self.status:
@@ -92,6 +104,7 @@ class ExtensionRun:
             print(f"[agent] {self.id} {self.domain} 확장 실패: {error}")
             error = explain(error, url=start_url(self.domain))
         self.status, self.message, self.step, self.error = status, message[:300], step, error
+        self.confirmation_id = confirmation_id if status == "확인 필요" else None
 
     def decide(self, api_key: str, url: str, state: Dict[str, Any], history: List[str]) -> Dict[str, Any]:
         """AI에게 다음 행동을 묻고, 안전 규칙을 서버에서 한 번 더 적용한다."""
@@ -102,22 +115,40 @@ class ExtensionRun:
         reason = str(decision.get("reason") or "")
         self._on_event("AI 판단", f"{kind}: {reason}"[:200])
         out: Dict[str, Any] = {"decision": kind, "reason": reason, "confirm": False}
+        if state.get("snapshotId"):
+            out["snapshotId"] = state["snapshotId"]
         if kind == "goto":
             target = str(decision.get("url") or "")
             if not target.startswith("http") or not _same_site(target, self.domain):
                 return {"decision": "skip", "reason": f"다른 사이트 주소는 열지 않아요: {target[:80]}", "confirm": False}
             out["url"] = target
-        if kind in ("click", "confirm_final"):
+        if kind == "scroll":
+            if not state.get("snapshotId") or decision.get("direction") not in ("up", "down"):
+                return {"decision": "skip", "reason": "스크롤 방향을 다시 확인할게요.", "confirm": False}
+            out["direction"] = decision["direction"]
+        if kind in ("click", "confirm_final", "fill"):
             index = decision.get("index")
             elements = state.get("elements") or []
             if type(index) is not int or not 0 <= index < len(elements):
                 return {"decision": "skip", "reason": "AI가 없는 요소를 골랐어요. 다시 볼게요.", "confirm": False}
             el = elements[index]
+            if el.get("disabled"):
+                return {"decision": "skip", "reason": "사용할 수 없는 요소예요. 다시 볼게요.", "confirm": False}
             href = str(el.get("href") or "")
             if href and not _same_site(urljoin(url, href), self.domain):
                 return {"decision": "skip", "reason": f"다른 사이트로 가는 링크는 누르지 않아요: {el.get('text')}", "confirm": False}
             out["index"] = index
             out["label"] = el.get("text")
+            if el.get("ref") and state.get("snapshotId"):
+                out["ref"] = el["ref"]
+            if kind == "fill":
+                value = decision.get("text")
+                if (not out.get("ref") or el.get("editable") is not True or
+                        re.search(r"password|passwd|otp|인증.?번호|비밀번호|카드.?번호|verification", str(el.get("text") or ""), re.I) or
+                        not isinstance(value, str) or len(value) > 200):
+                    return {"decision": "skip", "reason": "이 입력은 직접 확인이 필요해요.", "confirm": False}
+                out["text"] = value
+                return out
             # AI가 그냥 click이라 해도, 되돌릴 수 없어 보이는 버튼이면 사용자 확정을 받게 한다
             out["confirm"] = kind == "confirm_final" or (
                 bool(_DESTRUCTIVE_RE.search(str(el.get("text") or "")))

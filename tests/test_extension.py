@@ -109,6 +109,62 @@ class ExtensionTests(unittest.TestCase):
         with patch.object(runs, '_ask', return_value={"decision": "click", "index": True}):
             self.assertEqual(run.decide('test', 'https://example.com', state, [])['decision'], 'skip')
 
+    def test_snapshot_references_and_safe_fill_contract(self):
+        run = runs.ExtensionRun('report', 'example.com', '탈퇴', '예시', '')
+        state = {"text": "계정 설정", "snapshotId": "s1", "elements": [
+            {"i": 0, "ref": "s1:e0", "tag": "button", "role": "button", "text": "계정 삭제", "disabled": False},
+            {"i": 1, "ref": "s1:e1", "tag": "textarea", "role": "textbox", "text": "탈퇴 사유", "editable": True},
+        ]}
+        with patch.object(runs, '_ask', return_value={"decision": "click", "index": 0}):
+            result = run.decide('test', 'https://example.com', state, [])
+        self.assertEqual((result['ref'], result['snapshotId'], result['confirm']), ('s1:e0', 's1', True))
+        with patch.object(runs, '_ask', return_value={"decision": "fill", "index": 1, "text": "사용하지 않아요"}):
+            result = run.decide('test', 'https://example.com', state, [])
+        self.assertEqual((result['ref'], result['text']), ('s1:e1', '사용하지 않아요'))
+        for decision in [
+            {"decision": "fill", "index": 0, "text": "no"},
+            {"decision": "fill", "index": 1, "text": 'x' * 201},
+            {"decision": "scroll", "direction": "sideways"},
+        ]:
+            with patch.object(runs, '_ask', return_value=decision):
+                self.assertEqual(run.decide('test', 'https://example.com', state, [])['decision'], 'skip')
+        state['elements'][0]['disabled'] = True
+        with patch.object(runs, '_ask', return_value={"decision": "click", "index": 0}):
+            self.assertEqual(run.decide('test', 'https://example.com', state, [])['decision'], 'skip')
+        with patch.object(runs, '_ask', return_value={"decision": "scroll", "direction": "down"}):
+            self.assertEqual(run.decide('test', 'https://example.com', state, [])['direction'], 'down')
+
+    def test_api_preserves_snapshot_and_frame_metadata_in_decision(self):
+        launch = self.start().json()
+        with patch.object(runs, '_ask', return_value={"decision": "click", "index": 0}) as ask:
+            response = self.client.post('/api/agent/' + launch['id'] + '/decide',
+                headers={"Authorization": "Bearer " + launch['token']}, json={
+                    "url": "https://example.com/settings", "snapshotId": "s1", "truncated": True,
+                    "elements": [{"i": 0, "ref": "s1:e0", "frameId": "frame1", "role": "button",
+                                  "tag": "button", "text": "설정", "disabled": False, "editable": False}]})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['ref'], 's1:e0')
+        self.assertEqual(ask.call_args.args[5]['snapshotId'], 's1')
+        self.assertEqual(ask.call_args.args[5]['elements'][0]['frameId'], 'frame1')
+
+    def test_confirmation_command_is_bound_to_current_snapshot(self):
+        launch = self.start().json()
+        token = {"Authorization": "Bearer " + launch['token']}
+        base = '/api/agent/' + launch['id']
+        command = self.path + '/' + launch['id'] + '/commands'
+        response = self.client.post(base + '/status', headers=token, json={
+            "status": "확인 필요", "message": "확정할까요?", "confirmationId": "snapshot-one:button"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.post(command, headers=self.headers,
+            json={"type": "confirm", "confirmationId": "old-snapshot"}).status_code, 409)
+        self.assertEqual(self.client.post(command, headers=self.headers,
+            json={"type": "confirm"}).status_code, 409)
+        self.assertEqual(self.client.get(base + '/commands', headers=token).json()['commands'], [])
+        self.assertEqual(self.client.post(command, headers=self.headers,
+            json={"type": "confirm", "confirmationId": "snapshot-one:button"}).status_code, 200)
+        self.assertEqual(self.client.get(base + '/commands', headers=token).json()['commands'],
+                         [{"type": "confirm", "confirmationId": "snapshot-one:button"}])
+
     def test_commands_cannot_access_another_report_run(self):
         other = runs.create(runs.ExtensionRun('other-report', 'example.com', '탈퇴', '예시', ''))
         response = self.client.post(self.path + '/' + other.id + '/commands', headers=self.headers, json={"type": "cancel"})

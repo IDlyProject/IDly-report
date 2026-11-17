@@ -1,10 +1,13 @@
 // IDly 확장 에이전트. 사용자 크롬의 새 탭에서 탈퇴·해지를 진행한다.
 //
 // - 이미 로그인된 브라우저를 그대로 쓴다. 비밀번호·쿠키는 브라우저 밖으로 나가지 않는다.
-// - 매 단계 화면의 버튼·링크 목록과 글자 일부를 IDly 서버로 보내 다음 행동을 받는다 (AI는 서버에서).
+// - 매 단계 AX 스냅샷을 IDly 서버로 보내 다음 행동을 받는다 (AI는 서버에서).
 //   비밀번호 칸이 보이는 화면의 글자는 보내지 않고, 사용자에게 로그인을 맡긴다.
 // - 되돌릴 수 없는 버튼은 서버가 confirm=true로 표시하고, 사용자가 확정해야 누른다.
 // - 진행 상황은 작업 탭 위의 패널과 IDly 웹 정리 내역에 같이 보인다.
+
+importScripts('vendor/crx-driver.js', 'browser-session.js')
+const { BrowserSession, StaleSnapshotError } = IdlyBrowser
 
 const MAX_STEPS = 25
 const USER_WAIT_MS = 15 * 60 * 1000
@@ -18,7 +21,11 @@ const REPORT_ORIGINS = new Set(chrome.runtime.getManifest().content_scripts[0].m
 chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === 'IDLY_PANEL') {
     const run = runs.get(msg.runId)
-    if (run && sender.tab?.id === run.tabId && ['resume', 'confirm', 'cancel'].includes(msg.command)) run.local.push(msg.command)
+    if (run && sender.tab?.id === run.tabId && ['resume', 'confirm', 'cancel'].includes(msg.command)) {
+      if (msg.command === 'confirm') {
+        if (run.status === '확인 필요' && msg.confirmationId === run.confirmationId) run.local.push({ type: 'confirm', confirmationId: msg.confirmationId })
+      } else run.local.push(msg.command)
+    }
     return
   }
   if (!sender.url || !REPORT_ORIGINS.has(new URL(sender.url).origin)) return
@@ -33,6 +40,7 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
 chrome.tabs.onCreated.addListener((tab) => {
   for (const r of runs.values()) {
     if (tab.openerTabId === r.tabId && !r.finished) {
+      resetBrowser(r)
       r.previousTabs.push(r.tabId)
       r.tabId = tab.id
     }
@@ -41,6 +49,7 @@ chrome.tabs.onCreated.addListener((tab) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
   for (const r of runs.values()) {
     if (tabId !== r.tabId || r.finished) continue
+    resetBrowser(r)
     const previous = r.previousTabs.pop()
     if (previous) r.tabId = previous
     else r.local.push('cancel') // 사용자가 작업 탭을 닫으면 취소
@@ -48,17 +57,39 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 })
 
 function startRun(info) {
-  const r = { info, tabId: null, previousTabs: [], local: [], step: 0, finished: false, status: '대기', message: '' }
+  const r = { info, tabId: null, previousTabs: [], local: [], step: 0, finished: false, status: '대기', message: '', browser: null, confirmationId: null }
   runs.set(info.id, r)
   runAgent(r)
     .catch(async (e) => {
       if (e instanceof Cancelled) await report(r, '취소됨', '취소했어요')
       else await report(r, '실패', '진행하지 못했어요', String(e.message || e).slice(0, 200))
     })
-    .finally(() => {
+    .finally(async () => {
       r.finished = true
+      if (r.browser) await r.browser.close()
       runs.delete(info.id)
     })
+}
+
+function resetBrowser(r) {
+  const browser = r.browser
+  r.browser = null
+  if (browser) browser.close().catch(() => {})
+}
+
+async function browserFor(r) {
+  if (r.browser?.tabId === r.tabId) return r.browser
+  resetBrowser(r)
+  const browser = new BrowserSession(chrome, r.tabId, new URL(r.info.startUrl).hostname, {
+    beforeAction: async () => {
+      await takeCommands(r)
+      if (r.finished || r.tabId !== browser.tabId) throw new StaleSnapshotError()
+    },
+  })
+  r.browser = browser
+  await browser.attach()
+  if (r.tabId !== browser.tabId) { await browser.close(); throw new StaleSnapshotError() }
+  return browser
 }
 
 async function focusRun(runId) {
@@ -84,9 +115,10 @@ async function api(r, path, body) {
 async function report(r, status, message, error = null) {
   r.status = status
   r.message = message
+  if (status !== '확인 필요') r.confirmationId = null
   await showPanel(r)
   try {
-    await api(r, `/api/agent/${r.info.id}/status`, { status, message, step: r.step, error })
+    await api(r, `/api/agent/${r.info.id}/status`, { status, message, step: r.step, error, confirmationId: r.confirmationId })
   } catch {
     // 끝난 작업(토큰 만료) 등은 무시
   }
@@ -117,54 +149,69 @@ async function runAgent(r) {
   for (let step = 0; step < MAX_STEPS; step++) {
     r.step = step
     await takeCommands(r)
-    const page = await collect(r)
-    if (!page) {
-      await sleep(1000)
-      continue
-    }
-    // 비밀번호 칸이 보이면 AI에게 묻지 않고 사용자에게 로그인을 맡긴다
-    if (page.password) {
-      await waitLogin(r, page.url)
-      history.push('사용자가 로그인·본인인증을 마침')
-      continue
-    }
-
-    const d = await api(r, `/api/agent/${info.id}/decide`, {
-      url: page.url, text: page.text, elements: page.elements, history, step,
-    })
-    await report(r, '진행 중', d.reason || '다음 단계를 찾는 중')
-
-    if (d.decision === 'done') {
-      await report(r, '완료', `${info.service} ${info.action}을(를) 마쳤어요`)
-      return
-    }
-    if (d.decision === 'fail') throw new Error(d.reason || `${info.action} 방법을 찾지 못했어요`)
-    if (d.decision === 'need_login') {
-      await waitLogin(r, page.url)
-      history.push('사용자가 로그인·본인인증을 마침')
-      continue
-    }
-    if (d.decision === 'skip') {
-      history.push(d.reason)
-      continue
-    }
-    if (d.decision === 'goto') {
-      await chrome.tabs.update(r.tabId, { url: d.url })
-      await waitLoad(r)
-      history.push(`주소 이동: ${d.url}`)
-      continue
-    }
-    if (d.decision === 'click') {
-      if (d.confirm) {
-        await waitConfirm(r, `'${d.label}'을(를) 누르면 ${info.service} ${info.action}이(가) 진행될 수 있어요. 확정할까요?`)
+    try {
+      const browser = await browserFor(r)
+      const page = await browser.snapshot()
+      // 비밀번호 칸이 보이면 AI에게 묻지 않고 사용자에게 로그인을 맡긴다
+      if (page.password) {
+        await waitLogin(r, page.url)
+        history.push('사용자 입력 뒤 화면을 다시 확인함')
+        continue
       }
-      const clicked = await click(r, d.index)
-      await sleep(800)
-      await waitLoad(r)
-      history.push(clicked ? `클릭: ${d.label}${d.confirm ? ' (사용자 확정)' : ''}` : `'${d.label}'을(를) 찾지 못함`)
-      continue
+
+      const d = await api(r, `/api/agent/${info.id}/decide`, {
+        url: page.url, text: page.text, elements: page.elements, history, step,
+        snapshotId: page.snapshotId, truncated: page.truncated, blockedFrames: page.blockedFrames,
+      })
+      await takeCommands(r)
+      await report(r, '진행 중', d.reason || '다음 단계를 찾는 중')
+
+      if (d.decision === 'done') {
+        await report(r, '완료', `${info.service} ${info.action}을(를) 마쳤어요`)
+        return
+      }
+      if (d.decision === 'fail') throw new Error(d.reason || `${info.action} 방법을 찾지 못했어요`)
+      if (d.decision === 'need_login') {
+        await waitLogin(r, page.url)
+        history.push('사용자 입력 뒤 화면을 다시 확인함')
+        continue
+      }
+      if (d.decision === 'skip') {
+        history.push(d.reason)
+        continue
+      }
+      if (d.decision === 'goto') {
+        await browser.goto(d.url, d.snapshotId)
+        await waitLoad(r)
+        const u = new URL(d.url)
+        history.push(`주소 이동: ${u.origin}${u.pathname}`)
+        continue
+      }
+      if (d.decision === 'click') {
+        if (d.confirm) {
+          await waitConfirm(r, `'${d.label}'을(를) 누르면 ${info.service} ${info.action}이(가) 진행될 수 있어요. 확정할까요?`, `${d.snapshotId}:${d.ref}`)
+        }
+        const clicked = await browser.click(d.ref, d.snapshotId)
+        await waitLoad(r)
+        history.push(clicked ? `클릭: ${d.label}${d.confirm ? ' (사용자 확정)' : ''}` : `'${d.label}'을(를) 찾지 못함`)
+        continue
+      }
+      if (d.decision === 'fill') {
+        await browser.fill(d.ref, d.text, d.snapshotId)
+        history.push(`입력: ${d.label}`)
+        continue
+      }
+      if (d.decision === 'scroll') {
+        await browser.scroll(d.direction, d.snapshotId)
+        history.push(`스크롤: ${d.direction}`)
+        continue
+      }
+      history.push(`알 수 없는 판단: ${d.decision}`)
+    } catch (error) {
+      if (!(error instanceof StaleSnapshotError)) throw error
+      history.push('화면이 바뀌어 이전 동작과 확정을 취소하고 다시 관찰함')
+      await report(r, '진행 중', '화면이 바뀌었어요. 실행하지 않고 다시 확인할게요.')
     }
-    history.push(`알 수 없는 판단: ${d.decision}`)
   }
   throw new Error('단계가 너무 많아 멈췄어요. 직접 처리로 이어가 주세요.')
 }
@@ -177,7 +224,9 @@ async function waitLogin(r, startUrl) {
   const started = Date.now()
   while (Date.now() - started < USER_WAIT_MS) {
     if ((await takeCommands(r)).includes('resume')) break
-    const page = await collect(r)
+    let page
+    try { page = await (await browserFor(r)).snapshot() }
+    catch (error) { if (!(error instanceof StaleSnapshotError)) throw error }
     if (page?.password) sawPassword = true
     if (page && !page.password && (sawPassword || page.url !== startUrl)) break
     await sleep(1000)
@@ -185,14 +234,15 @@ async function waitLogin(r, startUrl) {
   if (Date.now() - started >= USER_WAIT_MS) throw new Error('로그인을 기다리다 시간이 지났어요.')
   await sleep(1000)
   await waitLoad(r)
-  await report(r, '진행 중', '로그인을 확인했어요. 이어서 진행할게요.')
+  await report(r, '진행 중', '화면을 다시 확인하고 이어서 진행할게요.')
 }
 
-async function waitConfirm(r, message) {
+async function waitConfirm(r, message, confirmationId) {
+  r.confirmationId = confirmationId
   await report(r, '확인 필요', message)
   const started = Date.now()
   while (Date.now() - started < USER_WAIT_MS) {
-    if ((await takeCommands(r)).includes('confirm')) {
+    if ((await takeCommands(r)).some(c => c?.type === 'confirm' && c.confirmationId === confirmationId)) {
       await report(r, '진행 중', '확정했어요. 진행할게요.')
       return
     }
@@ -225,44 +275,6 @@ async function inTab(r, func, args = []) {
   }
 }
 
-function collect(r) {
-  return inTab(r, () => {
-    document.querySelectorAll('[data-idly-idx]').forEach((e) => e.removeAttribute('data-idly-idx'))
-    const selector =
-      'a, button, [role=button], [role=menuitem], [role=tab], [role=checkbox], input[type=submit], input[type=button], summary, label'
-    const elements = []
-    for (const el of document.querySelectorAll(selector)) {
-      if (el.closest('#idly-agent-panel')) continue
-      const rect = el.getBoundingClientRect()
-      const style = getComputedStyle(el)
-      if (rect.width < 4 || rect.height < 4 || style.visibility === 'hidden' || style.display === 'none') continue
-      const text = (el.innerText || el.value || el.getAttribute('aria-label') || el.title || '').trim().replace(/\s+/g, ' ').slice(0, 80)
-      if (!text) continue
-      el.setAttribute('data-idly-idx', String(elements.length))
-      elements.push({ i: elements.length, tag: el.tagName.toLowerCase(), text, href: (el.getAttribute('href') || '').slice(0, 120) })
-      if (elements.length >= 150) break
-    }
-    const password = [...document.querySelectorAll('input[type=password]')].some((e) => e.getBoundingClientRect().width > 0)
-    // 로그인 화면의 글자는 보내지 않는다
-    const text = password ? '' : (document.body?.innerText || '').replace(/\s+/g, ' ').slice(0, 2000)
-    return { url: location.href, password, elements, text }
-  })
-}
-
-function click(r, index) {
-  return inTab(
-    r,
-    (i) => {
-      const el = document.querySelector(`[data-idly-idx="${i}"]`)
-      if (!el) return false
-      el.scrollIntoView({ block: 'center' })
-      el.click()
-      return true
-    },
-    [index],
-  )
-}
-
 // 작업 탭 오른쪽 아래에 진행 패널을 띄운다 (페이지 스타일과 섞이지 않게 Shadow DOM)
 function showPanel(r) {
   const buttons =
@@ -275,7 +287,7 @@ function showPanel(r) {
           : []
   return inTab(
     r,
-    (runId, title, status, message, buttons) => {
+    (runId, title, status, message, buttons, confirmationId) => {
       let host = document.getElementById('idly-agent-panel')
       if (!host) {
         host = document.createElement('div')
@@ -303,10 +315,12 @@ function showPanel(r) {
         const button = document.createElement('button')
         button.textContent = label
         if (i === 0 && command !== 'cancel') button.className = 'primary'
-        button.onclick = () => chrome.runtime.sendMessage({ type: 'IDLY_PANEL', runId, command })
+        button.onclick = (event) => {
+          if (event.isTrusted) chrome.runtime.sendMessage({ type: 'IDLY_PANEL', runId, command, confirmationId })
+        }
         root.querySelector('.b').appendChild(button)
       })
     },
-    [r.info.id, `${r.info.service} ${r.info.action}`, r.status, r.message, buttons],
+    [r.info.id, `${r.info.service} ${r.info.action}`, r.status, r.message, buttons, r.confirmationId],
   )
 }
