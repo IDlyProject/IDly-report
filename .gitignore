@@ -4,3 +4,6 @@ __pycache__/
 .env
 data/
 *.mbox
+/node_modules
+/node_modules.nosync/
+extension/vendor/

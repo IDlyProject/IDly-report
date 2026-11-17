@@ -199,7 +199,8 @@ def _action_button(link: Dict[str, str], action: str) -> str:
 def _account_button(a: Dict[str, Any], action: str) -> str:
     # 링크는 분석 때 정해 저장해 둔 값을 쓴다. 예전 리포트(저장된 값 없음)는 DB·네트워크 없이 그 자리에서 정한다
     link = (a.get("actions") or {}).get(action) or action_links.resolve_offline(a, action, use_cache=False)
-    return _action_button(link, action)
+    button = _action_button(link, action)
+    return button.replace(' href=', f' data-account-id="{_e(a.get("id") or "")}" data-extension-action="{_e(action)}" href=', 1)
 
 
 def _security_button(a: Dict[str, Any], insight: Dict[str, Any]) -> str:
