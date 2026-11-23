@@ -10,7 +10,7 @@ let pollTimer = null;
 let justPaid = null;
 
 // 통계(static/analytics.js)가 광고 차단기에 막혀 실리지 않아도 화면은 그대로 돌아가야 한다
-for (const name of ["initAnalytics", "track", "trackScreen", "trackApiError", "trackApiOk"])
+for (const name of ["initAnalytics", "initMetaPixel", "track", "trackScreen", "trackApiError", "trackApiOk"])
   if (typeof window[name] !== "function") window[name] = () => {};
 
 // --- 로그인 없이 쓰기 ----------------------------------------------------------------
@@ -1531,6 +1531,7 @@ async function init() {
     refreshMe(),
   ]);
   initAnalytics(config.ga_id);
+  initMetaPixel(config.meta_pixel_id);
   $("#contact-link").href =
     `mailto:${config.contact_email}?subject=${encodeURIComponent("[IDly 문의]")}`;
   $("#contact-mail").textContent = config.contact_email;

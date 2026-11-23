@@ -54,6 +54,10 @@ PAID_DAYS = int(os.getenv("PAID_REPORT_DAYS", "365"))
 SAMPLE_ENABLED = os.getenv("IDLY_SAMPLE", "1") == "1"
 # Google Analytics 4 측정 ID (G-…). 비어 있으면 통계 스크립트를 싣지 않는다 (static/analytics.js)
 GA_ID = os.getenv("GA_MEASUREMENT_ID", "").strip()
+# Meta 픽셀 ID (숫자만). 비어 있거나 숫자가 아니면 화면에 넘기지 않아 픽셀을 싣지 않는다
+META_PIXEL_ID = os.getenv("META_PIXEL_ID", "").strip()
+if not re.fullmatch(r"\d{6,20}", META_PIXEL_ID):
+    META_PIXEL_ID = ""
 ID_LOGIN_PROVIDERS = {"naver", "nate"}
 # 1이면 실패 응답에 debug(메일 서버 원문 오류·시도한 사용자 이름·스택)를 붙이고 개발용 로그인을 연다. 배포 때는 0
 DEBUG = os.getenv("IDLY_DEBUG", "1") == "1"
@@ -586,7 +590,7 @@ def _open(report: "Report") -> bool:
 
 @app.get("/api/config")
 def config():
-    return {**prices(), "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG, "ga_id": GA_ID,
+    return {**prices(), "payment_mode": PAYMENT_MODE, "sample": SAMPLE_ENABLED, "debug": DEBUG, "ga_id": GA_ID, "meta_pixel_id": META_PIXEL_ID,
             "contact_email": BUSINESS["email"], "business": BUSINESS, "profile_options": PROFILE_OPTIONS}
 
 

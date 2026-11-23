@@ -1,5 +1,5 @@
-// Google Analytics 4. 측정 ID(GA_MEASUREMENT_ID)가 없으면 아무것도 싣지 않고 track()은 조용히 넘어간다.
-// 보내지 않는 것: 메일 주소·도메인, 리포트 id, 게스트 토큰, 할인 코드, 선택 정보(나이대·성별·하는 일), 리포트 내용
+// Google Analytics 4와 Meta 픽셀. 각 ID(GA_MEASUREMENT_ID, META_PIXEL_ID)가 없으면 아무것도 싣지 않고 track()은 조용히 넘어간다.
+// 둘 다 보내지 않는 것: 메일 주소·도메인, 리포트 id, 게스트 토큰, 할인 코드, 선택 정보(나이대·성별·하는 일), 리포트 내용
 window.dataLayer = window.dataLayer || [];
 function gtag() {
   window.dataLayer.push(arguments);
@@ -43,7 +43,65 @@ function initAnalytics(id) {
   });
 }
 
+// --- Meta 픽셀 (광고 성과 측정) ---------------------------------------------------------
+// META_PIXEL_ID가 없으면 싣지 않는다. 보내는 것은 아래 세 가지뿐이고, 어느 이벤트에도 값(파라미터)을 붙이지 않는다.
+//   PageView: 랜딩을 연 것 / StartReport: 시작 버튼을 누른 것 / Lead: 메일 연결 정보를 제출한 것
+// 픽셀은 GA와 달리 현재 주소(dl)와 이전 주소(rl)를 그대로 보낸다. 그래서
+//   - 리포트 화면(#r=<리포트 id>)이나, 주소에 로그인 코드·할인 코드가 남은 화면에서는 아무것도 보내지 않는다
+//   - history가 바뀔 때마다 PageView를 자동으로 보내는 기능(disablePushState)과
+//     버튼 문구·페이지 정보를 알아서 긁어 가는 자동 설정(autoConfig)을 끈다
+//   - 고급 매칭(이메일·전화번호)은 쓰지 않는다. 메일 연결 화면에 이메일 입력칸이 있으므로
+//     이벤트 관리자의 '자동 고급 매칭'도 반드시 꺼 둔다 (코드로는 끌 수 없는 설정)
+let metaOn = false;
+const META_EVENTS = {
+  landing_start_click: ["trackCustom", "StartReport"],
+  // 메일 연결 결과를 기다리는 몇 초 동안은 주소가 #connect라서 안전하다. 성공 뒤에는 주소가 #r=<id>로 바뀐다
+  connect_submit: ["track", "Lead"],
+};
+
+function metaSafe() {
+  if (/(^|[#&])r=/.test(location.hash)) return false;
+  if (/[?&](code|state|discount|token)=/.test(location.search)) return false;
+  const from = document.referrer;
+  if (from.startsWith(location.origin) && /[?&](code|state)=/.test(from)) return false;
+  return true;
+}
+
+function metaSend(kind, name) {
+  if (!metaOn || !metaSafe()) return;
+  try {
+    window.fbq(kind, name);
+  } catch {
+    // 광고 측정 때문에 화면이 멈추면 안 된다
+  }
+}
+
+function initMetaPixel(id) {
+  if (metaOn || !/^\d{6,20}$/.test(String(id || ""))) return;
+  metaOn = true;
+  // Meta 기본 설치 코드와 같은 대기열. 스크립트가 실리기 전 호출은 쌓아 두었다가 보낸다
+  const fbq = function () {
+    if (fbq.callMethod) fbq.callMethod.apply(fbq, arguments);
+    else fbq.queue.push(arguments);
+  };
+  if (!window._fbq) window._fbq = fbq;
+  fbq.push = fbq;
+  fbq.loaded = true;
+  fbq.version = "2.0";
+  fbq.queue = [];
+  fbq.disablePushState = true;
+  window.fbq = fbq;
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = "https://connect.facebook.net/en_US/fbevents.js";
+  document.head.append(s);
+  fbq("set", "autoConfig", false, String(id));
+  fbq("init", String(id));
+  metaSend("track", "PageView");
+}
+
 function track(name, params = {}) {
+  if (META_EVENTS[name]) metaSend(...META_EVENTS[name]);
   if (!gaOn) return;
   try {
     gtag("event", name, { page_location: gaLocation(), page_referrer: gaReferrer(), ...params });
