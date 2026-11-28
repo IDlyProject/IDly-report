@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 import app  # noqa: E402
 import db  # noqa: E402
 
-VALID = {"company": "테스트 회사", "name": "홍길동", "contact": "boss@example.com", "employees": "1~10명", "message": "문의합니다"}
+VALID = {"company": "테스트 회사", "name": "홍길동", "contact": "boss@example.com", "employees": "1만 명 미만", "message": "문의합니다"}
 SMTP_ENV = {"SMTP_USER": "sender@example.com", "SMTP_PASSWORD": "pw", "SMTP_PORT": "465"}
 
 

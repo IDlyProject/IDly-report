@@ -135,6 +135,7 @@ body.is-landing .app { max-width: none; }
 .ld-card { --card: var(--ld-band); --hill: var(--ld-accent-bg); display: flex; flex-direction: column; min-height: 340px; padding: 40px 28px 0; overflow: hidden; border-radius: 24px; background: var(--card); text-align: center; }
 .ld-card:nth-child(2) { --card: var(--ld-tint); --hill: var(--ld-hill-2); }
 .ld-card:nth-child(3) { --card: var(--ld-gray-5); --hill: var(--ld-rule-2); }
+.ld-step { align-self: center; margin-bottom: 12px; padding: 4px 12px; border-radius: 999px; background: var(--ld-surface); font-size: 0.8125rem; font-weight: 700; color: var(--ld-navy-2); }
 .ld-card h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.4; color: var(--ld-navy); }
 .ld-card p { margin-top: 8px !important; font-size: 0.9375rem; line-height: 1.5; color: var(--ld-ink-2); }
 .ld-card-art { position: relative; display: flex; justify-content: center; margin-top: auto; padding-block: 32px 20px; }
@@ -160,8 +161,9 @@ body.is-landing .app { max-width: none; }
 .ld-together-links a:hover { color: var(--ld-navy-2); }
 .ld-together-links span { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--ld-surface); box-shadow: var(--ld-chip-shadow); }
 
-/* 기업 서비스: 카드 격자 + 옆 배너 */
+/* 기업 제휴(구독 서비스): 카드 격자 + 옆 배너 */
 .ld-hi { color: var(--ld-hi); }
+.ld-say-sub { margin-top: 8px !important; color: var(--ld-ink-2); }
 .ld-office { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; margin-top: 32px; align-items: stretch; }
 .ld-supports { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; list-style: none; }
 .ld-supports li { padding: 24px; border-radius: 20px; background: var(--ld-surface); box-shadow: var(--ld-shadow); font-size: 0.875rem; color: var(--ld-ink-2); }

@@ -276,17 +276,15 @@ def _timeline(accounts: List[Dict[str, Any]], created: datetime) -> str:
 
 
 def _office(accounts: List[Dict[str, Any]]) -> str:
-    """개인 리포트에서 업무 계정이 보이면 사무실 단위 정리로 잇는다 (B2C2B). PDF에는 넣지 않는다."""
-    work = [a for a in accounts if a.get("category") in WORK_CATEGORIES]
-    lead = (f"이 메일함에서만 업무용 계정이 {len(work)}개 나왔어요. 눌러서 문의하기"
-            if work else "직원마다 흩어진 업무 계정과 구독도 찾을 수 있어요. 눌러서 문의하기")
+    """개인 리포트에서 구독 서비스 운영사로 잇는 제휴 유입구 (B2B2C). PDF에는 넣지 않는다."""
+    lead = "떠나는 고객이 직접 남긴 이유를 받아 보세요. 눌러서 문의하기"
     # 화면에 언제 띄울지는 app.js가 정한다 (스크롤로 요약을 지나면 내려오고, 닫으면 다시 뜨지 않는다)
     return ('<aside class="rp-pop" aria-label="IDly 알림" hidden>'
             '<a class="rp-pop-body" href="#office" '
             'data-ga="office_inquiry_click" data-ga-label="report_pop">'
             '<span class="rp-pop-head"><img src="/static/assets/logo-owl.svg" alt="" width="20" height="20">'
             '<span class="rp-pop-app">IDLY</span><span class="rp-pop-time">지금</span></span>'
-            '<b class="rp-pop-title">회사 계정도 이렇게 정리해 보세요</b>'
+            '<b class="rp-pop-title">구독 서비스를 운영하고 계신가요?</b>'
             f'<span class="rp-pop-text">{lead}</span></a>'
             '<button class="rp-pop-close" type="button" aria-label="알림 닫기"><svg viewBox="0 0 16 16" aria-hidden="true">'
             '<path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'

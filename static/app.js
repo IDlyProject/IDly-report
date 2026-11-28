@@ -1033,7 +1033,7 @@ function closePaySheet() {
   closeLayer($("#pay-sheet"));
 }
 
-// 기업 서비스 문의: 보내면 서버가 조직 메일로 전달한다. 이 화면은 로그인 없이 열린다
+// 구독 서비스 제휴 문의: 보내면 서버가 조직 메일로 전달한다. 이 화면은 로그인 없이 열린다
 function renderOffice() {
   $("#office-form").hidden = false;
   $("#office-done").hidden = true;
@@ -1047,10 +1047,10 @@ async function onOffice(event) {
   event.preventDefault();
   const form = event.target;
   showError("#office-error", "");
-  if (!form.company.value.trim()) return showError("#office-error", "회사명을 입력해 주세요.");
+  if (!form.company.value.trim()) return showError("#office-error", "회사·서비스명을 입력해 주세요.");
   if (!form.name.value.trim()) return showError("#office-error", "담당자명을 입력해 주세요.");
   if (!form.contact.value.trim()) return showError("#office-error", "연락받을 전화번호나 이메일을 입력해 주세요.");
-  if (!form.employees.value) return showError("#office-error", "직원 수를 골라 주세요.");
+  if (!form.employees.value) return showError("#office-error", "서비스 규모를 골라 주세요.");
   const button = $("#office-send");
   button.disabled = true;
   button.textContent = "보내는 중…";
@@ -1080,7 +1080,7 @@ async function onOffice(event) {
   }
 }
 
-// 기업 서비스 알림: 위쪽 요약을 지나 내려가면 위에서 내려오고, 닫으면 그 리포트에서는 다시 뜨지 않는다
+// 제휴 알림: 위쪽 요약을 지나 내려가면 위에서 내려오고, 닫으면 그 리포트에서는 다시 뜨지 않는다
 const officePopClosed = new Set();
 let officePopId = null;
 const officePop = () => $("#report-body .rp-pop");

@@ -85,7 +85,8 @@ _feedback_buckets: Dict[str, tuple[int, float]] = {}
 _feedback_lock = threading.Lock()
 OFFICE_LIMIT = 5
 OFFICE_WINDOW = 60 * 60
-OFFICE_EMPLOYEES = ("1~10명", "11~50명", "51~200명", "201명 이상")
+# 제휴 문의의 서비스 규모(월 사용자 수). 필드 이름 employees는 API 호환을 위해 그대로 둔다
+OFFICE_EMPLOYEES = ("1만 명 미만", "1만~10만 명", "10만~100만 명", "100만 명 이상")
 _office_buckets: Dict[str, tuple[int, float]] = {}
 _office_lock = threading.Lock()
 
@@ -237,7 +238,7 @@ def _send_office_mail(company: str, name: str, contact: str, employees: str, mes
     # 연락처가 메일 주소면 답장 한 번으로 담당자에게 간다
     if re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", contact):
         mail["Reply-To"] = contact
-    mail.set_content(f"회사명: {company}\n담당자명: {name}\n연락처: {contact}\n직원 수: {employees}\n\n문의 내용:\n{message or '(없음)'}\n")
+    mail.set_content(f"회사명: {company}\n담당자명: {name}\n연락처: {contact}\n서비스 규모(월 사용자): {employees}\n\n문의 내용:\n{message or '(없음)'}\n")
     host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
     port = int(os.getenv("SMTP_PORT", "465"))
     try:
@@ -270,7 +271,7 @@ def office_inquiry(body: OfficeInquiry, request: Request):
     if not 5 <= len(contact) <= 100:
         raise ApiError(400, "연락받을 전화번호나 이메일을 입력해 주세요.")
     if body.employees not in OFFICE_EMPLOYEES:
-        raise ApiError(400, "직원 수를 골라 주세요.")
+        raise ApiError(400, "서비스 규모를 골라 주세요.")
     if len(message) > 1000:
         raise ApiError(400, "문의 내용은 1,000자 이내로 입력해 주세요.")
     ip = request.client.host if request.client else "unknown"

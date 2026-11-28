@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/static/assets/logo-owl.svg" type="image/svg+xml">
-<title>IDly 계정 리포트 · 메일로 찾는 내 계정과 구독</title>
-<meta name="description" content="메일만 연결하면 가입한 서비스, 매달 나가는 구독료, 확인이 필요한 보안 알림을 찾아 리포트로 정리해 드려요.">
+<title>IDly · 흩어진 계정과 구독, 정리한 만큼 리워드로</title>
+<meta name="description" content="메일 하나로 흩어진 계정과 구독을 찾고, 귀찮은 해지는 에이전트에게 맡기세요. 떠난 이유를 남기면 리워드로 새 구독을 더 싸게 써 볼 수 있어요.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/static/report.css">
 <link rel="stylesheet" href="/static/style.css">
@@ -15,8 +15,10 @@
 <body>
 <div class="app">
 
-<!-- 시작 = IDly 소개. 구성은 피그마 IDly_Product 'image 1'을 따르고, 내용은 IDly의 기존 문구만 쓴다.
-     메인 페르소나: IT 담당자 없이 작은 사무실을 운영하는 대표. 결제·가격 이야기는 하지 않는다 -->
+<!-- 시작 = IDly 소개. 구성은 피그마 IDly_Product 'image 1'을 따른다. 내용은 2026 신한 스퀘어브릿지 IR 덱(B2B2C 피벗)을 따른다.
+     소개는 B2C 기준: 구독·계정을 정리하는 2030 (덱의 '정미룸'). 정리하고 → 대신 실행하고 → 후기 남기고 → 리워드로 새 구독.
+     B2B 유입구: 구독 서비스를 운영하는 기업 (덱의 '남아라'). 떠나는 이유를 듣고, 붙잡고, 새 고객을 얻는다. 성과 수수료, 선불 0원.
+     리워드·제휴 혜택은 아직 열리지 않았으므로 '준비 중'으로 표시한다 -->
 <main id="intro" class="screen landing" hidden>
   <header class="ld-top" id="ld-top">
     <div class="ld-container ld-top-in">
@@ -24,7 +26,7 @@
       <nav class="ld-top-links" aria-label="바로가기">
         <a href="#home" data-my hidden>내 리포트</a>
         <a href="#sample" data-sample-link data-ga="sample_click" data-ga-label="nav">샘플 리포트</a>
-        <a href="#ld-office-b2b">기업 서비스</a>
+        <a href="#ld-office-b2b">기업 제휴</a>
         <a href="#help" data-ga="help_open">도움말</a>
       </nav>
       <!-- 계정이 있으면 로그인해서 내 리포트로 (계정으로 로그인하지 않았을 때만 보인다). 로그인하면 '내 리포트'가 대신 보인다 -->
@@ -39,8 +41,8 @@
   <section class="ld-hero">
     <div class="ld-container ld-hero-in">
       <div>
-        <h1>흩어진 계정과 구독,<br>이메일 하나로 정리하세요</h1>
-        <p class="ld-hero-sub">설치도, 세팅도, 가입도 없이 몇 분이면 돼요.</p>
+        <h1>흩어진 계정과 구독,<br>정리한 만큼 돌려받으세요</h1>
+        <p class="ld-hero-sub">메일 하나로 찾고, 귀찮은 해지는 맡기고,<br>남긴 후기는 리워드로 돌려드려요.</p>
         <a class="ld-btn ld-btn-ghost ld-hero-more" href="#sample" data-sample-link data-ga="sample_click" data-ga-label="hero">샘플 리포트 보기</a>
       </div>
       <div class="ld-hero-side">
@@ -72,14 +74,14 @@
   <section class="ld-sec ld-pains" id="ld-pains">
     <div class="ld-container">
       <span class="ld-jump" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <h2 class="ld-say">계정 관리,<br>이래서 어려웠어요</h2>
+      <h2 class="ld-say">해야 하는 건 아는데,<br>귀찮았죠</h2>
       <ol class="ld-lines">
         <li class="ld-line">가입한 서비스는 <mark class="ld-chip" data-i="0">너무 많은데<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-        <li class="ld-line">어디에 뭐가 있는지 <mark class="ld-chip" data-i="1">기억도 안 나고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-        <li class="ld-line">해지한 줄 알았던 구독은 <mark class="ld-chip" data-i="2">아직도 결제되고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark> 있어요.</li>
-        <li class="ld-line">퇴사한 직원 계정은 <mark class="ld-chip" data-i="3">아직 살아 있고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-        <li class="ld-line">유출 뉴스가 떠도 <mark class="ld-chip" data-i="4">우리 계정인지 몰라요.<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
-        <li class="ld-line ld-line-end">메일에 남은 흔적으로 <strong>한 번에 정리해</strong> 드려요.</li>
+        <li class="ld-line">해지한 줄 알았던 구독은 <mark class="ld-chip" data-i="1">아직도 결제되고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">해지 메뉴는 <mark class="ld-chip" data-i="2">어디 있는지 모르겠고<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">유출 뉴스가 떠도 <mark class="ld-chip" data-i="3">내 계정인지 몰라서<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line">결국 <mark class="ld-chip" data-i="4">다음에 하자며 미뤄요.<span class="ld-tick" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></mark></li>
+        <li class="ld-line ld-line-end">어차피 해야 하는 그 수고, <strong>IDly가 대신하고 리워드로</strong> 돌려드려요.</li>
       </ol>
     </div>
   </section>
@@ -88,8 +90,8 @@
   <aside class="ld-pop" id="ld-pop" aria-label="IDly 알림" hidden>
     <button class="ld-pop-body" type="button" id="ld-b2b-open" aria-controls="ld-office-b2b" aria-expanded="false" data-ga="b2b_open">
       <span class="ld-pop-head"><img src="/static/assets/logo-owl.svg" alt="" width="20" height="20"><span class="ld-pop-app">IDLY</span><span class="ld-pop-time">지금</span></span>
-      <b class="ld-pop-title">이런 문제는 기업에도 있어요</b>
-      <span class="ld-pop-text">퇴사자 계정, 안 쓰는 업무 구독까지. 눌러서 보기</span>
+      <b class="ld-pop-title">구독 서비스를 운영하고 계신가요?</b>
+      <span class="ld-pop-text">고객이 떠나는 진짜 이유를 들어 보세요. 눌러서 보기</span>
     </button>
     <button class="ld-pop-close" type="button" id="ld-pop-close" aria-label="알림 닫기"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
   </aside>
@@ -99,9 +101,9 @@
     <div class="ld-container">
       <h2 class="ld-say"><span class="ld-hi">IDly</span>가 해 드리는 일</h2>
       <div class="ld-cards">
-        <article class="ld-card"><h3>흩어진 계정, 한 번에 정리돼요</h3><p>몇 개에 가입했는지 몰라도 괜찮아요. 메일에 남은 흔적을 모아 서비스별로 묶어 드려요.</p><div class="ld-card-art"><img src="/static/assets/ic-user.svg" alt="" width="56" height="56"></div></article>
-        <article class="ld-card"><h3>탈퇴와 해지는 에이전트에게 맡겨요</h3><p>에이전트가 내 브라우저에서 메뉴를 찾아 진행해요. 로그인은 내가, 마지막 확정도 내가 해요.</p><div class="ld-card-art"><img src="/static/assets/ic-key.svg" alt="" width="56" height="56"></div></article>
-        <article class="ld-card"><h3>낯선 로그인, 놓치지 않게</h3><p>새 기기 로그인이나 의심스러운 시도 안내를 메일에서 모아 먼저 알려 드려요.</p><div class="ld-card-art"><img src="/static/assets/ic-shield.svg" alt="" width="56" height="56"></div></article>
+        <article class="ld-card"><span class="ld-step">발견 · 무료</span><h3>흩어진 구독을 한눈에</h3><p>메일 하나로 계정, 구독, 무료 체험을 한곳에 모아요. 확인이 필요한 보안 알림도 함께 알려 드려요.</p><div class="ld-card-art"><img src="/static/assets/ic-user.svg" alt="" width="56" height="56"></div></article>
+        <article class="ld-card"><span class="ld-step">실행 · 준비 중</span><h3>귀찮은 절차는 맡기세요</h3><p>해지와 변경은 에이전트가 메뉴를 찾아 대신 진행해요. 로그인과 마지막 확정은 내가 해요.</p><div class="ld-card-art"><img src="/static/assets/ic-key.svg" alt="" width="56" height="56"></div></article>
+        <article class="ld-card"><span class="ld-step">리워드 · 준비 중</span><h3>후기 남기면 리워드로</h3><p>떠난 이유를 직접 남기면 리워드가 쌓여요. 리워드와 제휴 혜택으로 새 구독을 더 싸게 써 봐요.</p><div class="ld-card-art"><img src="/static/assets/ic-shield.svg" alt="" width="56" height="56"></div></article>
       </div>
     </div>
   </section>
@@ -118,36 +120,39 @@
             <p>아니요. 비밀번호는 분석하는 동안만 쓰고 저장하지 않아요. 메일 원문도 저장하지 않고, 찾은 계정 목록만 리포트로 남겨요.</p></details>
           <details><summary data-ga="faq_toggle" data-ga-label="landing_delete_app_password">분석이 끝나면 앱 비밀번호를 지워도 되나요?</summary>
             <p>네. 메일 서비스 보안 설정에서 앱 비밀번호를 지워도 만든 리포트는 그대로 남아요. 다시 분석할 때 새로 만들면 돼요.</p></details>
+          <details><summary data-ga="faq_toggle" data-ga-label="landing_feedback">남긴 후기는 기업에 그대로 가나요?</summary>
+            <p>보낼지 말지는 내가 골라요. 보내기로 한 후기만 그 서비스에 전달되고, 메일 주소 같은 연락처는 넘기지 않아요.</p></details>
         </div>
       </div>
       <div class="ld-together">
-        <h3>이런 문제는 <span class="ld-hi">기업</span>에도 있어요</h3>
-        <p>퇴사자 계정, 안 쓰는 업무 구독까지.</p>
+        <h3><span class="ld-hi">구독 서비스</span>를 운영하신다면</h3>
+        <p>떠나는 고객의 이유를 듣고, 붙잡고, 새 고객까지.</p>
         <div class="ld-together-links">
-          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-user.svg" alt="" width="26" height="26"></span>퇴사자 계정 정리</a>
-          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-event.svg" alt="" width="26" height="26"></span>회사 전체 구독료</a>
-          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-danger.svg" alt="" width="26" height="26"></span>보안 알림 모아 보기</a>
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-mail.svg" alt="" width="26" height="26"></span>떠나는 이유 듣기</a>
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-user.svg" alt="" width="26" height="26"></span>떠나는 고객 붙잡기</a>
+          <a href="#ld-office-b2b"><span><img src="/static/assets/ic-event.svg" alt="" width="26" height="26"></span>새 고객 얻기</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 5. 기업 서비스 (B2B). 가격은 말하지 않는다. 카드 + 옆 배너 구성은 image 3 -->
+  <!-- 5. 기업 제휴 (B2B): 구독 서비스 운영사. 사용자가 정리하는 바로 그 순간을 기업 쪽에 잇는다. 카드 + 옆 배너 구성은 image 3 -->
   <section class="ld-sec ld-band" id="ld-office-b2b">
     <div class="ld-container">
-      <h2 class="ld-say"><span class="ld-hi">기업</span>에서는 이런 걸 지원해요</h2>
+      <h2 class="ld-say"><span class="ld-hi">구독 서비스</span>에는 이렇게 도움이 돼요</h2>
+      <p class="ld-say-sub">사용자가 구독을 정리하는 바로 그 순간, 떠나는 고객은 붙잡고 새로운 고객은 얻어요.</p>
       <div class="ld-office">
       <ul class="ld-supports">
-        <li><b>퇴사자 계정 정리</b>나간 직원이 가입했던 업무 서비스를 찾아 정리할 계정을 알려 드려요.</li>
-        <li><b>회사 전체 구독료</b>누가 무엇을 얼마에 쓰는지, 다음 결제일까지 한 화면에 모아요.</li>
-        <li><b>중복·안 쓰는 구독</b>같은 서비스를 여러 명이 따로 결제하거나 아무도 안 쓰는 구독을 찾아요.</li>
-        <li><b>보안 알림 모아 보기</b>업무 계정의 새 기기 로그인, 비밀번호 변경 알림을 먼저 보여 드려요.</li>
-        <li><b>근거 메일</b>왜 정리해야 하는지 결제 영수증과 로그인 메일로 보여 드려요.</li>
-        <li><b>정리 대행</b>탈퇴, 해지, 비밀번호 변경은 에이전트가 대신하고 승인만 해요. 지금 개발 중이에요.</li>
+        <li><b>떠나는 진짜 이유</b>실제로 써 본 사람이 직접 쓴 서술형 후기를 받아요. 패널이 아닌 실사용자의 목소리예요.</li>
+        <li><b>해지 직전 맞춤 제안</b>떠나려는 고객에게 할인이나 혜택을 제안해 붙잡고, 이탈 사유도 함께 확보해요.</li>
+        <li><b>이탈 고객을 우리 고객으로</b>다른 서비스를 정리하는 사용자에게 무료 체험을 제안해 신규 가입으로 이어요.</li>
+        <li><b>혜택만 등록하면 끝</b>할인과 무료 체험 혜택을 등록하면 IDly 사용자에게 노출돼요.</li>
+        <li><b>떠나는 이유 한눈에</b>가격 부담, 잘 안 씀처럼 이탈 사유와 붙잡은 고객, 유료 전환을 매달 정리해 드려요.</li>
+        <li><b>선불 0원, 성과 수수료</b>붙잡았거나 유료로 전환된 고객만큼만 월 단위로 정산해요.</li>
       </ul>
         <aside class="ld-office-side">
-          <p>올해 12월, 회사 3곳과 함께 파일럿을 진행해요. 우리 회사도 해 보고 싶다면 편하게 물어봐 주세요.</p>
-          <a class="ld-btn ld-btn-main" href="#office" data-ga="office_inquiry_click" data-ga-label="b2b">기업 서비스 문의하기</a>
+          <p>함께할 첫 제휴 서비스를 찾고 있어요. 구독 서비스를 운영하고 있다면 편하게 물어봐 주세요.</p>
+          <a class="ld-btn ld-btn-main" href="#office" data-ga="office_inquiry_click" data-ga-label="b2b">제휴 문의하기</a>
           <img src="/static/assets/owl-stand.png" alt="" width="120" height="107">
         </aside>
       </div>
@@ -164,7 +169,7 @@
         </div>
         <div class="ld-actions">
           <button class="ld-btn ld-btn-white" type="button" data-start data-ga-label="footer">무료 리포트 받기</button>
-          <a class="ld-link" href="#office" data-ga="office_inquiry_click" data-ga-label="landing">기업 서비스 문의하기</a>
+          <a class="ld-link" href="#office" data-ga="office_inquiry_click" data-ga-label="landing">구독 서비스 제휴 문의하기</a>
         </div>
       </div>
     </div>
@@ -184,8 +189,8 @@
           <a href="#help" data-ga="help_open">도움말</a>
         </span></p>
         <p class="ld-foot-row"><b>기업</b><span class="ld-foot-list">
-          <a href="#ld-office-b2b">기업 서비스 소개</a>
-          <a href="#office" data-ga="office_inquiry_click" data-ga-label="footer">기업 서비스 문의</a>
+          <a href="#ld-office-b2b">구독 서비스 제휴 소개</a>
+          <a href="#office" data-ga="office_inquiry_click" data-ga-label="footer">제휴 문의</a>
         </span></p>
       </div>
       <nav class="ld-foot-bottom ld-foot-list" aria-label="약관과 회사 정보">
@@ -197,31 +202,32 @@
   </footer>
 </main>
 
-<!-- 기업 서비스 문의: 보내면 서버가 조직 메일(CONTACT_EMAIL)로 전달한다 -->
+<!-- 구독 서비스 제휴 문의: 보내면 서버가 조직 메일(CONTACT_EMAIL)로 전달한다.
+     'employees' 이름은 API 호환을 위해 그대로 두고, 값은 서비스 규모(월 사용자 수)를 받는다 -->
 <main id="office" class="screen" hidden>
   <header class="bar-head">
     <a class="back" href="#" aria-label="뒤로"><img src="/static/assets/ic-back.svg" alt="" width="13.3333" height="13.3095"></a>
   </header>
   <form id="office-form" class="content form-col" novalidate>
     <div class="title">
-      <h1>기업 서비스 문의</h1>
+      <h1>구독 서비스 제휴 문의</h1>
       <p>남겨 주시면 IDly 팀이 확인하고 연락드려요.</p>
     </div>
-    <label class="field"><span class="field-label">회사명</span>
+    <label class="field"><span class="field-label">회사·서비스명</span>
       <span class="input"><input name="company" autocomplete="organization" maxlength="100" required></span></label>
     <label class="field"><span class="field-label">담당자명</span>
       <span class="input"><input name="name" autocomplete="name" maxlength="50" required></span></label>
     <label class="field"><span class="field-label">연락처 (전화 또는 이메일)</span>
       <span class="input"><input name="contact" maxlength="100" required></span></label>
-    <label class="field"><span class="field-label">직원 수</span>
+    <label class="field"><span class="field-label">서비스 규모 (월 사용자 수)</span>
       <span class="input"><select name="employees" required>
         <option value="">선택해 주세요</option>
-        <option>1~10명</option><option>11~50명</option><option>51~200명</option><option>201명 이상</option>
+        <option>1만 명 미만</option><option>1만~10만 명</option><option>10만~100만 명</option><option>100만 명 이상</option>
       </select></span></label>
     <label class="field"><span class="field-label">문의 내용 (선택)</span>
-      <span class="input input-area"><textarea name="message" maxlength="1000"></textarea></span></label>
+      <span class="input input-area"><textarea name="message" maxlength="1000" placeholder="예: 해지 사유를 더 알고 싶어요, 무료 체험 혜택을 등록하고 싶어요"></textarea></span></label>
     <input class="office-trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <p class="field-hint">제출한 내용은 기업 서비스 검토 목적으로만 사용돼요.</p>
+    <p class="field-hint">제출한 내용은 제휴 검토 목적으로만 사용돼요.</p>
     <p class="error" id="office-error" role="alert" hidden></p>
   </form>
   <div class="center" id="office-done" hidden>
